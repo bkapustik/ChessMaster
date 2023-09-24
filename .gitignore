@@ -66,3 +66,41 @@ artifacts/
 *.user
 *.userprefs
 *.sln.docstates
+
+# Ignore Visual Studio files
+.vscode/
+.vs/
+bin/
+obj/
+*.user
+*.suo
+*.cache
+*.log
+*.swp
+*.sln.docstates
+
+# Ignore Resharper and Rider files
+_ReSharper*/
+.idea/
+*.suo
+*.resharper
+
+# Ignore user-specific Visual Studio files
+*.suo
+*.user
+*.suo
+*.userprefs
+*.sln.docstates
+
+# Ignore NuGet packages
+packages/
+*.nupkg
+# Including project-specific settings files
+## User-specific files
+*.suo
+*.user
+*.suo
+*.userprefs
+*.sln.docstates
+## Mono Auto Generated Files
+mono_crash.*
