@@ -1,10 +1,9 @@
-﻿using ChessMaster.RobotDriver.Infrastructure;
-using ChessMaster.RobotDriver.State;
+﻿using ChessMaster.Robot.State;
 using System.Numerics;
 
-namespace ChessMaster.RobotDriver.Driver
+namespace ChessMaster.Robot.Robot
 {
-    public class MockRobotDriver : IRobotDriver
+    public class MockRobot : IRobot
     {
         private bool running = false;
         private Vector3 position = new Vector3(0f, 0f, 0f);
@@ -12,7 +11,7 @@ namespace ChessMaster.RobotDriver.Driver
         public Vector3 Limits { get { return new Vector3(-originX, -originY, -originZ); } }
 
 
-        public MockRobotDriver()
+        public MockRobot()
         {
         }
 

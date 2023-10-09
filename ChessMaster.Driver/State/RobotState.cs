@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace ChessMaster.RobotDriver.State
+namespace ChessMaster.Robot.State
 {
     public struct RobotState
     {

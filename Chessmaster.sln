@@ -5,11 +5,13 @@ VisualStudioVersion = 17.7.34018.315
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ControllerApp", "ControllerApp\ControllerApp.csproj", "{49E5B26F-B26A-4435-8BFC-FF2FB937665A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChessMaster.RobotDriver", "ChessMaster.Driver\ChessMaster.RobotDriver.csproj", "{18CDBF08-905E-494E-857C-32D6608A149C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChessMaster.Robot", "ChessMaster.Driver\ChessMaster.Robot.csproj", "{18CDBF08-905E-494E-857C-32D6608A149C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChessMaster.Chess", "ChessMaster.Chess\ChessMaster.Chess.csproj", "{2B713943-5AE9-46A5-8E52-CC688E8746A7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChessMaster.Chess", "ChessMaster.Chess\ChessMaster.Chess.csproj", "{2B713943-5AE9-46A5-8E52-CC688E8746A7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChessMaster.Space", "ChessMaster.Space\ChessMaster.Space.csproj", "{BC71D726-08B1-4251-AD5A-690E13FC0E3A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChessMaster.Space", "ChessMaster.Space\ChessMaster.Space.csproj", "{BC71D726-08B1-4251-AD5A-690E13FC0E3A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChessMaster.CommandFactory", "ChessMaster.CommandDriver\ChessMaster.CommandFactory.csproj", "{05AA2B5B-AA60-4ABB-AA3B-FBCD7610A652}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{BC71D726-08B1-4251-AD5A-690E13FC0E3A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BC71D726-08B1-4251-AD5A-690E13FC0E3A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BC71D726-08B1-4251-AD5A-690E13FC0E3A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{05AA2B5B-AA60-4ABB-AA3B-FBCD7610A652}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{05AA2B5B-AA60-4ABB-AA3B-FBCD7610A652}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{05AA2B5B-AA60-4ABB-AA3B-FBCD7610A652}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{05AA2B5B-AA60-4ABB-AA3B-FBCD7610A652}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,9 +1,9 @@
 ﻿using System.Numerics;
-using ChessMaster.RobotDriver.State;
+using ChessMaster.Robot.State;
 
-namespace ChessMaster.RobotDriver.Infrastructure
+namespace ChessMaster.Robot.Robot
 {
-    public interface IRobotDriver
+    public interface IRobot
     {
         Vector3 Limits { get; }
 
