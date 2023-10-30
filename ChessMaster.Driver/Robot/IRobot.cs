@@ -3,36 +3,26 @@ using ChessMaster.Robot.State;
 
 namespace ChessMaster.Robot.Robot
 {
+    public delegate void CommandsCompletedEvent(object? o, RobotEventArgs e);
+
     public interface IRobot
     {
+        void SubscribeToCommandsCompletion(CommandsCompletedEvent e);
         Vector3 Limits { get; }
-
         Task Initialize();
-
-        Task Reset();
-
-        Task Home();
-
-        Task Move(float x, float y, float z);
-
-        Task MoveXY(float x, float y);
-
-        Task MoveX(float x);
-
-        Task MoveY(float y);
-
-        Task MoveZ(float z);
-
-        Task OpenGrip();
-
-        Task CloseGrip();
-
+        void Reset();
+        void Home();
+        void Move(float x, float y, float z);
+        void Move(Vector3 targetPosition);
+        void MoveXY(float x, float y);
+        void MoveX(float x);
+        void MoveY(float y);
+        void MoveZ(float z);
+        void OpenGrip();
+        void CloseGrip();
         Task<RobotState> GetState();
-
-        Task Pause();
-
-        Task Resume();
-
-        Task Stop();
+        void Pause();
+        void Resume();
+        void Stop();
     }
 }

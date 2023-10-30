@@ -1,5 +1,6 @@
-﻿using ChessMaster.CommandFactory;
+﻿using ChessMaster.Robot.Robot;
 using ChessMaster.Robot.SerialResponse;
+using ChessMaster.Robot.State;
 using System.Diagnostics;
 using System.IO.Ports;
 using System.Numerics;
@@ -12,37 +13,23 @@ public class SerialDriver : ISerialDriver
     private SerialPort serialPort = null;
     private List<string> comlog = new List<string>();
 
+    private Queue<string> commandQueue = new Queue<string>();
+
     /// <summary>
     /// Alarms are written out to console ad-hoc, this is the last parsed alarm value.
     /// </summary>
     private int lastAlarm = 0;
 
-    private readonly ICommandFactory commandFactory;
+    private readonly SerialCommandFactory commandFactory;
 
-    public SerialDriver(string portName, ICommandFactory commandFactory)
+    public SerialDriver(string portName)
     {
         this.portName = portName;
-        this.commandFactory = commandFactory;
+        commandFactory = new SerialCommandFactory();
     }
 
-    public async Task Initialize()
-    {
-        if (serialPort != null)
-        {
-            return;
-        }
+    public CommandsCompletedEvent CommandsExecuted { get; set; }
 
-        serialPort = new SerialPort(portName);
-        serialPort.BaudRate = 115200;
-        serialPort.ReadTimeout = 5000;
-        serialPort.WriteTimeout = 5000;
-        serialPort.Open();
-        await Task.Delay(3000);
-
-        SerialWriteLine(commandFactory.Reset());
-        await Task.Delay(500);
-        while (SerialReadLine() != RobotDriverResponse.GENERAL_OK) { }
-    }
     public Vector3 GetOrigin()
     {
         SerialWriteLine(commandFactory.Info());
@@ -61,8 +48,34 @@ public class SerialDriver : ISerialDriver
                 return origin;
             }
         } while (!response.StartsWith(RobotDriverResponse.OK));
-        
+
         throw new RobotDriverException("Origin coordinates missing in info response!");
+    }
+    public void ScheduleCommand(string command)
+    {
+        commandQueue.Enqueue(command);
+        if (commandQueue.Count == 1)
+        {
+            Task.Run(ExecuteCommands);
+        }
+    }
+    public async Task Initialize()
+    {
+        if (serialPort != null)
+        {
+            return;
+        }
+
+        serialPort = new SerialPort(portName);
+        serialPort.BaudRate = 115200;
+        serialPort.ReadTimeout = 5000;
+        serialPort.WriteTimeout = 5000;
+        serialPort.Open();
+        await Task.Delay(3000);
+
+        SerialWriteLine(commandFactory.Reset());
+        await Task.Delay(500);
+        while (SerialReadLine() != RobotDriverResponse.GENERAL_OK) { }
     }
     public async Task SetMovementType(string movementCommand)
     {
@@ -74,14 +87,6 @@ public class SerialDriver : ISerialDriver
         {
             SerialReadLine();
             await Task.Delay(50);
-        }
-    }
-    public async Task SendCommand(string command, long timeout = 5000)
-    {
-        string response = await SendCommandGetResponse(command, timeout);
-        if (response != RobotDriverResponse.OK)
-        {
-            throw new RobotDriverException("Command '" + command + "' execution failed on unknown error: " + response);
         }
     }
     public async Task Reset()
@@ -121,6 +126,11 @@ public class SerialDriver : ISerialDriver
             MovementState = tokens[0],
             Coordinates = coords
         };
+    }
+
+    protected virtual void OnCommandsExecuted(RobotEventArgs e)
+    {
+        CommandsExecuted?.Invoke(this, e);
     }
 
     private async Task<string> SendCommandGetResponse(string command, long timeout = 5000)
@@ -201,6 +211,41 @@ public class SerialDriver : ISerialDriver
         if (tokens.Length == 2 && tokens[0] == RobotDriverResponse.ERROR && Int32.TryParse(tokens[1], out error))
         {
             throw new RobotDriverException("Command '" + command + "' execution failed on error.", error);
+        }
+    }
+    private async Task SendCommand(string command, long timeout = 5000)
+    {
+        string response = await SendCommandGetResponse(command, timeout);
+        if (response != RobotDriverResponse.OK)
+        {
+            throw new RobotDriverException("Command '" + command + "' execution failed on unknown error: " + response);
+        }
+    }
+    private async Task ExecuteCommands()
+    {
+        while (commandQueue.Count > 0)
+        {
+            await SendCommandAtLastCompletion(commandQueue.Dequeue());
+        }
+
+        OnCommandsExecuted(new RobotEventArgs(success: true, new RobotState()));
+    }
+    private async Task SendCommandAtLastCompletion(string command)
+    {
+        bool isIdle = false;
+        while (!isIdle)
+        {
+            var currentState = await GetRawState();
+            isIdle = currentState.MovementState == MovementState.Idle.ToString();
+
+            if (!isIdle)
+            {
+                await Task.Delay(10);
+            }
+            else
+            {
+                await SendCommand(command);
+            }
         }
     }
 }

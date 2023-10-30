@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
@@ -7,7 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.IO.Ports" Version="7.0.0" />
+    <ProjectReference Include="..\ChessMaster.Driver\ChessMaster.Robot.csproj" />
+    <ProjectReference Include="..\ChessMaster.Space\ChessMaster.Space.csproj" />
   </ItemGroup>
 
 </Project>

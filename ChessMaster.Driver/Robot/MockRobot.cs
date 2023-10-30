@@ -3,7 +3,7 @@ using System.Numerics;
 
 namespace ChessMaster.Robot.Robot
 {
-    public class MockRobot : IRobot
+    public class MockRobot /*: IRobot*/
     {
         private bool running = false;
         private Vector3 position = new Vector3(0f, 0f, 0f);
@@ -15,7 +15,7 @@ namespace ChessMaster.Robot.Robot
         {
         }
 
-        public async Task Initialize()
+        public async Task InitializeAsync()
         {
             await Task.Delay(1000);
         }
@@ -30,7 +30,7 @@ namespace ChessMaster.Robot.Robot
             await Task.Delay(5000);
         }
 
-        public async Task Move(float x, float y, float z)
+        public async Task MoveAsync(float x, float y, float z)
         {
             await Task.Delay(50);
         }
@@ -55,7 +55,7 @@ namespace ChessMaster.Robot.Robot
             await Task.Delay(50);
         }
 
-        public async Task OpenGrip()
+        public async Task OpenGripAsync()
         {
             await Task.Delay(50);
         }

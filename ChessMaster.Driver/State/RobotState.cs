@@ -4,10 +4,11 @@ namespace ChessMaster.Robot.State
 {
     public struct RobotState
     {
-        public readonly MovementState MovementState;
-        public readonly float x;
-        public readonly float y;
-        public readonly float z;
+        public MovementState MovementState;
+        public GripState GripState;
+        public float x;
+        public float y;
+        public float z;
 
         public Vector3 Position { get { return new Vector3(x, y, z); } }
 
@@ -17,6 +18,24 @@ namespace ChessMaster.Robot.State
             this.x = x;
             this.y = y;
             this.z = z;
+        }
+
+        public RobotState(MovementState state, Vector3 position)
+        { 
+            MovementState = state;
+            x = position.X;
+            y = position.Y;
+            z = position.Z;
+        }
+
+        public RobotState(MovementState state)
+        {
+            MovementState = state;    
+        }
+
+        public RobotState()
+        { 
+            
         }
     }
 }

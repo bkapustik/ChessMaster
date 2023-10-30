@@ -1,5 +1,4 @@
-﻿using ChessMaster.CommandFactory;
-using ChessMaster.Robot.Driver;
+﻿using ChessMaster.Robot.Driver;
 using ChessMaster.Robot.State;
 using System.Numerics;
 
@@ -7,26 +6,22 @@ namespace ChessMaster.Robot.Robot
 {
     public class Robot : IRobot
     {
-        private readonly ICommandFactory commands;
+        private readonly SerialCommandFactory commands;
         private readonly ISerialDriver driver;
+
         private Vector3 origin;
 
         private const float safePadding = 5f;
 
-        public Robot(ICommandFactory commands, ISerialDriver robotDriver)
+        public Robot(ISerialDriver robotDriver)
         {
-            this.commands = commands;
+            commands = new SerialCommandFactory();
             driver = robotDriver;
         }
 
-        public Vector3 Limits
+        public void SubscribeToCommandsCompletion(CommandsCompletedEvent e)
         {
-            get => new Vector3(-origin.X - safePadding, -origin.Y - safePadding, -origin.Z - safePadding); 
-        } 
-
-        public async Task Home()
-        {
-            await driver.SendCommand(commands.MoveHome());
+            driver.CommandsExecuted += e; 
         }
 
         public async Task Initialize()
@@ -35,47 +30,6 @@ namespace ChessMaster.Robot.Robot
             origin = driver.GetOrigin();
             await driver.SetMovementType(commands.LinearMovement());
         }
-
-        public async Task Reset()
-        {
-            await driver.Reset();
-        }
-
-        public async Task Move(float x, float y, float z)
-        {
-            await driver.SendCommand(commands.Move(x, y, z));
-        }
-
-        public async Task MoveXY(float x, float y)
-        {
-            await driver.SendCommand(commands.MoveXY(x, y));
-        }
-
-        public async Task MoveX(float x)
-        {
-            await driver.SendCommand(commands.MoveX(x));
-        }
-
-        public async Task MoveY(float y)
-        {
-            await driver.SendCommand(commands.MoveY(y));
-        }
-
-        public async Task MoveZ(float z)
-        {
-            await driver.SendCommand(commands.MoveZ(z));
-        }
-
-        public async Task OpenGrip()
-        {
-            await driver.SendCommand(commands.OpenGrip());
-        }
-
-        public async Task CloseGrip()
-        {
-            await driver.SendCommand(commands.CloseGrip());
-        }
-
         public async Task<RobotState> GetState()
         {
             var rawState = await driver.GetRawState();
@@ -89,21 +43,63 @@ namespace ChessMaster.Robot.Robot
             return new RobotState(state, x, y, z);
         }
 
-        public async Task Pause()
+        public Vector3 Limits
         {
-            await driver.SendCommand(commands.Pause());
-            await Task.Delay(1000);
+            get => new Vector3(-origin.X - safePadding, -origin.Y - safePadding, -origin.Z - safePadding);
         }
 
-        public async Task Resume()
+        public void Home()
         {
-            await driver.SendCommand(commands.Resume());
+            driver.ScheduleCommand(commands.MoveHome());
         }
-
-        public async Task Stop()
+        public void Reset()
         {
-            await Pause();
-            await Resume();
+            driver.Reset();
+        }
+        public void Move(float x, float y, float z)
+        {
+            driver.ScheduleCommand(commands.Move(x, y, z));
+        }
+        public void Move(Vector3 targetPosition)
+        {
+            Move(targetPosition.X, targetPosition.Y, targetPosition.Z);
+        }
+        public void MoveXY(float x, float y)
+        {
+            driver.ScheduleCommand(commands.MoveXY(x, y));
+        }
+        public void MoveX(float x)
+        {
+            driver.ScheduleCommand(commands.MoveX(x));
+        }
+        public void MoveY(float y)
+        {
+            driver.ScheduleCommand(commands.MoveY(y));
+        }
+        public void MoveZ(float z)
+        {
+            driver.ScheduleCommand(commands.MoveZ(z));
+        }
+        public void OpenGrip()
+        {
+            driver.ScheduleCommand(commands.OpenGrip());
+        }
+        public void CloseGrip()
+        {
+            driver.ScheduleCommand(commands.CloseGrip());
+        }
+        public void Pause()
+        {
+            driver.ScheduleCommand(commands.Pause());
+        }
+        public void Resume()
+        {
+            driver.ScheduleCommand(commands.Resume());
+        }
+        public void Stop()
+        {
+            Pause();
+            Resume();
         }
     }
 }
