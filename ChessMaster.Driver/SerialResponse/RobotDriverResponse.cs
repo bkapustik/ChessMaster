@@ -1,4 +1,4 @@
-﻿namespace ChessMaster.Robot.SerialResponse;
+﻿namespace ChessMaster.RobotDriver.SerialResponse;
 
 public static class RobotDriverResponse
 {

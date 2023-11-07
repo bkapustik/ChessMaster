@@ -6,9 +6,20 @@ using System.Threading.Tasks;
 
 namespace ChessMaster.Space.Coordinations
 {
-    public struct SpaceVector
+    public struct SpacePosition
     {
         public int X { get; set; }
         public int Y { get; set; }
+
+        public SpacePosition()
+        { 
+        
+        }
+
+        public SpacePosition(int x, int y)
+        { 
+            X = x;
+            Y = y;
+        }
     }
 }

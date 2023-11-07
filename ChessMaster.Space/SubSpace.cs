@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace ChessMaster.Space
 {
-    public class SubSpace : Entity
+    public abstract class SubSpace : Entity
     {
         public MoveableEntity? Entity { get; set; }
         public Vector3 GetCenter()

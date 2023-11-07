@@ -1,8 +1,8 @@
-﻿using ChessMaster.Robot.Robot;
-using ChessMaster.Robot.SerialResponse;
+﻿using ChessMaster.RobotDriver.Robotic;
+using ChessMaster.RobotDriver.SerialResponse;
 using System.Numerics;
 
-namespace ChessMaster.Robot.Driver
+namespace ChessMaster.RobotDriver.Driver
 {
     public interface ISerialDriver
     {

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ChessMaster.Space
 {
-    public class Entity
+    public abstract class Entity
     {
         public readonly float Width;
         public readonly float Length;

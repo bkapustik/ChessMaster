@@ -5,13 +5,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ChessMaster.Chess.Figure
+namespace ChessMaster.Chess
 {
     public class Figure : MoveableEntity
     {
-        public readonly Color Color;
+        public readonly ChessColor Color;
+        public readonly FigureType Type;
 
-        public Figure(Color color)
+        public Figure(ChessColor color)
         { 
             this.Color = color;
         }

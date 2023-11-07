@@ -1,11 +1,11 @@
-﻿using ChessMaster.Robot.Robot;
-using ChessMaster.Robot.SerialResponse;
-using ChessMaster.Robot.State;
+﻿using ChessMaster.RobotDriver.Robotic;
+using ChessMaster.RobotDriver.SerialResponse;
+using ChessMaster.RobotDriver.State;
 using System.Diagnostics;
 using System.IO.Ports;
 using System.Numerics;
 
-namespace ChessMaster.Robot.Driver;
+namespace ChessMaster.RobotDriver.Driver;
 
 public class SerialDriver : ISerialDriver
 {

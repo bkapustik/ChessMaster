@@ -4,13 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ChessMaster.RobotDriver.State
+namespace ChessMaster.Chess
 {
-    public enum GripState
+    public enum ChessColor
     {
-        Open,
-        Closed,
-        Opening,
-        Closing
+        White,
+        Black
     }
 }

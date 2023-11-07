@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ChessMaster.Driver\ChessMaster.Robot.csproj" />
+    <ProjectReference Include="..\ChessMaster.Driver\ChessMaster.RobotDriver.csproj" />
     <ProjectReference Include="..\ChessMaster.Space\ChessMaster.Space.csproj" />
   </ItemGroup>
 

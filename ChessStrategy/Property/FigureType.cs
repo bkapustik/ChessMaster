@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ChessMaster.Chess.Figure
+namespace ChessMaster.Chess
 {
-    public enum Type
+    public enum FigureType
     {
         Pawn,
         Bishop,

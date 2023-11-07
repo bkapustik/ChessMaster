@@ -1,7 +1,7 @@
-﻿using ChessMaster.Robot.State;
+﻿using ChessMaster.RobotDriver.State;
 using System.Numerics;
 
-namespace ChessMaster.Robot.Robot
+namespace ChessMaster.RobotDriver.Robotic
 {
     public class MockRobot /*: IRobot*/
     {

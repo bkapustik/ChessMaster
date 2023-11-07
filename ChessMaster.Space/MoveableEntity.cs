@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ChessMaster.Space
 {
-    public class MoveableEntity : Entity
+    public abstract class MoveableEntity : Entity
     {
         public Vector2 Get2DCenter()
         {

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ChessMaster.Robot.State
+namespace ChessMaster.RobotDriver.State
 {
     public enum MovementState
     {

@@ -1,7 +1,7 @@
 ﻿using System.Numerics;
-using ChessMaster.Robot.State;
+using ChessMaster.RobotDriver.State;
 
-namespace ChessMaster.Robot.Robot
+namespace ChessMaster.RobotDriver.Robotic
 {
     public delegate void CommandsCompletedEvent(object? o, RobotEventArgs e);
 

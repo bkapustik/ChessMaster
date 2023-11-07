@@ -1,26 +1,36 @@
-﻿using ChessMaster.Robot.Robot;
-using ChessMaster.Robot.State;
+﻿using ChessMaster.RobotDriver.Robotic;
 using ChessMaster.Space.Coordinations;
+using System.Diagnostics.Tracing;
 using System.Numerics;
 
 namespace ChessMaster.Space.RobotSpace
 {
     public class RobotSpace
     {
-        private readonly Space space;
-        private readonly IRobot robot;
+        protected Space[] space;
+        protected IRobot robot;
 
         private MoveableEntity? currentlyHeldEntity;
 
-        public RobotSpace(Space space, IRobot robot)
-        {   
-            this.space = space;
+        public void Initialize(Space[] space, IRobot robot)
+        { 
+            this.space = space; 
             this.robot = robot;
         }
 
-        private void TakeEntityFromPosition(SpaceVector position)
+        protected void MoveEntityFromSourceToTarget(SpacePosition source, SpacePosition target, int sourceSpaceIndex = 0, int targetSpaceIndex = 0)
         {
-            var entity = space.SubSpaces[position.X, position.Y].Entity;
+            TakeEntityFromPosition(source, sourceSpaceIndex);
+
+            MoveEntityToPosition(target, targetSpaceIndex);
+        }
+        protected void SubscribeToCommandsCompletion(CommandsCompletedEvent e)
+        {
+            robot.SubscribeToCommandsCompletion(e);
+        }
+        private void TakeEntityFromPosition(SpacePosition position, int spaceIndex)
+        {
+            var entity = space[spaceIndex].SubSpaces[position.X,position.Y].Entity;
             var entityCenter = entity!.Get2DCenter();
             var aboveEntityPosition = new Vector3(entityCenter.X, entityCenter.Y, entity.Height + 10);
 
@@ -34,29 +44,21 @@ namespace ChessMaster.Space.RobotSpace
 
             currentlyHeldEntity = entity;
 
-            space.SubSpaces[position.X, position.Y].Entity = null;
+            space[spaceIndex].SubSpaces[position.X, position.Y].Entity = null;
         }
-
-        private void MoveEntityToPosition(SpaceVector targetPosition)
+        private void MoveEntityToPosition(SpacePosition targetPosition, int spaceIndex)
         {
-            robot.Move(space.SubSpaces[targetPosition.X, targetPosition.Y].GetCenter());
+            robot.Move(space[spaceIndex].SubSpaces[targetPosition.X, targetPosition.Y].GetCenter());
 
             robot.OpenGrip();
 
             robot.MoveZ(currentlyHeldEntity!.Height + 10);
 
-            space.SubSpaces[targetPosition.X, targetPosition.Y].Entity = currentlyHeldEntity;
+            space[spaceIndex].SubSpaces[targetPosition.X, targetPosition.Y].Entity = currentlyHeldEntity;
 
             currentlyHeldEntity = null;
 
             robot.CloseGrip();
-        }
-
-        public void MoveEntityFromSourceToTarget(SpaceVector source, SpaceVector target)
-        {
-            TakeEntityFromPosition(source);
-
-            MoveEntityToPosition(target);
         }
     }
 }

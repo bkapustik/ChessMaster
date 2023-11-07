@@ -4,13 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ChessMaster.RobotDriver.State
+namespace ChessMaster.Chess.Property
 {
-    public enum GripState
+    public enum CheckingMove
     {
-        Open,
-        Closed,
-        Opening,
-        Closing
+        None,
+        Check,
+        CheckMate
     }
 }

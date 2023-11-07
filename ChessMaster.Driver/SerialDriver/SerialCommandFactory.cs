@@ -1,4 +1,4 @@
-﻿namespace ChessMaster.Robot.Driver
+﻿namespace ChessMaster.RobotDriver.Driver
 {
     public class SerialCommandFactory
     {

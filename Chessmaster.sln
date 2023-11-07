@@ -5,7 +5,7 @@ VisualStudioVersion = 17.7.34018.315
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ControllerApp", "ControllerApp\ControllerApp.csproj", "{49E5B26F-B26A-4435-8BFC-FF2FB937665A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChessMaster.Robot", "ChessMaster.Driver\ChessMaster.Robot.csproj", "{18CDBF08-905E-494E-857C-32D6608A149C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChessMaster.RobotDriver", "ChessMaster.Driver\ChessMaster.RobotDriver.csproj", "{18CDBF08-905E-494E-857C-32D6608A149C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChessMaster.ChessDriver", "ChessMaster.Chess\ChessMaster.ChessDriver.csproj", "{2B713943-5AE9-46A5-8E52-CC688E8746A7}"
 EndProject
@@ -13,7 +13,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChessMaster.Space", "ChessM
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RobotSpaceDriver", "RobotSpace\RobotSpaceDriver.csproj", "{CC4F517F-2BBC-45DB-8279-74C39C38859E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApp1", "ConsoleApp1\ConsoleApp1.csproj", "{DE27AF01-287D-4A32-8A4F-ED5379E98E60}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChessMaster.Chess", "ChessStrategy\ChessMaster.Chess.csproj", "{EA3F2A2D-25CF-44E1-BF61-C5AC280F5C4C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleTest", "ConsoleTest\ConsoleTest.csproj", "{F31176B0-D218-4335-9E00-2F5092402BBF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChessMaster.Tests", "ChessMaster.Tests\ChessMaster.Tests.csproj", "{BA0F0668-44F3-4BDA-A892-F4BC16AC11E0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,10 +45,18 @@ Global
 		{CC4F517F-2BBC-45DB-8279-74C39C38859E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CC4F517F-2BBC-45DB-8279-74C39C38859E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CC4F517F-2BBC-45DB-8279-74C39C38859E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{DE27AF01-287D-4A32-8A4F-ED5379E98E60}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DE27AF01-287D-4A32-8A4F-ED5379E98E60}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DE27AF01-287D-4A32-8A4F-ED5379E98E60}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DE27AF01-287D-4A32-8A4F-ED5379E98E60}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EA3F2A2D-25CF-44E1-BF61-C5AC280F5C4C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EA3F2A2D-25CF-44E1-BF61-C5AC280F5C4C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EA3F2A2D-25CF-44E1-BF61-C5AC280F5C4C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EA3F2A2D-25CF-44E1-BF61-C5AC280F5C4C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F31176B0-D218-4335-9E00-2F5092402BBF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F31176B0-D218-4335-9E00-2F5092402BBF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F31176B0-D218-4335-9E00-2F5092402BBF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F31176B0-D218-4335-9E00-2F5092402BBF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BA0F0668-44F3-4BDA-A892-F4BC16AC11E0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA0F0668-44F3-4BDA-A892-F4BC16AC11E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA0F0668-44F3-4BDA-A892-F4BC16AC11E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA0F0668-44F3-4BDA-A892-F4BC16AC11E0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

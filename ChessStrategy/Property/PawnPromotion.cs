@@ -4,11 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ChessMaster.Chess.Figure
+namespace ChessMaster.Chess.Property
 {
-    public enum Color
+    public struct PawnPromotion
     {
-        White,
-        Black
+        public FigureType FigureType { get; set; }
     }
 }

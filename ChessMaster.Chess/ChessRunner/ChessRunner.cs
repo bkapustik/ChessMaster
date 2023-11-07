@@ -1,23 +1,26 @@
-﻿using ChessMaster.Robot.Driver;
-using ChessMaster.Robot.Robot;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using ChessMaster.Chess.Strategy;
 
-namespace ChessMaster.ChessDriver.ChessRobot
+namespace ChessMaster.ChessDriver.Robot
 {
     public class ChessRunner
     {
+        private readonly ChessRobot robot;
+        private IChessStrategy chessStrategy;
 
-        public ChessRunner()
+        public ChessRunner(IChessStrategy chessStrategy)
         {
-          
+            this.robot = new ChessRobot();
+            this.chessStrategy = chessStrategy;
         }
 
-        public async Task Work()
+        public void Work()
         {
+
+        }
+
+        public void SwapStrategy(IChessStrategy chessStrategy)
+        { 
+            throw new NotImplementedException();
         }
     }
 }
