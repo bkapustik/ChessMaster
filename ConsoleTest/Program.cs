@@ -1,4 +1,9 @@
-﻿using ChessMaster.Chess.Strategy.MatchReplay;
+﻿using ChessMaster.Chess;
+using ChessMaster.Chess.Strategy.MatchReplay;
+using ChessMaster.ChessDriver;
+using ChessMaster.RobotDriver.Driver;
+using ChessMaster.RobotDriver.Robotic;
+using System.Security.Cryptography.X509Certificates;
 
 namespace ConsoleTest
 {
@@ -6,11 +11,10 @@ namespace ConsoleTest
     {
         static void Main(string[] args)
         {
-            string move = "e4";
+            var robot = new ChessRobot("COM3", new ChessMaster.Space.Space(0,10));
 
-            var result = ChessFileParser.ParseMove(move);
-
-            Console.WriteLine(result);
+            robot.Initialize();
+            robot.Configure();
         }
     }
 }

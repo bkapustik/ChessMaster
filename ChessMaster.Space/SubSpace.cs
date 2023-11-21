@@ -8,12 +8,21 @@ using System.Threading.Tasks;
 
 namespace ChessMaster.Space
 {
-    public abstract class SubSpace : Entity
+    public class SubSpace : Entity
     {
         public MoveableEntity? Entity { get; set; }
-        public Vector3 GetCenter()
+
+        public SubSpace(float width)
         {
-            return new Vector3(Width, Length, Height);
+            this.Width = width;
+            this.Length = width;
+        }
+
+        public SubSpace(float width, Vector2 center)
+        {
+            this.Width = width;
+            this.Height = width;
+            this.Center = center;
         }
     }
 }

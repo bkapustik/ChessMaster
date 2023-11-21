@@ -8,7 +8,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ChessMaster.Chess\ChessMaster.ChessDriver.csproj" />
+    <ProjectReference Include="..\ChessMaster.Driver\ChessMaster.RobotDriver.csproj" />
+    <ProjectReference Include="..\ChessMaster.Space\ChessMaster.Space.csproj" />
     <ProjectReference Include="..\ChessStrategy\ChessMaster.Chess.csproj" />
+    <ProjectReference Include="..\RobotSpace\RobotSpaceDriver.csproj" />
   </ItemGroup>
 
 </Project>

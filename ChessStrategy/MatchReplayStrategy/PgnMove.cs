@@ -12,4 +12,5 @@ public struct PgnMove
     public PawnPromotion? PawnPromotion { get; set; }
     public SpacePosition? Source { get; set; }
     public SpacePosition? Target { get; set; }
+    public bool IsEnfOfGame { get; set; }
 }

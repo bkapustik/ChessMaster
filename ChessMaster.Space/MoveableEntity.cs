@@ -9,14 +9,14 @@ namespace ChessMaster.Space
 {
     public abstract class MoveableEntity : Entity
     {
-        public Vector2 Get2DCenter()
-        {
-            return new Vector2();
+        public virtual Vector2 Get2DCenter()
+        { 
+            return Center!.Value;
         }
 
-        public Vector3 GetHoldingPointVector()
+        public virtual Vector3 GetHoldingPointVector()
         {
-            return new Vector3();
+            return Center3!.Value;
         }
     }
 }

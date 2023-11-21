@@ -5,11 +5,50 @@ namespace ChessMaster.Chess.Strategy.MatchReplay;
 
 public static class ChessFileParser
 {
-    public static Queue<PgnMove> GetMoves(string filePath)
+    public static async Task<Queue<PgnMove>> GetMoves(string filePath)
     {
         var queue = new Queue<PgnMove>();
 
+        using (var streamReader = new StreamReader(filePath))
+        {
+            var line = await streamReader.ReadLineAsync();
 
+            bool isCurrentWhite = true;
+
+            while (line != null)
+            {
+                if (line.StartsWith('['))
+                {
+                    line = await streamReader.ReadLineAsync();
+                    continue;
+                }
+
+                if (string.IsNullOrWhiteSpace(line))
+                {
+                    line = await streamReader.ReadLineAsync();
+                    continue;
+                }
+
+                var tokens = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                foreach (var token in tokens)
+                {
+                    if (token[0] == ';')
+                    {
+                        break;
+                    }
+
+                    if (token[0] != '{' && token[token.Length - 1] != '.' && !IsEndOfGameScoreString(token))
+                    {
+                        var move = ParseMove(token);
+                        move.Color = isCurrentWhite ? ChessColor.White : ChessColor.Black;
+                        queue.Enqueue(move);
+                        isCurrentWhite = !isCurrentWhite;
+                    }
+                }
+
+                line = await streamReader.ReadLineAsync();
+            }
+        }
 
         return queue;
     }
@@ -68,14 +107,16 @@ public static class ChessFileParser
             {
                 move.Source = new SpacePosition()
                 {
-                    Y = GetColumnFromLetter(moveString[0])
+                    Y = GetColumnFromLetter(moveString[0]),
+                    X = -1
                 };
             }
             else
             {
                 move.Source = new SpacePosition()
                 {
-                    X = GetRowFromRank(moveString[0])
+                    X = GetRowFromRank(moveString[0]),
+                    Y = -1
                 };
             }
         }
@@ -165,5 +206,18 @@ public static class ChessFileParser
     {
         const int asciiaBase = 97;
         return (int)letter - asciiaBase;
+    }
+
+    private static bool IsEndOfGameScoreString(string text)
+    {
+        if (!text.Contains('-'))
+        {
+            return false;
+        }
+        if (char.IsDigit(text[0]))
+        {
+            return true;
+        }
+        return false;
     }
 }

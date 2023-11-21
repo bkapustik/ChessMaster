@@ -1,21 +1,22 @@
-﻿namespace ChessMaster.Space
+﻿using ChessMaster.Space.Coordinations;
+
+namespace ChessMaster.Space
 {
     public class Space : Entity
     {
         public SubSpace[,] SubSpaces { get; set; }
-        public readonly int width;
-        public readonly int height;
+        public SpacePosition Origin { get; set; }
 
-        public Space(int width, int height) 
+        public Space(int width) 
         {
-            this.width = width;
-            this.height = height;
-            this.SubSpaces = new SubSpace[width, height];
+            this.SubSpaces = new SubSpace[width, width];
+            Width = width;
+            Length = width;
         }
 
-        public Space(float width, float height)
-        { 
-            
+        public Space(int width, int length)
+        {
+            this.SubSpaces = new SubSpace[length, width];
         }
     }
 }

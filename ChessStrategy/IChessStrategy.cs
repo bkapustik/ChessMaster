@@ -1,6 +1,6 @@
 ﻿using ChessMaster.Space.Coordinations;
 
-namespace ChessMaster.Chess.Strategy;
+namespace ChessMaster.Chess;
 
 public interface IChessStrategy
 {

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ChessMaster.Space.Coordinations;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -9,8 +10,10 @@ namespace ChessMaster.Space
 {
     public abstract class Entity
     {
-        public readonly float Width;
-        public readonly float Length;
-        public readonly float Height;
+        public float? Width;
+        public float? Length;
+        public float? Height;
+        public Vector2? Center { get; set; }
+        public Vector3? Center3 { get; set; }
     }
 }
