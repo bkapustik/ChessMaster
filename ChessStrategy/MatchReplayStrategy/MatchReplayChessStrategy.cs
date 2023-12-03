@@ -1,5 +1,6 @@
 ﻿using ChessMaster.Chess.Property;
 using ChessMaster.Space.Coordinations;
+using System.Runtime.CompilerServices;
 
 namespace ChessMaster.Chess.Strategy.MatchReplay;
 
@@ -33,7 +34,6 @@ public class MatchReplayChessStrategy : IChessStrategy
         }
 
         var pgnMove = moves.Dequeue();
-        pgnMove.Color = colorOnMove;
 
         move.IsEndOfGame = pgnMove.IsEnfOfGame;
         move.PawnPromotion = pgnMove.PawnPromotion;
@@ -52,11 +52,81 @@ public class MatchReplayChessStrategy : IChessStrategy
             move.Target = pgnMove.Target.Value;
         }
 
+        if (pgnMove.MoveType == MoveType.KingCastling)
+        {
+            if (colorOnMove == ChessColor.White)
+            {
+                SpacePosition whiteKingSource = new SpacePosition()
+                {
+                    X = 4,
+                    Y = 0
+                };
+
+                move.Castling = new Castling()
+                {
+                    KingSource = whiteKingSource,
+                    KingTarget = new SpacePosition(whiteKingSource.X + 2, whiteKingSource.Y),
+                    RookSource = new SpacePosition(whiteKingSource.X + 3, whiteKingSource.Y),
+                    RookTarget = new SpacePosition(whiteKingSource.X + 1, whiteKingSource.Y)
+                };
+            }
+            else
+            {
+                SpacePosition blackKingSource = new SpacePosition()
+                {
+                    X = 4,
+                    Y = 7
+                };
+
+                move.Castling = new Castling()
+                {
+                    KingSource = blackKingSource,
+                    KingTarget = new SpacePosition(blackKingSource.X + 2, blackKingSource.Y),
+                    RookSource = new SpacePosition(blackKingSource.X + 3, blackKingSource.Y),
+                    RookTarget = new SpacePosition(blackKingSource.X + 1, blackKingSource.Y)
+                };
+            }
+        }
+        else if (pgnMove.MoveType == MoveType.QueenSideCastling)
+        {
+            if (colorOnMove == ChessColor.White)
+            {
+                SpacePosition whiteKingSource = new SpacePosition()
+                {
+                    X = 4,
+                    Y = 0
+                };
+
+                move.Castling = new Castling()
+                {
+                    KingSource = whiteKingSource,
+                    KingTarget = new SpacePosition(whiteKingSource.X - 2, whiteKingSource.Y),
+                    RookSource = new SpacePosition(0, whiteKingSource.Y),
+                    RookTarget = new SpacePosition(whiteKingSource.X - 1, whiteKingSource.Y)
+                };
+            }
+            else
+            {
+                SpacePosition blackKingSource = new SpacePosition()
+                {
+                    X = 4,
+                    Y = 7
+                };
+
+                move.Castling = new Castling()
+                {
+                    KingSource = blackKingSource,
+                    KingTarget = new SpacePosition(blackKingSource.X - 2, blackKingSource.Y),
+                    RookSource = new SpacePosition(0, blackKingSource.Y),
+                    RookTarget = new SpacePosition(blackKingSource.X - 1, blackKingSource.Y)
+                };
+            }
+        }
+
         AdvanceColor();
 
         return move;
     }
-
     public SpacePosition FindSourcePosition(PgnMove move)
     {
         if (move.Source is not null)

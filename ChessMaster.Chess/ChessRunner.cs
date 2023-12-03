@@ -1,8 +1,7 @@
-﻿using System.Numerics;
-using ChessMaster.Chess;
+﻿using ChessMaster.Chess;
 using ChessMaster.RobotDriver.Robotic;
 using ChessMaster.RobotDriver.State;
-using ChessMaster.Space;
+using System.Numerics;
 
 namespace ChessMaster.ChessDriver
 {
@@ -24,6 +23,13 @@ namespace ChessMaster.ChessDriver
             this.chessStrategy = chessStrategy;
         }
 
+        public ChessRunner(IChessStrategy chessStrategy, IRobot robot)
+        {
+            var captureSpace = new Space.Space(captureSpaceWidth, captureSpaceHeight);
+            this.robot = new ChessRobot(captureSpace, robot);
+            this.chessStrategy = chessStrategy;
+        }
+
         public async Task Run()
         {
             var move = await chessStrategy.GetNextMove();
@@ -33,9 +39,27 @@ namespace ChessMaster.ChessDriver
             {
                 if (isMoveDone)
                 {
-                    robot.MoveFigureTo(move.Source, move.Target);
+                    if (move.Castling != null)
+                    {
+                        robot.ExecuteCastling(move.Castling.Value);
+                    }
+                    else if (move.MoveType == Chess.Property.MoveType.PawnPromotion)
+                    {
+                        robot.PromotePawn(move.Source!.Value, move.Target!.Value, move.PawnPromotion!.Value.FigureType);
+                    }
+                    else if (move.MoveType == Chess.Property.MoveType.Capture)
+                    {
+                        robot.CaptureFigure(move.Source!.Value, move.Target!.Value);
+                    }
+                    else
+                    {
+                        robot.MoveFigureTo(move.Source!.Value, move.Target!.Value);
+                    }
+
                     move = await chessStrategy.GetNextMove();
+                    
                     isMoveDone = false;
+                    
                     robot.SubscribeToCommandsCompletion(new CommandsCompletedEvent((object? o, RobotEventArgs e) =>
                     {
                         isMoveDone = true;
@@ -55,6 +79,18 @@ namespace ChessMaster.ChessDriver
             robot.Initialize();
             await chessStrategy.Initialize();
             RobotState = await robot.GetState();
+        }
+
+        public async Task InitializeMock()
+        {
+            robot.InitializeMock();
+            await chessStrategy.Initialize();
+            RobotState = await robot.GetState();
+        }
+
+        public void Configure(Vector2 a1Center, Vector2 h8Center)
+        {
+            robot.Configure(a1Center, h8Center);    
         }
 
         public void SwapStrategy(IChessStrategy chessStrategy)

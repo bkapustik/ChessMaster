@@ -75,7 +75,7 @@ public class SerialDriver : ISerialDriver
         serialPort.WriteTimeout = 5000;
         serialPort.Open();
         await Task.Delay(3000);
-
+        
         SerialWriteLine(commandFactory.Reset().Command);
         await Task.Delay(500);
         while (SerialReadLine() != RobotDriverResponse.GENERAL_OK) { }

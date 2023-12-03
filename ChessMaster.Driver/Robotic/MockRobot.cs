@@ -3,66 +3,76 @@ using System.Numerics;
 
 namespace ChessMaster.RobotDriver.Robotic
 {
-    public class MockRobot /*: IRobot*/
+    public class MockRobot : IRobot
     {
         private bool running = false;
         private Vector3 position = new Vector3(0f, 0f, 0f);
         private float originX = -490f, originY = -820f, originZ = -200f;
         public Vector3 Limits { get { return new Vector3(-originX, -originY, -originZ); } }
 
+        public void SubscribeToCommandsCompletion(CommandsCompletedEvent e)
+        {
+
+        }
 
         public MockRobot()
         {
+
         }
 
-        public async Task InitializeAsync()
+        public async Task Initialize()
         {
-            await Task.Delay(1000);
+            await Task.Delay(2500);  
         }
 
-        public async Task Reset()
+        public void Reset()
         {
-            await Task.Delay(1000);
+            Thread.Sleep(1000);
         }
 
-        public async Task Home()
+        public void Home()
         {
-            await Task.Delay(5000);
+            Thread.Sleep(5000);
         }
 
-        public async Task MoveAsync(float x, float y, float z)
+        public void Move(float x, float y, float z)
         {
-            await Task.Delay(50);
+            Thread.Sleep(500);
         }
 
-        public async Task MoveXY(float x, float y)
+        public void Move(Vector3 targetPosition)
         {
-            await Task.Delay(50);
+            Thread.Sleep(500);
         }
 
-        public async Task MoveX(float x)
+        public void MoveXY(float x, float y)
         {
-            await Task.Delay(50);
+            Thread.Sleep(500);
         }
 
-        public async Task MoveY(float y)
+        public void MoveX(float x)
         {
-            await Task.Delay(50);
+            Thread.Sleep(500);
         }
 
-        public async Task MoveZ(float z)
+        public void MoveY(float y)
         {
-            await Task.Delay(50);
+            Thread.Sleep(500);
         }
 
-        public async Task OpenGripAsync()
+        public void MoveZ(float z)
         {
-            await Task.Delay(50);
+            Thread.Sleep(500);
         }
 
-        public async Task CloseGrip()
+        public void OpenGrip()
         {
-            await Task.Delay(50);
+            Thread.Sleep(200);
+        }
+
+        public void CloseGrip()
+        {
+            Thread.Sleep(500);
         }
 
         public async Task<RobotState> GetState()
@@ -71,20 +81,19 @@ namespace ChessMaster.RobotDriver.Robotic
             return new RobotState(MovementState.Idle, position.X, position.Y, position.Z);
         }
 
-        public async Task Pause()
+        public void Pause()
         {
-            await Task.Delay(50);
+            Thread.Sleep(500);
         }
 
-        public async Task Resume()
+        public void Resume()
         {
-            await Task.Delay(50);
+            Thread.Sleep(500);
         }
 
-        public async Task Stop()
+        public void Stop()
         {
-            await Pause();
-            await Reset();
+            Thread.Sleep(500);
         }
     }
 }

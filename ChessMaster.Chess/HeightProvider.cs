@@ -7,13 +7,9 @@ using System.Threading.Tasks;
 
 namespace ChessMaster.ChessDriver
 {
-    public interface IHeightProvider
+    public static class HeightProvider
     {
-        float GetHeight(FigureType figureType);
-    }
-    public class HeightProvider
-    {
-        public float GetHeight(FigureType figureType) 
+        public static float GetHeight(FigureType figureType) 
         {
             switch (figureType)
             {

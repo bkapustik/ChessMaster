@@ -59,7 +59,7 @@ public static class ChessFileParser
 
         move.MoveType = GetMoveType(moveString);
 
-        if (move.MoveType != MoveType.KingSideCastling && move.MoveType != MoveType.QueenSideCastling)
+        if (move.MoveType != MoveType.KingCastling && move.MoveType != MoveType.QueenSideCastling)
         {
             move.Figure = GetFigureType(moveString);
 
@@ -75,7 +75,7 @@ public static class ChessFileParser
         {
             moveString = moveString.Substring(0, moveString.Length - 1);
         }
-        if (move.MoveType == MoveType.KingSideCastling || move.MoveType == MoveType.QueenSideCastling)
+        if (move.MoveType == MoveType.KingCastling || move.MoveType == MoveType.QueenSideCastling)
         {
             return move;
         }
@@ -155,7 +155,7 @@ public static class ChessFileParser
         {
             if (move.Count(x => x == 'O') == 2)
             {
-                return MoveType.KingSideCastling;
+                return MoveType.KingCastling;
             }
             return MoveType.QueenSideCastling;
         }

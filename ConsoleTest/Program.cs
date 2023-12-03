@@ -9,12 +9,19 @@ namespace ConsoleTest
 {
     public class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
-            var robot = new ChessRobot("COM3", new ChessMaster.Space.Space(0,10));
+            var path = "C:\\Users\\asus\\Desktop\\Bakalarka\\ChessMaster\\Data\\Anatoly Karpov_vs_Garry Kasparov_1985.pgn";
 
-            robot.Initialize();
-            robot.Configure();
+            var chessStrategy = new MatchReplayChessStrategy(path);
+
+            //var chessRunner = new ChessRunner(chessStrategy, "COM3");
+            var chessRunner = new ChessRunner(chessStrategy, new MockRobot());
+            await chessRunner.InitializeMock();
+
+            //chessRunner.Configure();
+
+            await chessRunner.Run();
         }
     }
 }

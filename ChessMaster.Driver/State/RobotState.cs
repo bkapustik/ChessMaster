@@ -37,5 +37,12 @@ namespace ChessMaster.RobotDriver.State
         { 
             
         }
+
+        public void Update(Vector3 position)
+        { 
+            x = position.X; 
+            y = position.Y; 
+            z = position.Z;
+        }
     }
 }

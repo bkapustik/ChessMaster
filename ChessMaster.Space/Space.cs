@@ -7,11 +7,9 @@ namespace ChessMaster.Space
         public SubSpace[,] SubSpaces { get; set; }
         public SpacePosition Origin { get; set; }
 
-        public Space(int width) 
+        public Space(int numberOfTiles) 
         {
-            this.SubSpaces = new SubSpace[width, width];
-            Width = width;
-            Length = width;
+            this.SubSpaces = new SubSpace[numberOfTiles, numberOfTiles];
         }
 
         public Space(int width, int length)

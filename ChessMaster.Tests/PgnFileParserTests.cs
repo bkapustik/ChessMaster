@@ -43,7 +43,7 @@ namespace ChessMaster.Tests
         [TestMethod]
         public void Castling()
         {
-            Assert.AreEqual(ChessFileParser.ParseMove("O-O").MoveType, MoveType.KingSideCastling);
+            Assert.AreEqual(ChessFileParser.ParseMove("O-O").MoveType, MoveType.KingCastling);
             Assert.AreEqual(ChessFileParser.ParseMove("O-O-O").MoveType, MoveType.QueenSideCastling);
 
             Assert.AreEqual(ChessFileParser.ParseMove("Pe1").MoveType, MoveType.Default);

@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "ChessMaster.ControlApp (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "ChessMaster.ControlApp (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

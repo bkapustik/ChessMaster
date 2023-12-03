@@ -8,9 +8,9 @@ namespace ChessMaster.ChessDriver;
 public class ChessBoard : Space.Space, IChessBoard
 {
     private const int boardTiles = 8;
-    public readonly SpacePosition origin;
-    private readonly float tileWidth;
-    private readonly IHeightProvider heightProvider;
+    public Vector2 origin;
+    private float tileWidth;
+
     public SubSpace[,] Grid
     {
         get => SubSpaces;
@@ -21,11 +21,8 @@ public class ChessBoard : Space.Space, IChessBoard
         }
     }
 
-    public ChessBoard(int boardWidth, float physicalBoardWidth, SpacePosition origin, IHeightProvider heightProvider) : base(boardWidth)
+    public ChessBoard() : base(boardTiles)
     {
-        this.origin = origin;
-        this.tileWidth = (float)boardWidth / 7f;
-        this.heightProvider = heightProvider;
     }
 
     public void AssignFigures()
@@ -34,16 +31,21 @@ public class ChessBoard : Space.Space, IChessBoard
 
         for (int i = 0; i < boardTiles; i++)
         {
-            Grid[0, i].Entity = new Figure(heightProvider.GetHeight(figures[i]));
-            Grid[7, i].Entity = new Figure(heightProvider.GetHeight(figures[i]));
+            Grid[0, i].Entity = new Figure(HeightProvider.GetHeight(figures[i]));
+            Grid[7, i].Entity = new Figure(HeightProvider.GetHeight(figures[i]));
 
-            Grid[1, i].Entity = new Figure(heightProvider.GetHeight(FigureType.Pawn));
-            Grid[6, i].Entity = new Figure(heightProvider.GetHeight(FigureType.Pawn));
+            Grid[1, i].Entity = new Figure(HeightProvider.GetHeight(FigureType.Pawn));
+            Grid[6, i].Entity = new Figure(HeightProvider.GetHeight(FigureType.Pawn));
         }
     }
 
-    public void Initialize()
+    public void Initialize(Vector2 a1Center, Vector2 h8Center)
     {
+        tileWidth = (float)Math.Sqrt(Math.Pow(Math.Abs(a1Center.X - h8Center.X), 2) + Math.Pow(Math.Abs(a1Center.Y - h8Center.Y), 2)) / (float)boardTiles - 1;
+        origin = new Vector2(a1Center.X - tileWidth/2, a1Center.Y - tileWidth / 2);
+        Width = tileWidth * 8;
+        Length = tileWidth * 8;
+
         for (int i = 0; i < boardTiles; i++)
         {
             for (int j = 0; j < boardTiles; j++)

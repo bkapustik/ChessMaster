@@ -27,6 +27,7 @@ namespace ChessMaster.RobotDriver.Robotic
         public async Task Initialize()
         {
             await driver.Initialize();
+            
             origin = driver.GetOrigin();
             await driver.SetMovementType(commands.LinearMovement());
         }

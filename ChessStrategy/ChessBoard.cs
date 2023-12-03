@@ -4,7 +4,6 @@ namespace ChessMaster.Chess;
 
 public interface IChessBoard
 {
-    void Initialize();
     List<FigureType> GetFigurePlacement() =>
         new List<FigureType>()
         {

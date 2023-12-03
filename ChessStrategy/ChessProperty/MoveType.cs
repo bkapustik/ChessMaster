@@ -10,7 +10,7 @@ namespace ChessMaster.Chess.Property
     {
         Default,
         Capture,
-        KingSideCastling,
+        KingCastling,
         QueenSideCastling,
         PawnPromotion
     }

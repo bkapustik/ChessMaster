@@ -40,6 +40,7 @@ public class Pawn : PgnFigure
     {
         this.chessBoard = chessBoard;
         this.ChessColor = color;
+        this.FigureType = FigureType.Pawn;
     }
 
     public override bool CanMoveTo(Movement move)
@@ -111,6 +112,7 @@ public class Knight : PgnFigure
     {
         this.chessBoard = chessBoard;
         this.ChessColor = color;
+        this.FigureType = FigureType.Knight;
     }
 
     public override bool CanMoveTo(Movement move)
@@ -152,6 +154,7 @@ public class Queen : PgnFigure
     public Queen(ChessColor color)
     {
         this.ChessColor = color;
+        this.FigureType = FigureType.Queen;
     }
 
     public override bool CanMoveTo(Movement move)
@@ -165,6 +168,7 @@ public class King : PgnFigure
     public King(ChessColor color)
     {
         ChessColor = color;
+        this.FigureType = FigureType.King;
     }
     public override bool CanMoveTo(Movement move)
     {
@@ -178,6 +182,7 @@ public class Bishop : PgnFigure
     public Bishop(PgnTile[,] chessBoard, ChessColor color)
     {
         ChessColor = color;
+        this.FigureType = FigureType.Bishop;
     }
     public override bool CanMoveTo(Movement move)
     {
@@ -195,6 +200,7 @@ public class Rook : PgnFigure
     public Rook(PgnTile[,] chessBoard, ChessColor color)
     {
         ChessColor = color;
+        this.FigureType = FigureType.Rook;
     }
     public override bool CanMoveTo(Movement move)
     {

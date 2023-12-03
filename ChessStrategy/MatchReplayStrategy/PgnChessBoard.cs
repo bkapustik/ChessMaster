@@ -18,7 +18,28 @@ public class PgnChessBoard : IChessBoard
 
     public void Initialize()
     {
-        AssignColors();
+        for (int i = 0; i < BoardDimLength; i++)
+        {
+            for (int j = 0; j < BoardDimLength; j++)
+            {
+                Grid[i, j] = new PgnTile();
+                if (i % 2 == 0)
+                {
+                    if (j % 2 == 0)
+                    {
+                        Grid[i, j].ChessColor = ChessColor.Black;
+                    }
+                }
+                else
+                {
+                    if (j % 2 == 0)
+                    {
+                        Grid[i, j].ChessColor = ChessColor.White;
+                    }
+                }
+            }
+        }
+
         AssignFigures();
     }
 
@@ -35,30 +56,6 @@ public class PgnChessBoard : IChessBoard
             Grid[BoardDimLength - 1, i].Figure = PgnFigure.CreateFigure(ChessColor.Black, figures[i], Grid);
 
             Grid[BoardDimLength - 2, i].Figure = PgnFigure.CreateFigure(ChessColor.Black, FigureType.Pawn, Grid);
-        }
-    }
-
-    private void AssignColors()
-    {
-        for (int i = 0; i < BoardDimLength; i++)
-        {
-            for (int j = 0; j < BoardDimLength; j++)
-            {
-                if (i % 2 == 0)
-                {
-                    if (j % 2 == 0)
-                    {
-                        Grid[i, j].ChessColor = ChessColor.Black;
-                    }
-                }
-                else
-                {
-                    if (j % 2 == 0)
-                    {
-                        Grid[i, j].ChessColor = ChessColor.White;
-                    }
-                }
-            }
         }
     }
 }
