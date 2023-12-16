@@ -3,12 +3,81 @@
     x:Class="ChessMaster.ControlApp.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:ChessMaster.ControlApp"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d">
+    mc:Ignorable="d"
+    >
 
-    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-        <Button x:Name="myButton" Click="myButton_Click">Click Me</Button>
-    </StackPanel>
+    <Grid Background="{ThemeResource ControlSolidFillColorDefault}">
+        <Grid x:Name="PortGrid">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"></RowDefinition>
+            </Grid.RowDefinitions>
+
+            <ComboBox Grid.Row="0" x:Name="PortComboBox" ItemsSource="{x:Bind Ports}"
+                    Loaded="PortSelectionLoaded" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,10,0,0">
+                <ComboBox.HeaderTemplate>
+                    <DataTemplate>
+                        <TextBlock VerticalAlignment="Center" Text="Select a port"></TextBlock>
+                    </DataTemplate>
+                </ComboBox.HeaderTemplate>
+            </ComboBox>
+
+            <Button Grid.Row="1" x:Name="SelectButton" Content="Select" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,10,0,0" Click="PortSelectedButton"/>
+        </Grid>
+        
+        <Grid x:Name="ConfigurationGrid" Visibility="Collapsed">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition></RowDefinition>
+                <RowDefinition></RowDefinition>
+                <RowDefinition></RowDefinition>
+                <RowDefinition></RowDefinition>
+                <RowDefinition></RowDefinition>
+            </Grid.RowDefinitions>
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition></ColumnDefinition>
+                <ColumnDefinition></ColumnDefinition>
+                <ColumnDefinition></ColumnDefinition>
+                <ColumnDefinition></ColumnDefinition>
+                <ColumnDefinition></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="3" VerticalAlignment="Center">Configure the coordinations of the chessboard</TextBlock>
+            <Button x:Name="Up" Grid.Row="2" Grid.Column="2" Click="MoveButton">Up</Button>
+            <Button x:Name="Down" Grid.Row="4" Grid.Column="2" Click="MoveButton">Down</Button>
+            <Button x:Name="Left" Grid.Row="3" Grid.Column="1" Click="MoveButton">Left</Button>
+            <Button x:Name="Right" Grid.Row="3" Grid.Column="3" Click="MoveButton">Right</Button>
+            <Button x:Name="Speed" Grid.Row="3" Grid.Column="2" Click="SpeedUpButton">SpeedUp(shift)</Button>
+            <Button x:Name="LockA1"  Grid.Row="5" Grid.Column="0" Click="LockCorner">Lock A1</Button>
+            <Button x:Name="LockH8" Grid.Row="5" Grid.Column="2" Click="LockCorner">Lock H8</Button>
+            <Button x:Name="PickPawnButton" Grid.Row="6" Grid.Column="0" Click="PickPawn">Pick Pawn</Button>
+            <Button x:Name="ReleasePawnButton" Grid.Row="6" Grid.Column="1" Click="ReleasePawn">Release Pawn</Button>
+            <Button x:Name="ConfirmButton" Grid.Row="6" Grid.Column="2" Click="ConfirmConfiguration">Confirm Configuration</Button>
+        </Grid>
+        <Grid x:Name="CoordinationGrid" Visibility="Collapsed">
+            
+        </Grid>
+
+        <Grid x:Name="StrategyPickGrid" Visibility="Collapsed">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"></RowDefinition>
+            </Grid.RowDefinitions>
+
+            <ComboBox Grid.Row="0" x:Name="StrategyComboBox" ItemsSource="{x:Bind Strategies}"
+                VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,10,0,0">
+                <ComboBox.HeaderTemplate>
+                    <DataTemplate>
+                        <TextBlock VerticalAlignment="Center" Text="Select match type"></TextBlock>
+                    </DataTemplate>
+                </ComboBox.HeaderTemplate>
+            </ComboBox>
+
+            <Button Grid.Row="1" x:Name="SelectStrategyButton" Content="Select" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,10,0,0" Click="StrategySelectedButton"/>
+        </Grid>
+    </Grid>
 </Window>
