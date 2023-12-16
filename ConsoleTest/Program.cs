@@ -16,8 +16,9 @@ namespace ConsoleTest
             var chessStrategy = new MatchReplayChessStrategy(path);
 
             //var chessRunner = new ChessRunner(chessStrategy, "COM3");
-            var chessRunner = new ChessRunner(chessStrategy, new MockRobot());
-            await chessRunner.InitializeMock();
+            var chessRunner = new ChessRunner(new MockRobot());
+            chessRunner.Initialize();
+            await chessRunner.InitializeStrategy(chessStrategy);
 
             //chessRunner.Configure();
 

@@ -1,6 +1,4 @@
-﻿using ChessMaster.Chess;
-
-namespace ChessMaster.Chess;
+﻿namespace ChessMaster.Chess;
 
 public interface IChessBoard
 {

@@ -1,4 +1,4 @@
-﻿using ChessMaster.Chess;
+﻿using ChessMaster.ChessDriver.Strategy;
 using ChessMaster.RobotDriver.Robotic;
 using ChessMaster.RobotDriver.State;
 using System.Numerics;
@@ -7,95 +7,118 @@ namespace ChessMaster.ChessDriver
 {
     public class ChessRunner
     {
-        private readonly ChessRobot robot;
-        private IChessStrategy chessStrategy;
+        public readonly ChessRobot robot;
+        private IChessStrategy? chessStrategy;
 
-        private const int captureSpaceWidth = 0;
-        private const int captureSpaceHeight = 0;
+        private bool IsInitialized = false;
+
+        private const string REPLAY_STRATEGY = "Replay Match";
+        private const string HUMAN_VS_STOCKFISH_STRATEGY = "Human vs Robot";
 
         public RobotState RobotState { get; set; }
 
-        public ChessRunner(IChessStrategy chessStrategy, string portName)
+        public ChessRunner(string portName)
         {
-            var captureSpace = new Space.Space(captureSpaceWidth, captureSpaceHeight);
-
-            this.robot = new ChessRobot(portName, captureSpace);
-            this.chessStrategy = chessStrategy;
+            this.robot = new ChessRobot(portName);
         }
 
-        public ChessRunner(IChessStrategy chessStrategy, IRobot robot)
+        public ChessRunner(IRobot robot)
         {
-            var captureSpace = new Space.Space(captureSpaceWidth, captureSpaceHeight);
-            this.robot = new ChessRobot(captureSpace, robot);
-            this.chessStrategy = chessStrategy;
+            this.robot = new ChessRobot(robot);
         }
 
         public async Task Run()
         {
+            if (!IsInitialized)
+            {
+                throw new InvalidOperationException("You must initialize the robot first");
+            }
+            if (chessStrategy is null)
+            {
+                throw new InvalidOperationException("You must initialize the chess strategy first");
+            }
+
             var move = await chessStrategy.GetNextMove();
             bool isMoveDone = true;
-            
-            while (!move.IsEndOfGame)
-            {
-                if (isMoveDone)
-                {
-                    if (move.Castling != null)
-                    {
-                        robot.ExecuteCastling(move.Castling.Value);
-                    }
-                    else if (move.MoveType == Chess.Property.MoveType.PawnPromotion)
-                    {
-                        robot.PromotePawn(move.Source!.Value, move.Target!.Value, move.PawnPromotion!.Value.FigureType);
-                    }
-                    else if (move.MoveType == Chess.Property.MoveType.Capture)
-                    {
-                        robot.CaptureFigure(move.Source!.Value, move.Target!.Value);
-                    }
-                    else
-                    {
-                        robot.MoveFigureTo(move.Source!.Value, move.Target!.Value);
-                    }
+            bool isEndOfGame = false;
 
-                    move = await chessStrategy.GetNextMove();
-                    
-                    isMoveDone = false;
-                    
-                    robot.SubscribeToCommandsCompletion(new CommandsCompletedEvent((object? o, RobotEventArgs e) =>
-                    {
-                        isMoveDone = true;
-                    }));
+            while (isEndOfGame)
+            {
+                if (move.IsEndOfGame)
+                {
+                    isEndOfGame = true;
                 }
                 else
                 {
-                    await Task.Delay(100);
-                }
+                    move.Execute(robot);
 
-                RobotState = await robot.GetState();
+                    if (isMoveDone)
+                    {
+                        move = await chessStrategy.GetNextMove();
+
+                        isMoveDone = false;
+
+                        robot.SubscribeToCommandsCompletion(new CommandsCompletedEvent((object? o, RobotEventArgs e) =>
+                        {
+                            isMoveDone = true;
+                        }));
+                    }
+                    else
+                    {
+                        await Task.Delay(100);
+                    }
+
+                    RobotState = await robot.GetState();
+                }
             }
         }
 
-        public async Task Initialize()
-        { 
+        public void Initialize()
+        {
             robot.Initialize();
-            await chessStrategy.Initialize();
-            RobotState = await robot.GetState();
+            IsInitialized = true;
         }
 
-        public async Task InitializeMock()
+        public void InitializeMock()
         {
             robot.InitializeMock();
+            IsInitialized = true;
+        }
+
+        public async Task InitializeStrategy(IChessStrategy strategy)
+        {
+            this.chessStrategy = strategy;
             await chessStrategy.Initialize();
-            RobotState = await robot.GetState();
         }
 
         public void Configure(Vector2 a1Center, Vector2 h8Center)
         {
-            robot.Configure(a1Center, h8Center);    
+            robot.Configure(a1Center, h8Center);
         }
 
         public void SwapStrategy(IChessStrategy chessStrategy)
-        { 
+        {
             throw new NotImplementedException();
+        }
+
+        public List<string> GetStrategies()
+        {
+            return new() { 
+                REPLAY_STRATEGY,
+                HUMAN_VS_STOCKFISH_STRATEGY
+            };
+        }
+
+        public async Task PickStrategy(string strategyName)
+        {
+            if (strategyName == REPLAY_STRATEGY)
+            {
+                await InitializeStrategy(new MatchReplayChessStrategy("C:\\Users\\asus\\Desktop\\Bakalarka\\ChessMaster\\Data\\Anatoly Karpov_vs_Garry Kasparov_1985.pgn"));
+            }
+            else if (strategyName == HUMAN_VS_STOCKFISH_STRATEGY)
+            { 
+                
+            }
         }
     }
 }

@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using ChessMaster.Chess;
 
-namespace ChessMaster.Chess.Strategy.MatchReplay;
+namespace ChessMaster.ChessDriver.Strategy;
 
 public class PgnChessBoard : IChessBoard
 {

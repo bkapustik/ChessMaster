@@ -1,8 +1,9 @@
-﻿using ChessMaster.Chess.Property;
+﻿using ChessMaster.Chess;
+using ChessMaster.Chess.Property;
 using ChessMaster.Space.Coordinations;
-using System.Runtime.CompilerServices;
+using System.Linq.Expressions;
 
-namespace ChessMaster.Chess.Strategy.MatchReplay;
+namespace ChessMaster.ChessDriver.Strategy;
 
 public class MatchReplayChessStrategy : IChessStrategy
 {
@@ -23,35 +24,44 @@ public class MatchReplayChessStrategy : IChessStrategy
         chessBoard.Initialize();
     }
 
-    public async Task<Move> GetNextMove()
+    public async Task<ChessMove> GetNextMove()
     {
-        var move = new Move();
-
         if (moves.Count <= 0)
         {
-            move.IsEndOfGame = true;
-            return move;
+            return new ChessMove(true);
         }
 
         var pgnMove = moves.Dequeue();
 
-        move.IsEndOfGame = pgnMove.IsEnfOfGame;
-        move.PawnPromotion = pgnMove.PawnPromotion;
-        move.MoveType = pgnMove.MoveType;
+        SpacePosition source = new SpacePosition();
+        SpacePosition target = new SpacePosition();
 
         if (pgnMove.Source != null ||
             pgnMove.MoveType == MoveType.Default ||
             pgnMove.MoveType == MoveType.Capture ||
             pgnMove.MoveType == MoveType.PawnPromotion)
         {
-            move.Source = FindSourcePosition(pgnMove);
+            source = FindSourcePosition(pgnMove);
         }
 
         if (pgnMove.Target != null)
         {
-            move.Target = pgnMove.Target.Value;
+            target = pgnMove.Target.Value;
         }
 
+        if (pgnMove.MoveType == MoveType.PawnPromotion)
+        {
+            AdvanceColor();
+            return new PawnPromotionMove(source, target, pgnMove.PawnPromotion!.Value.FigureType, false);
+        }
+
+        if (pgnMove.MoveType == MoveType.Capture)
+        {
+            AdvanceColor();
+            return new CaptureMove(source, target, false);
+        }
+
+        var castling = new Castling();
         if (pgnMove.MoveType == MoveType.KingCastling)
         {
             if (colorOnMove == ChessColor.White)
@@ -62,7 +72,7 @@ public class MatchReplayChessStrategy : IChessStrategy
                     Y = 0
                 };
 
-                move.Castling = new Castling()
+                castling = new Castling()
                 {
                     KingSource = whiteKingSource,
                     KingTarget = new SpacePosition(whiteKingSource.X + 2, whiteKingSource.Y),
@@ -78,7 +88,7 @@ public class MatchReplayChessStrategy : IChessStrategy
                     Y = 7
                 };
 
-                move.Castling = new Castling()
+                castling = new Castling()
                 {
                     KingSource = blackKingSource,
                     KingTarget = new SpacePosition(blackKingSource.X + 2, blackKingSource.Y),
@@ -86,6 +96,9 @@ public class MatchReplayChessStrategy : IChessStrategy
                     RookTarget = new SpacePosition(blackKingSource.X + 1, blackKingSource.Y)
                 };
             }
+
+            AdvanceColor();
+            return new CastlingMove(castling, false);
         }
         else if (pgnMove.MoveType == MoveType.QueenSideCastling)
         {
@@ -97,7 +110,7 @@ public class MatchReplayChessStrategy : IChessStrategy
                     Y = 0
                 };
 
-                move.Castling = new Castling()
+                castling = new Castling()
                 {
                     KingSource = whiteKingSource,
                     KingTarget = new SpacePosition(whiteKingSource.X - 2, whiteKingSource.Y),
@@ -113,7 +126,7 @@ public class MatchReplayChessStrategy : IChessStrategy
                     Y = 7
                 };
 
-                move.Castling = new Castling()
+                castling = new Castling()
                 {
                     KingSource = blackKingSource,
                     KingTarget = new SpacePosition(blackKingSource.X - 2, blackKingSource.Y),
@@ -121,11 +134,12 @@ public class MatchReplayChessStrategy : IChessStrategy
                     RookTarget = new SpacePosition(blackKingSource.X - 1, blackKingSource.Y)
                 };
             }
+            AdvanceColor();
+            return new CastlingMove(castling, false);
         }
 
         AdvanceColor();
-
-        return move;
+        return new ChessMove(source, target, false);
     }
     public SpacePosition FindSourcePosition(PgnMove move)
     {

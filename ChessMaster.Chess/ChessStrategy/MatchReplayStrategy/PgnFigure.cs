@@ -1,11 +1,7 @@
-﻿using ChessMaster.Space.Coordinations;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using ChessMaster.Chess;
+using ChessMaster.Space.Coordinations;
 
-namespace ChessMaster.Chess.Strategy.MatchReplay;
+namespace ChessMaster.ChessDriver.Strategy;
 
 public abstract class PgnFigure : IChessFigure
 {

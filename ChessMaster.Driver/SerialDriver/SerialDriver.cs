@@ -1,7 +1,6 @@
 ﻿using ChessMaster.RobotDriver.Robotic;
 using ChessMaster.RobotDriver.SerialDriver;
 using ChessMaster.RobotDriver.SerialResponse;
-using ChessMaster.RobotDriver.State;
 using System.Diagnostics;
 using System.IO.Ports;
 using System.Numerics;
@@ -13,25 +12,14 @@ public class SerialDriver : ISerialDriver
     private string portName;
     private SerialPort serialPort = null;
     private List<string> comlog = new List<string>();
-    private bool executingCommands = false;
-
-    private Queue<SerialCommand> commandQueue = new Queue<SerialCommand>();
-
-    /// <summary>
-    /// Alarms are written out to console ad-hoc, this is the last parsed alarm value.
-    /// </summary>
-    private int lastAlarm = 0;
-
     private readonly SerialCommandFactory commandFactory;
-
+    private int lastAlarm = 0;
     public SerialDriver(string portName)
     {
         this.portName = portName;
         commandFactory = new SerialCommandFactory();
     }
-
     public CommandsCompletedEvent CommandsExecuted { get; set; }
-
     public Vector3 GetOrigin()
     {
         SerialWriteLine(commandFactory.Info().Command);
@@ -52,15 +40,6 @@ public class SerialDriver : ISerialDriver
         } while (!response.StartsWith(RobotDriverResponse.OK));
 
         throw new RobotDriverException("Origin coordinates missing in info response!");
-    }
-    public void ScheduleCommand(SerialCommand command)
-    {
-        commandQueue.Enqueue(command);
-
-        if (!executingCommands)
-        {
-            ExecuteCommands();
-        }
     }
     public async Task Initialize()
     {
@@ -131,12 +110,10 @@ public class SerialDriver : ISerialDriver
             Coordinates = coords
         };
     }
-
     protected virtual void OnCommandsExecuted(RobotEventArgs e)
     {
         CommandsExecuted?.Invoke(this, e);
     }
-
     private async Task<string> SendCommandGetResponse(SerialCommand command)
     {
         // lingering info is removed
@@ -153,8 +130,6 @@ public class SerialDriver : ISerialDriver
         {
             await Task.Delay(command.TimeToExecute.Value);
         }
-        executingCommands = false;
-
         return response;
     }
     private async Task<string> GetResponse(long timeout)
@@ -223,42 +198,12 @@ public class SerialDriver : ISerialDriver
             throw new RobotDriverException("Command '" + command + "' execution failed on error.", error);
         }
     }
-    private async Task SendCommand(SerialCommand command)
+    public async Task SendCommand(SerialCommand command)
     {
         string response = await SendCommandGetResponse(command);
         if (!response.StartsWith(RobotDriverResponse.OK))
         {
             throw new RobotDriverException("Command '" + command + "' execution failed on unknown error: " + response);
-        }
-    }
-    private void ExecuteCommands()
-    {
-        executingCommands = true;
-        while (commandQueue.Count > 0)
-        {
-            var command = commandQueue.Dequeue();
-            var task = SendCommandAtLastCompletion(command);
-            task.Wait();
-         
-            OnCommandsExecuted(new RobotEventArgs(success: true, new RobotState()));
-        }
-    }
-    private async Task SendCommandAtLastCompletion(SerialCommand command)
-    {
-        bool isIdle = false;
-        while (!isIdle)
-        {
-            var currentState = await GetRawState();
-            isIdle = currentState.MovementState == MovementState.Idle.ToString();
-
-            if (!isIdle)
-            {
-                await Task.Delay(10);
-            }
-            else
-            {
-                await SendCommand(command);
-            }
         }
     }
 }

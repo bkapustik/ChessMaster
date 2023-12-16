@@ -1,121 +1,148 @@
 ﻿using ChessMaster.RobotDriver.Robotic;
 using ChessMaster.Space.Coordinations;
-using System.Diagnostics.Tracing;
 using System.Numerics;
 using ChessMaster.RobotDriver.State;
 
-namespace ChessMaster.Space.RobotSpace
+namespace ChessMaster.Space.RobotSpace;
+
+public class RobotSpace
 {
-    public class RobotSpace
+    protected Space space;
+    protected IRobot robot;
+
+    private MoveableEntity? currentlyHeldEntity;
+    private RobotState currentRobotState;
+    private SpacePosition expectedPosition;
+    public async Task InitializeAsync()
     {
-        protected Space[] spaces;
-        protected IRobot robot;
+        await robot.Initialize();
+    }
+    public void Initialize()
+    { 
+        robot.Initialize().Wait();
+    }
+    public void Initialize(IRobot robot)
+    { 
+        this.robot = robot;
+        robot.Initialize().Wait();
+    }
+    protected void MoveEntityFromSourceToTarget(SpacePosition source, SpacePosition target)
+    {
+        TakeEntityFromPosition(source);
 
-        private MoveableEntity? currentlyHeldEntity;
-        private RobotState currentRobotState;
-        private int currentSpaceIndex;
-        private SpacePosition currentPosition;
+        MoveToCarryingPosition(target);
 
-        public void Initialize(Space[] spaces, IRobot robot)
-        { 
-            this.spaces = spaces; 
-            this.robot = robot;
-            robot.Initialize().Wait();
-        }
+        MoveEntityToPosition(target);
+    }
+    public void SubscribeToCommandsCompletion(CommandsCompletedEvent e)
+    {
+        robot.CommandsExecuted += e;
+    }
+    private void UpdateCurrentState(SpacePosition position)
+    { 
+        expectedPosition = position;
+    }
+    public async Task<RobotState> GetState() => await robot.GetState();
+    private void TakeEntityFromPosition(SpacePosition position)
+    {
+        var commands = new Queue<RobotCommand>();
+        var entity = space.SubSpaces[position.X,position.Y].Entity;
 
-        protected void MoveEntityFromSourceToTarget(SpacePosition source, SpacePosition target, int sourceSpaceIndex = 0, int targetSpaceIndex = 0)
+        var moves = GetBestTrajectory(position);
+
+        while (moves.Count > 0)
         {
-            TakeEntityFromPosition(source, sourceSpaceIndex);
+            var move = moves.Dequeue();
 
-            MoveToCarryingPosition(target, targetSpaceIndex);
-
-            MoveEntityToPosition(target, targetSpaceIndex);
+            commands.Enqueue(new MoveCommand(move));
         }
-        public void SubscribeToCommandsCompletion(CommandsCompletedEvent e)
+
+        commands.Enqueue(new OpenCommand());
+        commands.Enqueue(new MoveCommand(entity!.GetHoldingPointVector()));
+        commands.Enqueue(new CloseCommand());
+
+        if (!robot.TryScheduleCommands(commands))
         {
-            robot.SubscribeToCommandsCompletion(e);
-        }
-
-        private void UpdateCurrentState(SpacePosition position, int spaceIndex)
-        { 
-            currentSpaceIndex = spaceIndex;
-            currentPosition = position;
-        }
-        
-        public async Task<RobotState> GetState() => await robot.GetState();
-
-        private void TakeEntityFromPosition(SpacePosition position, int spaceIndex)
-        {
-            var entity = spaces[spaceIndex].SubSpaces[position.X,position.Y].Entity;
-
-            var moves = GetBestTrajectory(position, spaceIndex);
-
-            foreach (var move in moves)
-            { 
-                robot.Move(move);
-            }
-
-            robot.OpenGrip();
-
-            robot.Move(entity!.GetHoldingPointVector());
-
-            robot.CloseGrip();
-
-            currentlyHeldEntity = entity;
-
-            spaces[spaceIndex].SubSpaces[position.X, position.Y].Entity = null;
-
-            UpdateCurrentState(position, spaceIndex);
-        }
-        
-        private void MoveEntityToPosition(SpacePosition targetPosition, int spaceIndex)
-        {
-            spaces[spaceIndex].SubSpaces[targetPosition.X, targetPosition.Y].Entity = currentlyHeldEntity;
-
-            currentlyHeldEntity = null;
-
-            var moves = GetBestTrajectory(targetPosition, spaceIndex);
-
-            foreach (var move in moves)
+            robot.CommandsExecuted += new CommandsCompletedEvent((object? o, RobotEventArgs e) =>
             {
-                robot.Move(move);
-            }
-
-            robot.CloseGrip();
-
-            UpdateCurrentState(targetPosition, spaceIndex);
+                robot.TryScheduleCommands(commands);
+            });
         }
 
-        private void MoveToCarryingPosition(SpacePosition spacePosition, int currentSpaceIndex)
+        currentlyHeldEntity = entity;
+        space.SubSpaces[position.X, position.Y].Entity = null;
+        UpdateCurrentState(position);
+    }
+    private void MoveEntityToPosition(SpacePosition targetPosition)
+    {
+        var commands = new Queue<RobotCommand>();   
+        space.SubSpaces[targetPosition.X, targetPosition.Y].Entity = currentlyHeldEntity;
+
+        currentlyHeldEntity = null;
+
+        var moves = GetBestTrajectory(targetPosition);
+
+        while (moves.Count > 0)
         {
-            var carryingMove = GetBestCarryingPosition(spacePosition, currentSpaceIndex);
-            robot.Move(carryingMove);
+            var move = moves.Dequeue();
 
-            UpdateCurrentState(spacePosition, currentSpaceIndex);
+            commands.Enqueue(new MoveCommand(move));
         }
 
-        private List<Vector3> GetBestTrajectory(SpacePosition targetPosition, int targetSpaceIndex)
+        commands.Enqueue(new CloseCommand());
+
+        if (!robot.TryScheduleCommands(commands))
         {
-            var currentCoordinations = spaces[currentSpaceIndex].SubSpaces[currentPosition.X, currentPosition.Y].Center.Value;
-            var targetCoordinations = spaces[targetSpaceIndex].SubSpaces[targetPosition.X, targetPosition.Y].Center.Value;
-
-            //var intersectedSpaceIndices = new List<int>();
-
-            //for (int i = 0; i < spaces.Length; i++)
-            //{ 
-            //    if ()
-            //}
-
-
-
-            return new List<Vector3>() { new Vector3(targetCoordinations.X, targetCoordinations.Y, 100) };
-            //TODO implemenet
+            robot.CommandsExecuted += new CommandsCompletedEvent((object? o, RobotEventArgs e) =>
+            {
+                robot.TryScheduleCommands(commands);
+            });
         }
 
-        private Vector3 GetBestCarryingPosition(SpacePosition spacePosition, int currentSpaceIndex)
+        UpdateCurrentState(targetPosition);
+    }
+    private void MoveToCarryingPosition(SpacePosition spacePosition)
+    {
+        var carryingMove = GetBestCarryingPosition(spacePosition);
+
+        var commands = new Queue<RobotCommand>();
+        commands.Enqueue(new MoveCommand(carryingMove));
+        
+        if (!robot.TryScheduleCommands(commands))
         {
-            return new Vector3();
-            //TODO implemenet
+            robot.CommandsExecuted += new CommandsCompletedEvent((object? o, RobotEventArgs e) =>
+            {
+                robot.TryScheduleCommands(commands);
+            });
         }
+
+        UpdateCurrentState(spacePosition);
+    }
+    private Queue<Vector3> GetBestTrajectory(SpacePosition targetPosition)
+    {
+        var currentCoordinations = space.SubSpaces[expectedPosition.X, expectedPosition.Y].Center.Value;
+        var targetCoordinations = space.SubSpaces[targetPosition.X, targetPosition.Y].Center.Value;
+
+        //var intersectedSpaceIndices = new List<int>();
+
+        //for (int i = 0; i < spaces.Length; i++)
+        //{ 
+        //    if ()
+        //}
+
+        var result = new Queue<Vector3>();
+        result.Enqueue(new Vector3(targetCoordinations.X, targetCoordinations.Y, 100));
+        return result;
+
+        //TODO implemenet
+    }
+    private Vector3 GetBestCarryingPosition(SpacePosition spacePosition)
+    {
+        return new Vector3();
+        //TODO implemenet
+    }
+    public void Move(Vector2 position)
+    {
+        throw new NotImplementedException();
     }
 }

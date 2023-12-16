@@ -1,5 +1,6 @@
 ﻿using ChessMaster.RobotDriver.State;
 using System.Numerics;
+using System.Threading;
 
 namespace ChessMaster.RobotDriver.Robotic
 {
@@ -20,6 +21,22 @@ namespace ChessMaster.RobotDriver.Robotic
 
         }
 
+        public bool TryScheduleCommands(Queue<RobotCommand> commands)
+        {
+            return true;
+        }
+        public bool TryScheduleConfigurationCommand(RobotCommand command)
+        {
+            return true;
+        }
+
+        protected virtual void OnCommandsExecuted(RobotEventArgs e)
+        {
+            CommandsExecuted?.Invoke(this, e);
+        }
+
+        public CommandsCompletedEvent CommandsExecuted { get; set; }
+
         public async Task Initialize()
         {
             await Task.Delay(2500);  
@@ -33,46 +50,6 @@ namespace ChessMaster.RobotDriver.Robotic
         public void Home()
         {
             Thread.Sleep(5000);
-        }
-
-        public void Move(float x, float y, float z)
-        {
-            Thread.Sleep(500);
-        }
-
-        public void Move(Vector3 targetPosition)
-        {
-            Thread.Sleep(500);
-        }
-
-        public void MoveXY(float x, float y)
-        {
-            Thread.Sleep(500);
-        }
-
-        public void MoveX(float x)
-        {
-            Thread.Sleep(500);
-        }
-
-        public void MoveY(float y)
-        {
-            Thread.Sleep(500);
-        }
-
-        public void MoveZ(float z)
-        {
-            Thread.Sleep(500);
-        }
-
-        public void OpenGrip()
-        {
-            Thread.Sleep(200);
-        }
-
-        public void CloseGrip()
-        {
-            Thread.Sleep(500);
         }
 
         public async Task<RobotState> GetState()

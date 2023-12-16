@@ -19,7 +19,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsoleTest", "ConsoleTest\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChessMaster.Tests", "ChessMaster.Tests\ChessMaster.Tests.csproj", "{BA0F0668-44F3-4BDA-A892-F4BC16AC11E0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChessMaster.ControlApp", "ChessMaster.ControlApp\ChessMaster.ControlApp.csproj", "{3611B3A3-5AC2-454D-A70F-9BA07DCF6194}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChessMaster.ControlApp", "ChessMaster.ControlApp\ChessMaster.ControlApp.csproj", "{3611B3A3-5AC2-454D-A70F-9BA07DCF6194}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

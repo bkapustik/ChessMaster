@@ -1,7 +1,8 @@
-﻿using ChessMaster.Chess.Property;
+﻿using ChessMaster.Chess;
+using ChessMaster.Chess.Property;
 using ChessMaster.Space.Coordinations;
 
-namespace ChessMaster.Chess.Strategy.MatchReplay;
+namespace ChessMaster.ChessDriver.Strategy;
 
 public static class ChessFileParser
 {
