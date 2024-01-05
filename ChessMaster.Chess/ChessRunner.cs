@@ -1,4 +1,5 @@
-﻿using ChessMaster.ChessDriver.Strategy;
+﻿using ChessMaster.ChessDriver.ChessStrategy;
+using ChessMaster.ChessDriver.Strategy;
 using ChessMaster.RobotDriver.Robotic;
 using ChessMaster.RobotDriver.State;
 using System.Numerics;
@@ -10,16 +11,22 @@ namespace ChessMaster.ChessDriver
         public readonly ChessRobot robot;
         private IChessStrategy? chessStrategy;
 
-        private bool IsInitialized = false;
+        public const string DUMMY_ROBOT = "DUMMY";
 
-        private const string REPLAY_STRATEGY = "Replay Match";
-        private const string HUMAN_VS_STOCKFISH_STRATEGY = "Human vs Robot";
+        public bool IsInitialized = false;
 
         public RobotState RobotState { get; set; }
 
         public ChessRunner(string portName)
         {
-            this.robot = new ChessRobot(portName);
+            if (portName == DUMMY_ROBOT)
+            {
+                robot = new ChessRobot(new MockRobot());
+            }
+            else
+            {
+                robot = new ChessRobot(portName);
+            }
         }
 
         public ChessRunner(IRobot robot)
@@ -68,7 +75,7 @@ namespace ChessMaster.ChessDriver
                         await Task.Delay(100);
                     }
 
-                    RobotState = await robot.GetState();
+                    RobotState = robot.GetState();
                 }
             }
         }
@@ -85,10 +92,10 @@ namespace ChessMaster.ChessDriver
             IsInitialized = true;
         }
 
-        public async Task InitializeStrategy(IChessStrategy strategy)
+        public async Task InitializeStrategy(IChessStrategy chessStrategy)
         {
-            this.chessStrategy = strategy;
-            await chessStrategy.Initialize();
+            this.chessStrategy = chessStrategy;
+            await this.chessStrategy.Initialize();
         }
 
         public void Configure(Vector2 a1Center, Vector2 h8Center)
@@ -101,24 +108,17 @@ namespace ChessMaster.ChessDriver
             throw new NotImplementedException();
         }
 
-        public List<string> GetStrategies()
+        public List<ChessStrategyFacade> GetStrategies()
         {
-            return new() { 
-                REPLAY_STRATEGY,
-                HUMAN_VS_STOCKFISH_STRATEGY
+            return new()
+            {
+                new PgnStrategyFacade()
             };
         }
 
-        public async Task PickStrategy(string strategyName)
+        public async Task PickStrategy(IChessStrategy strategy)
         {
-            if (strategyName == REPLAY_STRATEGY)
-            {
-                await InitializeStrategy(new MatchReplayChessStrategy("C:\\Users\\asus\\Desktop\\Bakalarka\\ChessMaster\\Data\\Anatoly Karpov_vs_Garry Kasparov_1985.pgn"));
-            }
-            else if (strategyName == HUMAN_VS_STOCKFISH_STRATEGY)
-            { 
-                
-            }
+            await InitializeStrategy(strategy);
         }
     }
 }

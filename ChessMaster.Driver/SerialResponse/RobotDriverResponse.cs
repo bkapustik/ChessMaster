@@ -11,4 +11,5 @@ public static class RobotDriverResponse
     public const string HELP_MESSAGE = "[";
     public const string RESPONSE_SPLITTER = "|";
     public const string COORDINATES = "MPos:";
+    public const string HOMING_REQUIRED = "\r";
 }

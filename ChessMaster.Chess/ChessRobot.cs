@@ -11,11 +11,8 @@ namespace ChessMaster.ChessDriver
     {
         private ChessBoard chessBoard;
 
-        private float configurationHeight;
-
         public ChessRobot(string portName)
         {
-            this.portName = portName;
             this.robot = new Robot(new SerialDriver(portName));
             this.chessBoard = new ChessBoard();
             this.space = chessBoard.Space;

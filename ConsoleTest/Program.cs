@@ -1,6 +1,6 @@
 ﻿using ChessMaster.Chess;
-using ChessMaster.Chess.Strategy.MatchReplay;
 using ChessMaster.ChessDriver;
+using ChessMaster.ChessDriver.Strategy;
 using ChessMaster.RobotDriver.Driver;
 using ChessMaster.RobotDriver.Robotic;
 using System.Security.Cryptography.X509Certificates;
@@ -15,14 +15,13 @@ namespace ConsoleTest
 
             var chessStrategy = new MatchReplayChessStrategy(path);
 
-            //var chessRunner = new ChessRunner(chessStrategy, "COM3");
-            var chessRunner = new ChessRunner(new MockRobot());
+            var chessRunner = new ChessRunner("COM3");
             chessRunner.Initialize();
-            await chessRunner.InitializeStrategy(chessStrategy);
+            //chessRunner.robot.Move(new System.Numerics.Vector2(100,100));
 
             //chessRunner.Configure();
 
-            await chessRunner.Run();
+            //await chessRunner.Run();
         }
     }
 }

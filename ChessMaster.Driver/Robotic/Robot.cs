@@ -1,55 +1,111 @@
 ﻿using ChessMaster.RobotDriver.Driver;
 using ChessMaster.RobotDriver.SerialDriver;
+using ChessMaster.RobotDriver.SerialResponse;
 using ChessMaster.RobotDriver.State;
 using System.Numerics;
 
 namespace ChessMaster.RobotDriver.Robotic;
 
-public class Robot : IRobot
+public class Robot : IRobot 
 {
     private Queue<SerialCommand> commandQueue;
+    private bool isBeingExecuted = true;
     private readonly SerialCommandFactory commands;
     private readonly ISerialDriver driver;
     private Vector3 origin;
     private const float safePadding = 5f;
-    private Mutex mutex;
-    private bool IsConfiguration = true;
+    private RobotRawState state;
+    private bool hasBeenInitialized = false;
+    private SemaphoreSlim semaphore;
+
+    public CommandsCompletedEvent CommandsSucceeded { get; set; }
+    public CommandsCompletedEvent Initialized { get; set; }
+    public CommandsCompletedEvent NotInitialized { get; set; }
+    public CommandsCompletedEvent CommandsFinished { get; set; }
+    public CommandsCompletedEvent HomingRequired { get; set; }
+    public CommandsCompletedEvent RestartRequired { get; set; }
+
+    public Vector3 Limits
+    {
+        get => new Vector3(-origin.X - safePadding, -origin.Y - safePadding, -origin.Z - safePadding);
+    }
+
     public Robot(ISerialDriver robotDriver)
     {
         commands = new SerialCommandFactory();
         driver = robotDriver;
         commandQueue = new Queue<SerialCommand>();
-        mutex = new Mutex(false);
+        semaphore = new SemaphoreSlim(1);
     }
-    public CommandsCompletedEvent CommandsExecuted { get; set; }
-    public async Task Initialize()
-    {
-        await driver.Initialize();
-        
-        origin = driver.GetOrigin();
-        await driver.SetMovementType(commands.LinearMovement());
-    }
-    public async Task<RobotState> GetState()
-    {
-        mutex.WaitOne();
-        var rawState = await driver.GetRawState();
-        mutex.ReleaseMutex();
 
-        MovementState state = rawState.MovementState.ToMovementState();
-
-        var x = float.Parse(rawState.Coordinates[0], System.Globalization.CultureInfo.InvariantCulture) - origin.X;
-        var y = float.Parse(rawState.Coordinates[1], System.Globalization.CultureInfo.InvariantCulture) - origin.Y;
-        var z = float.Parse(rawState.Coordinates[2], System.Globalization.CultureInfo.InvariantCulture) - origin.Z;
-
-        return new RobotState(state, x, y, z);
-    }
-    protected virtual void OnCommandsExecuted(RobotEventArgs e)
+    public void Initialize()
     {
-        CommandsExecuted?.Invoke(this, e);
+        bool problematicPosition = false;
+        semaphore.Wait();
+        try
+        {
+            driver.Initialize();
+            origin = driver.GetOrigin();
+            if (origin.X < 0 || origin.Y < 0 || origin.Z < 0)
+            {
+                problematicPosition = true;
+            }
+            driver.SetMovementType(commands.LinearMovement());
+            state = driver.GetRawState();
+            hasBeenInitialized = true;
+        }
+        catch (Exception ex) 
+        {
+            semaphore.Release();
+            HandleRestartRequired();
+            return;
+        }
+        if (driver.HomingRequired || problematicPosition)
+        {
+            semaphore.Release();
+            HandleHomingRequired();
+            problematicPosition = false;
+            return;
+        }
+        else
+        {
+            semaphore.Release();
+            HandleInitialized();
+            return;
+        }
     }
-    public Vector3 Limits
+    public bool IsAtDesired(Vector3 desired, RobotState state)
     {
-        get => new Vector3(-origin.X - safePadding, -origin.Y - safePadding, -origin.Z - safePadding);
+        float dx = desired.X - state.Position.X;
+        float dy = desired.Y - state.Position.Y;
+
+        return Math.Abs(dx) <= 0.5 && Math.Abs(dy) <= 0.5;
+    }
+    public void Home()
+    {
+        semaphore.Wait();
+
+        semaphore.Release();
+
+        isBeingExecuted = true;
+        semaphore.Release();
+        bool isIdle = false;
+        while (!isIdle)
+        {
+            state = driver.GetRawState();
+            isIdle = state.MovementState == MovementState.Idle.ToString();
+
+            if (!isIdle)
+            {
+                Task.Delay(10);
+            }
+            else
+            {
+                driver.Home();
+            }
+        }
+        hasBeenInitialized = true;
+        HandleOkReponse();
     }
     public void Reset()
     {
@@ -57,93 +113,165 @@ public class Robot : IRobot
     }
     public void Pause()
     {
-        mutex.WaitOne();
-        var task = SendCommandAtLastCompletion(commands.Pause());
-        task.Wait();
-        mutex.ReleaseMutex();
+        SendCommandAtLastCompletion(commands.Pause());
     }
     public void Resume()
     {
-        mutex.WaitOne();
-        var task = SendCommandAtLastCompletion(commands.Resume());
-        task.Wait();
-        mutex.ReleaseMutex();
+        SendCommandAtLastCompletion(commands.Resume());
     }
-    private async Task SendCommandAtLastCompletion(SerialCommand command)
+    public RobotState GetState()
     {
-        bool isIdle = false;
-        while (!isIdle)
+        if (!hasBeenInitialized)
         {
-            var currentState = await driver.GetRawState();
-            isIdle = currentState.MovementState == MovementState.Idle.ToString();
+            return new RobotState(RobotResponse.NotInitialized);
+        }
 
-            if (!isIdle)
-            {
-                await Task.Delay(10);
-            }
-            else
-            {
-                await driver.SendCommand(command);
-            }
-        }
+        MovementState stateResult = state.MovementState.ToMovementState();
+
+        var x = float.Parse(state.Coordinates[0], System.Globalization.CultureInfo.InvariantCulture) - origin.X;
+        var y = float.Parse(state.Coordinates[1], System.Globalization.CultureInfo.InvariantCulture) - origin.Y;
+        var z = float.Parse(state.Coordinates[2], System.Globalization.CultureInfo.InvariantCulture) - origin.Z;
+
+        return new RobotState(stateResult, RobotResponse.Ok, x, y, z);
     }
-    private void HandleFinishedCommands()
+    public void ScheduleCommands(Queue<RobotCommand> commands)
     {
-        var currentState = driver.GetRawState().Result;
-        var isIdle = currentState.MovementState == MovementState.Idle.ToString();
-        while (!isIdle)
+        semaphore.Wait();
+        if (driver.HomingRequired)
         {
-            Task.Delay(10);
-            currentState = driver.GetRawState().Result;
-            isIdle = currentState.MovementState == MovementState.Idle.ToString();
+            semaphore.Release();
+            HandleHomingRequired();
         }
-        OnCommandsExecuted(new RobotEventArgs(success: true, new RobotState()));
-    }
-    public bool TryScheduleCommands(Queue<RobotCommand> commands)
-    {
-        if (commandQueue.Count > 0)
+        if (!hasBeenInitialized)
         {
-            return false;
+            semaphore.Release();
+            HandleNotInitialized();
+        }
+        if (commandQueue.Count > 0 || isBeingExecuted)
+        {
+            semaphore.Release();
+            HandleFinishedCommands(RobotResponse.AlreadyExecuting);
         }
 
         while (commands.Count > 0)
         {
             commandQueue.Enqueue(commands.Dequeue().GetSerialCommand());
         }
-        while (commandQueue.Count > 0)
+
+        semaphore.Release();
+
+        try
         {
-            mutex.WaitOne();
+            if (commandQueue.Count > 0)
+            {
+                semaphore.Wait();
 
-            var command = commandQueue.Dequeue();
-            var task = SendCommandAtLastCompletion(command);
-            task.Wait();
+                var serialCommand = commandQueue.Dequeue();
+                isBeingExecuted = true;
+                semaphore.Release();
 
-            mutex.ReleaseMutex();
+                SendCommandAtLastCompletion(serialCommand);
+
+            }
         }
-
-        HandleFinishedCommands();
-        return true;
+        catch (Exception ex)
+        {
+            semaphore.Release();
+            HandleRestartRequired();
+        }
     }
-    public bool TryScheduleConfigurationCommand(RobotCommand command)
+
+    private void OnCommandsSucceded(RobotEventArgs e)
     {
-        if (!IsConfiguration)
+        CommandsSucceeded?.Invoke(this, e);
+    }
+    private void OnInitialized(RobotEventArgs e)
+    { 
+        Initialized?.Invoke(this, e);
+    }
+    private void OnNotInitialized(RobotEventArgs e)
+    { 
+        NotInitialized?.Invoke(this, e);
+    }
+    private void OnCommandsFinished(RobotEventArgs e)
+    {
+        CommandsFinished?.Invoke(this, e);
+    }
+    private void OnHomingRequired(RobotEventArgs e)
+    {
+        HomingRequired?.Invoke(this, e);
+    }
+    private void OnRestartRequired(RobotEventArgs e)
+    { 
+        RestartRequired?.Invoke(this, e);   
+    }
+
+    private void SendCommandAtLastCompletion(SerialCommand command)
+    {
+        bool isIdle = false;
+        while (!isIdle)
         {
-            return false;
-        }
+            state = driver.GetRawState();
+            isIdle = state.MovementState == MovementState.Idle.ToString();
 
-        if (commandQueue.Count > 0)
+            if (!isIdle)
+            {
+                Task.Delay(10);
+            }
+            else
+            {
+                driver.TrySendCommand(command);
+            }
+        }
+    }
+
+    private RobotState PrepareSuccessResponse()
+    {
+        state = driver.GetRawState();
+        var isIdle = state.MovementState == MovementState.Idle.ToString();
+        while (!isIdle)
         {
-            mutex.WaitOne();
-
-            var serialCommand = commandQueue.Dequeue();
-            var task = SendCommandAtLastCompletion(serialCommand);
-            task.Wait();
-
-            mutex.ReleaseMutex();
+            Task.Delay(10);
+            state = driver.GetRawState();
+            isIdle = state.MovementState == MovementState.Idle.ToString();
         }
+        semaphore.Wait();
+        isBeingExecuted = false;
+        semaphore.Release();
+        GetState();
+        return GetState();
+    }
 
-        HandleFinishedCommands();
-
-        return true;
+    private void HandleFinishedCommands(RobotResponse robotResponse)
+    {
+        var resultState = new RobotState(robotResponse);
+        Task.Run(() => OnCommandsFinished(new RobotEventArgs(success: false, resultState)));
+    }
+    private void HandleInitialized()
+    {
+        var resultState = PrepareSuccessResponse();
+        resultState.RobotResponse = RobotResponse.Initialized;
+        Task.Run(() => OnInitialized(new RobotEventArgs(success: true, resultState)));
+    }
+    private void HandleNotInitialized()
+    {
+        var resultState = new RobotState(RobotResponse.NotInitialized);
+        Task.Run(() => OnNotInitialized(new RobotEventArgs(success: false, resultState)));
+    }
+    private void HandleOkReponse()
+    {
+        var resultState = PrepareSuccessResponse();
+        resultState.RobotResponse = RobotResponse.Ok;
+        Task.Run(() => OnCommandsSucceded(new RobotEventArgs(success: true, resultState)));
+    }
+    private void HandleHomingRequired()
+    {
+        var resultState = new RobotState(RobotResponse.HomingRequired);
+        Task.Run(() => OnHomingRequired(new RobotEventArgs(success: false, resultState)));
+    }
+    private void HandleRestartRequired()
+    {
+        var resultState = new RobotState(RobotResponse.UnknownError);
+        Task.Run(() => OnRestartRequired(new RobotEventArgs(success: false, resultState)));
     }
 }

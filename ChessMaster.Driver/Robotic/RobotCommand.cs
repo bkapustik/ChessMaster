@@ -45,6 +45,11 @@ public class MoveCommand : RobotCommand
         Y = vector.Y;
         Z = vector.Z;
     }
+    public MoveCommand(Vector2 vector) : base()
+    {
+        X = vector.X;
+        Y = vector.Y;
+    }
     public override SerialCommand GetSerialCommand() => commandFactory.Move(X, Y, Z);
 }
 

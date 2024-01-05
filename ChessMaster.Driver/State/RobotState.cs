@@ -1,9 +1,11 @@
-﻿using System.Numerics;
+﻿using ChessMaster.RobotDriver.Robotic;
+using System.Numerics;
 
 namespace ChessMaster.RobotDriver.State
 {
     public struct RobotState
     {
+        public RobotResponse RobotResponse;
         public MovementState MovementState;
         public GripState GripState;
         public float x;
@@ -12,8 +14,9 @@ namespace ChessMaster.RobotDriver.State
 
         public Vector3 Position { get { return new Vector3(x, y, z); } }
 
-        public RobotState(MovementState state, float x, float y, float z)
+        public RobotState(MovementState state, RobotResponse response, float x, float y, float z)
         {
+            RobotResponse = response;
             MovementState = state;
             this.x = x;
             this.y = y;
@@ -21,7 +24,7 @@ namespace ChessMaster.RobotDriver.State
         }
 
         public RobotState(MovementState state, Vector3 position)
-        { 
+        {
             MovementState = state;
             x = position.X;
             y = position.Y;
@@ -30,7 +33,12 @@ namespace ChessMaster.RobotDriver.State
 
         public RobotState(MovementState state)
         {
-            MovementState = state;    
+            MovementState = state;
+        }
+
+        public RobotState(RobotResponse state)
+        {
+            RobotResponse = state;
         }
 
         public RobotState()
