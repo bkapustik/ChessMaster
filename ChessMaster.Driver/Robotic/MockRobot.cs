@@ -6,10 +6,7 @@ namespace ChessMaster.RobotDriver.Robotic;
 
 public class MockRobot : IRobot
 {
-    private bool running = false;
-    private bool initialized = false;
-    private bool homingRequired = false;
-    private bool restartRequired = false;
+    private RobotResponse state = RobotResponse.NotInitialized;
 
     private Vector3 position = new Vector3(0f, 0f, 0f);
     private Vector3 displayedPosition = new Vector3(0f, 0f, 0f);
@@ -26,76 +23,78 @@ public class MockRobot : IRobot
 
     public void ScheduleCommands(Queue<RobotCommand> commands)
     {
-        if (!initialized)
+        if (state == RobotResponse.NotInitialized)
         {
             HandleNotInitialized();
         }
-        else if (homingRequired)
+        else if (state == RobotResponse.HomingRequired)
         {
             HandleHomingRequired();
         }
-        else if (restartRequired)
+        else if (state == RobotResponse.UnknownError)
         {
             HandleRestartRequired();
         }
         else
         {
+            foreach (RobotCommand command in commands) 
+            {
+                if (command is MoveCommand)
+                {
+                    var moveCommand = (MoveCommand)command;
+                    displayedPosition.X = moveCommand.X;
+                    displayedPosition.Y = moveCommand.Y;
+                    displayedPosition.Z = moveCommand.Z;
+                }
+            }
+
             HandleOkReponse();
         }
     } 
 
     public bool IsAtDesired(Vector3 desired, RobotState state)
     {
-        return true;
+        return desired == state.Position;
     }
     public RobotState GetState()
     {
-        displayedPosition.X = (displayedPosition.X + 1) % 1000;
-        if (displayedPosition.X % 2 == 1)
-        {
-            displayedPosition.Y = (displayedPosition.Y + 1) % 1000;
-        }
-        if (displayedPosition.Y % 2 == 1)
-        {
-            displayedPosition.Z = (displayedPosition.Z + 1) % 1000;
-        }
-        return new RobotState(MovementState.Idle, RobotResponse.Ok,displayedPosition.X, displayedPosition.Y, displayedPosition.Z);
+        return new RobotState(MovementState.Idle, RobotResponse.Ok, displayedPosition.X, displayedPosition.Y, displayedPosition.Z);
     }
     public void Pause() { }
     public void Resume() { }
     public void Initialize()
     {
-        var diceThrow = new Random(3);
+        var diceThrow = new Random().Next(1,15);
 
-        if (diceThrow.Next(1,4) == 1)
+        if (diceThrow <= 2)
         {
-            initialized = true;
-            HandleInitialized();
-        }
-        if (diceThrow.Next(1,4) == 2)
-        {
-            homingRequired = true;
+            state = RobotResponse.HomingRequired;
             HandleHomingRequired();
+        }
+        else if (diceThrow == 3)
+        {
+            state = RobotResponse.UnknownError;
+            HandleRestartRequired();
         }
         else
         {
-            restartRequired = true;
-            HandleRestartRequired();
+            state = RobotResponse.Initialized;
+            HandleInitialized();
         }
     }
     public void Reset() { }
     public void Home()
     {
-        if (homingRequired)
+        if (state == RobotResponse.HomingRequired)
         {
-            homingRequired = false;
+            state = RobotResponse.Ok;
             HandleOkReponse();
         }
-        if (restartRequired)
+        if (state == RobotResponse.UnknownError)
         {
             HandleRestartRequired();
         }
-        else if (!initialized)
+        else if (state == RobotResponse.NotInitialized)
         {
             HandleNotInitialized();
         }
@@ -137,7 +136,7 @@ public class MockRobot : IRobot
     }
     private void HandleInitialized()
     {
-        Task.Run(() => OnInitialized(new RobotEventArgs(false, new RobotState(RobotResponse.HomingRequired))));
+        Task.Run(() => HandleHomingRequired());
     }
     private void HandleNotInitialized()
     {

@@ -13,13 +13,13 @@ namespace ChessMaster.ChessDriver
 
         public ChessRobot(string portName)
         {
-            this.robot = new Robot(new SerialDriver(portName));
+            this.Robot = new Robot(new SerialDriver(portName));
             this.chessBoard = new ChessBoard();
             this.space = chessBoard.Space;
         }
         public ChessRobot(IRobot robot)
         {
-            this.robot = robot;
+            this.Robot = robot;
             this.chessBoard = new ChessBoard();
         }
         public void InitializeChessBoard(Vector2 a1Center, Vector2 h8Center)

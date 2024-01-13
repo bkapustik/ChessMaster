@@ -8,18 +8,18 @@ namespace ChessMaster.Space.RobotSpace;
 public class RobotSpace
 {
     protected Space space;
-    protected IRobot robot;
+    public IRobot Robot { get; protected set; }
 
     private MoveableEntity? currentlyHeldEntity;
     private RobotState currentRobotState;
     private SpacePosition expectedPosition;
     public void Initialize()
     {
-        robot.Initialize();
+        Robot.Initialize();
     }
     public void Initialize(IRobot robot)
     {
-        this.robot = robot;
+        this.Robot = robot;
         robot.Initialize();
     }
     protected void MoveEntityFromSourceToTarget(SpacePosition source, SpacePosition target)
@@ -32,13 +32,13 @@ public class RobotSpace
     }
     public void SubscribeToCommandsCompletion(CommandsCompletedEvent e)
     {
-        robot.CommandsSucceeded += e;
+        Robot.CommandsSucceeded += e;
     }
     private void UpdateCurrentState(SpacePosition position)
     {
         expectedPosition = position;
     }
-    public RobotState GetState() => robot.GetState();
+    public RobotState GetState() => Robot.GetState();
     private void TakeEntityFromPosition(SpacePosition position)
     {
         //var commands = new Queue<RobotCommand>();
@@ -141,12 +141,12 @@ public class RobotSpace
     {
         var commands = new Queue<RobotCommand>();
         commands.Enqueue(new MoveCommand(position));
-        robot.ScheduleCommands(commands);
+        Robot.ScheduleCommands(commands);
     }
     public void Home()
     {
-        robot.Home();
+        Robot.Home();
     }
-    public bool IsAtDesired(Vector3 desired, RobotState state) => robot.IsAtDesired(desired, state);
+    public bool IsAtDesired(Vector3 desired, RobotState state) => Robot.IsAtDesired(desired, state);
 
 }

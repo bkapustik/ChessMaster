@@ -1,61 +1,70 @@
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Collections.Generic;
 using System.IO.Ports;
 using ChessMaster.ChessDriver;
 using ChessMaster.RobotDriver.Robotic;
 using System.Threading.Tasks;
-using Microsoft.UI.Xaml.Controls;
 using System.Numerics;
 using ChessMaster.ChessDriver.ChessStrategy;
 using Windows.Storage.Pickers;
 using WinRT.Interop;
 using ChessMaster.RobotDriver.State;
-using Microsoft.UI.Xaml.Input;
+using Windows.System;
 
 namespace ChessMaster.ControlApp;
 
-
-public sealed partial class MainWindow : Window
+public class PositionSetupState
 {
-    private bool isA1Locked;
-    private bool isH8Locked;
-    private bool IsSpedUp;
-    private bool IsConfigured;
-    private int windowWidth = 500;
-    private int windowHeight = 400;
-    private string SelectedPort;
-    private Vector3 desiredPosition;
-    private bool initialPositionHasBeenSet = false;
-    private Vector3 a1Position;
-    private Vector3 h8Position;
-    private ChessStrategyFacade selectedStrategy;
-    private ChessRunner chessRunner;
+    public RobotResponse RobotState { get; set; } = RobotResponse.NotInitialized;
+    public bool IsSpedUp { get; set; }
+    public bool IsA1Locked { get; set; }
+    public bool IsH8Locked { get; set; }
+    public Vector3 A1Position { get; set; }
+    public Vector3 H8Position { get; set; }
+    public Vector3 DesiredPosition { get; set; }
+}
 
-    private bool isInitialized = false;
-    private bool homingRequired = false;
-    private bool alreadyExecuting = false;
-
-    private DispatcherTimer timer;
-    private int timerCounter = 0;
-
-    public MainWindow()
+public class MoveHelper
+{
+    public static bool CanMove(RobotResponse robotState)
     {
-        this.InitializeComponent();
-        Resize(windowWidth, windowHeight);
-
-        timer = new DispatcherTimer();
+        return robotState == RobotResponse.Ok || robotState == RobotResponse.Initialized;
     }
 
-    private List<string> Ports = new()
+    public static Vector3 ChangeDesiredPosition(VirtualKey key, long ticksHeld, PositionSetupState state)
     {
-        "DUMMY"
-    };
+        ticksHeld /= 10;
 
-    private List<ChessStrategyFacade> Strategies = new();
-        
-    private Vector2 GetDirectionVector(string buttonName)
+        var direction = GetDirectionVector(key);
+        if (state.IsSpedUp)
+        {
+            direction = direction * 10 * ticksHeld;
+        }
+
+        return new Vector3(state.DesiredPosition.X + (direction.X * ticksHeld),
+            state.DesiredPosition.Y + (direction.Y * ticksHeld),
+            state.DesiredPosition.Z);
+    }
+
+    public static Vector3 ChangeDesiredPosition(string buttonName, long ticksHeld, PositionSetupState state)
+    {
+        ticksHeld /= 10;
+
+        var direction = GetDirectionVector(buttonName);
+        if (state.IsSpedUp)
+        {
+            direction = direction * 10 * ticksHeld;
+        }
+
+        return new Vector3(state.DesiredPosition.X + (direction.X * ticksHeld),
+            state.DesiredPosition.Y + (direction.Y * ticksHeld),
+            state.DesiredPosition.Z);
+    }
+
+    public static Vector2 GetDirectionVector(string buttonName)
     {
         switch (buttonName)
         {
@@ -71,6 +80,54 @@ public sealed partial class MainWindow : Window
                 return new Vector2(0, 0);
         }
     }
+
+    public static Vector2 GetDirectionVector(VirtualKey key)
+    {
+        switch (key)
+        {
+            case VirtualKey.Up:
+                return new Vector2(0, 1);
+            case VirtualKey.Down:
+                return new Vector2(0, -1);
+            case VirtualKey.Left:
+                return new Vector2(-1, 0);
+            case VirtualKey.Right:
+                return new Vector2(1, 0);
+            default:
+                return new Vector2(0, 0);
+        }
+    }
+}
+
+public sealed partial class MainWindow : Window
+{
+    private int windowWidth = 500;
+    private int windowHeight = 400;
+
+    private int timerCounter = 0;
+
+    private string SelectedPort;
+    private PositionSetupState positionSetupState = new PositionSetupState();
+
+    private ChessStrategyFacade selectedStrategy;
+    private ChessRunner chessRunner;
+    private DispatcherTimer timer;
+    private List<string> Ports = new()
+    {
+        "DUMMY"
+    };
+
+    public MainWindow()
+    {
+        this.InitializeComponent();
+        Resize(windowWidth, windowHeight);
+
+        timer = new DispatcherTimer();
+    }
+
+    private List<ChessStrategyFacade> Strategies = new();
+
+    private List<Button> allButtons;
 
     private void PortSelectionLoaded(object sender, RoutedEventArgs e)
     {
@@ -108,58 +165,70 @@ public sealed partial class MainWindow : Window
         CenterToScreen(windowHandle);
     }
 
+    private void RequireRestart()
+    {
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            positionSetupState.RobotState = RobotResponse.UnknownError;
+
+            ControlsWindow.Visibility = Visibility.Collapsed;
+            RestartWindow.Visibility = Visibility.Visible;
+        });
+    }
+
+    private void RequireHoming()
+    {
+        positionSetupState.RobotState = RobotResponse.HomingRequired;
+        foreach (var button in allButtons)
+        {
+            if (button != HomeButton)
+            {
+                DispatcherQueue.TryEnqueue(() => button.IsEnabled = false);
+            }
+        }
+    }
+
     private void PortSelectedButton(object sender, RoutedEventArgs e)
     {
-        try
+        timer.Interval = new TimeSpan(0, 0, 0, 0, 100);
+        timer.Tick += MovementControl;
+        timer.Tick += UpdateDisplayedPosition;
+        timer.Start();
+
+        allButtons = new List<Button>()
         {
-            timer.Interval = new TimeSpan(0, 0, 0, 0, 100);
-            timer.Tick += MovementControl;
-            timer.Tick += OnMovementButtonPressed;
-            timer.Tick += UpdatePosition;
-            timer.Start();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(  ex.Message
-                );
-        }
+            Up,
+            Down,
+            Left,
+            Right,
+            Speed,
+            LockA1,
+            LockH8,
+            PickPawnButton,
+            ReleasePawnButton,
+            ConfirmButton,
+            HomeButton
+        };
+
         SelectedPort = (string)PortComboBox.SelectedValue;
 
         chessRunner = new ChessRunner(SelectedPort);
 
         Task.Run(chessRunner.Initialize);
 
-        chessRunner.robot.SubscribeToCommandsCompletion(new CommandsCompletedEvent((object? o, RobotEventArgs e) =>
+        chessRunner.robot.Robot.RestartRequired += (object o, RobotEventArgs e) => RequireRestart();
+        chessRunner.robot.Robot.Initialized += (object o, RobotEventArgs e) =>
         {
-            if (e.RobotState.RobotResponse == RobotResponse.NotInitialized)
-            {
-                throw new Exception("Replug");
-            }
-            if (e.RobotState.RobotResponse == RobotResponse.Initialized)
-            {
-                isInitialized = true;
-            }
-            if (isInitialized && !initialPositionHasBeenSet)
-            {
-                var position = e.RobotState.Position;
-                desiredPosition = new Vector3(position.X, position.Y, position.Z);
-                initialPositionHasBeenSet = true;
-                return;
-            }
-            if (e.RobotState.RobotResponse == RobotResponse.HomingRequired)
-            {
-                homingRequired = true;
-            }
-            if (e.RobotState.RobotResponse == RobotResponse.Ok)
-            {
-                homingRequired = false;
-                alreadyExecuting = false;
-            }
-            if (e.RobotState.RobotResponse == RobotResponse.AlreadyExecuting)
-            {
-                alreadyExecuting = true;
-            }
-        }));
+            positionSetupState.RobotState = RobotResponse.Initialized;
+            var position = e.RobotState.Position;
+            positionSetupState.DesiredPosition = new Vector3(position.X, position.Y, position.Z);
+        };
+        chessRunner.robot.Robot.HomingRequired += (object o, RobotEventArgs e) => RequireHoming();
+        chessRunner.robot.Robot.CommandsSucceeded += (object o, RobotEventArgs e) =>
+        {
+            positionSetupState.RobotState = RobotResponse.Ok;
+        };
+        chessRunner.robot.Robot.NotInitialized += (object o, RobotEventArgs e) => RequireRestart();
 
         PortGrid.Visibility = Visibility.Collapsed;
 
@@ -167,43 +236,27 @@ public sealed partial class MainWindow : Window
         Strategies.AddRange(strategies);
 
         ConfigurationGrid.Visibility = Visibility.Visible;
-        
+
+        var holdableUpButton = new HoldableMoveButton(Up, positionSetupState);
+        var holdableDownButton = new HoldableMoveButton(Down, positionSetupState);
+        var holdableLeftButton = new HoldableMoveButton(Left, positionSetupState);
+        var holdableRightButton = new HoldableMoveButton(Right, positionSetupState);
+
+        var holdableUpKey = new HoldableMoveKey(MainPage, VirtualKey.Up, positionSetupState);
+        var holdableDownKey = new HoldableMoveKey(MainPage, VirtualKey.Down, positionSetupState);
+        var holdableLeftKey = new HoldableMoveKey(MainPage, VirtualKey.Left, positionSetupState);
+        var holdableRightKey = new HoldableMoveKey(MainPage, VirtualKey.Right, positionSetupState);
 
         Resize(825, 350);
     }
 
+
     private void SpeedUpButton(object sender, RoutedEventArgs e)
     {
-        IsSpedUp = !IsSpedUp;
+        positionSetupState.IsSpedUp = !positionSetupState.IsSpedUp;
     }
 
-    private void MoveButton(object sender, RoutedEventArgs e)
-    {
-        if (!initialPositionHasBeenSet || homingRequired || !isInitialized || alreadyExecuting)
-        {
-            return;
-        }
-        var button = (Button)sender;
-
-        var direction = GetDirectionVector(button.Name);
-        if (IsSpedUp)
-        {
-            direction = direction * 10;
-        }
-
-        desiredPosition.X += direction.X;
-        desiredPosition.Y += direction.Y;
-    }
-
-    private long counter = 0;
-
-    private bool IsPressed = false;
-
-    private void OnMovementButtonPressed(object sender, object args)
-    {
-        counter++;
-    }
-    private void UpdatePosition(object sender, object args)
+    private void UpdateDisplayedPosition(object sender, object args)
     {
         if (timerCounter == 9)
         {
@@ -218,18 +271,10 @@ public sealed partial class MainWindow : Window
 
         timerCounter = (timerCounter + 1) % 10;
     }
-    private void PressedMoveButton(object sender, PointerRoutedEventArgs e)
-    {
-        IsPressed = true;
-    }
-    private void ReleasedMoveButton(object sender, PointerRoutedEventArgs e)
-    {
-        IsPressed = false;
-    }
 
     private void MovementControl(object sender, object args)
     {
-        if (!initialPositionHasBeenSet || homingRequired || !isInitialized)
+        if (!CanMove())
         {
             return;
         }
@@ -241,17 +286,17 @@ public sealed partial class MainWindow : Window
             return;
         }
 
-        bool atDesired = chessRunner.robot.IsAtDesired(desiredPosition, state);
+        bool atDesired = chessRunner.robot.IsAtDesired(positionSetupState.DesiredPosition, state);
 
         if (!atDesired)
         {
-            Task.Run(() => chessRunner.robot.Move(desiredPosition));
+            Task.Run(() => chessRunner.robot.Move(positionSetupState.DesiredPosition));
         }
     }
 
     private void LockCorner(object sender, RoutedEventArgs e)
     {
-        if (homingRequired)
+        if (positionSetupState.RobotState == RobotResponse.HomingRequired)
         {
             return;
         }
@@ -259,9 +304,9 @@ public sealed partial class MainWindow : Window
         var button = sender as Button;
         if (button.Name == "LockA1")
         {
-            if (isA1Locked)
+            if (positionSetupState.IsA1Locked)
             {
-                isA1Locked = false;
+                positionSetupState.IsA1Locked = false;
                 DispatcherQueue.TryEnqueue(() => { button.Content = "Lock A1"; });
             }
             else
@@ -269,10 +314,10 @@ public sealed partial class MainWindow : Window
                 Task.Run(() =>
                 {
                     var state = chessRunner.robot.GetState();
-                    if (chessRunner.robot.IsAtDesired(desiredPosition, state))
+                    if (chessRunner.robot.IsAtDesired(positionSetupState.DesiredPosition, state))
                     {
-                        isA1Locked = true;
-                        a1Position = desiredPosition;
+                        positionSetupState.IsA1Locked = true;
+                        positionSetupState.A1Position = positionSetupState.DesiredPosition;
                         DispatcherQueue.TryEnqueue(() => { button.Content = "Unlock A1"; });
                     }
                 });
@@ -280,9 +325,9 @@ public sealed partial class MainWindow : Window
         }
         else if (button.Name == "LockH8")
         {
-            if (isH8Locked)
+            if (positionSetupState.IsH8Locked)
             {
-                isH8Locked = false;
+                positionSetupState.IsH8Locked = false;
                 DispatcherQueue.TryEnqueue(() => { button.Content = "Lock H8"; });
             }
             else
@@ -290,10 +335,10 @@ public sealed partial class MainWindow : Window
                 Task.Run(() =>
                 {
                     var state = chessRunner.robot.GetState();
-                    if (chessRunner.robot.IsAtDesired(desiredPosition, state))
+                    if (chessRunner.robot.IsAtDesired(positionSetupState.DesiredPosition, state))
                     {
-                        isH8Locked = true;
-                        h8Position = desiredPosition;
+                        positionSetupState.IsH8Locked = true;
+                        positionSetupState.H8Position = positionSetupState.DesiredPosition;
                         DispatcherQueue.TryEnqueue(() => { button.Content = "Unlock H8"; });
                     }
                 });
@@ -303,12 +348,10 @@ public sealed partial class MainWindow : Window
 
     private void ConfirmConfiguration(object sender, RoutedEventArgs e)
     {
-        if (!isA1Locked || !isH8Locked)
+        if (!positionSetupState.IsA1Locked || !positionSetupState.IsH8Locked)
         {
             return;
         }
-
-        IsConfigured = true;
 
         ConfigurationGrid.Visibility = Visibility.Collapsed;
         StrategyPickGrid.Visibility = Visibility.Visible;
@@ -321,7 +364,7 @@ public sealed partial class MainWindow : Window
 
     private void ReleasePawn(object sender, RoutedEventArgs e)
     {
-       Task.Run(chessRunner.robot.ConfigurationReleasePawn);
+        Task.Run(chessRunner.robot.ConfigurationReleasePawn);
     }
 
     private void StrategySelectedButton(object sender, RoutedEventArgs e)
@@ -376,7 +419,8 @@ public sealed partial class MainWindow : Window
     {
         AppWindow.Resize(new Windows.Graphics.SizeInt32 { Width = 750, Height = 800 });
 
-        Task.Run(async () => {
+        Task.Run(async () =>
+        {
             var strategy = selectedStrategy.CreateStrategy();
             await chessRunner.PickStrategy(strategy);
             await chessRunner.Run();
@@ -386,5 +430,18 @@ public sealed partial class MainWindow : Window
     private void Home(object sender, RoutedEventArgs e)
     {
         Task.Run(chessRunner.robot.Home);
+
+        foreach (var button in allButtons)
+        {
+            if (button != HomeButton)
+            {
+                DispatcherQueue.TryEnqueue(() => button.IsEnabled = true);
+            }
+        }
+    }
+
+    private bool CanMove()
+    {
+        return MoveHelper.CanMove(positionSetupState.RobotState);
     }
 }
