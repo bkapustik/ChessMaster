@@ -1,4 +1,5 @@
-﻿using ChessMaster.RobotDriver.State;
+﻿using ChessMaster.RobotDriver.Robotic.Events;
+using ChessMaster.RobotDriver.State;
 using System.Numerics;
 using System.Threading;
 
@@ -14,12 +15,12 @@ public class MockRobot : IRobot
     private float originX = -490f, originY = -820f, originZ = -200f;
     public Vector3 Limits { get { return new Vector3(-originX, -originY, -originZ); } }
 
-    public CommandsCompletedEvent CommandsSucceeded { get; set; }
-    public CommandsCompletedEvent Initialized { get; set; }
-    public CommandsCompletedEvent NotInitialized { get; set; }
-    public CommandsCompletedEvent CommandsFinished { get; set; }
-    public CommandsCompletedEvent HomingRequired { get; set; }
-    public CommandsCompletedEvent RestartRequired { get; set; }
+    public CommandsCompletedEvent? CommandsSucceeded { get; set; }
+    public CommandsCompletedEvent? Initialized { get; set; }
+    public CommandsCompletedEvent? NotInitialized { get; set; }
+    public CommandsCompletedEvent? CommandsFinished { get; set; }
+    public CommandsCompletedEvent? HomingRequired { get; set; }
+    public CommandsCompletedEvent? RestartRequired { get; set; }
 
     public void ScheduleCommands(Queue<RobotCommand> commands)
     {
@@ -51,7 +52,6 @@ public class MockRobot : IRobot
             HandleOkReponse();
         }
     } 
-
     public bool IsAtDesired(Vector3 desired, RobotState state)
     {
         return desired == state.Position;
@@ -128,7 +128,6 @@ public class MockRobot : IRobot
     {
         RestartRequired?.Invoke(this, e);
     }
-
     private void HandleFinishedCommands(RobotResponse robotResponse)
     {
         var resultState = new RobotState(robotResponse);

@@ -2,25 +2,26 @@
 using ChessMaster.Space.Coordinations;
 using System.Numerics;
 using ChessMaster.RobotDriver.State;
+using ChessMaster.RobotDriver.Robotic.Events;
 
 namespace ChessMaster.Space.RobotSpace;
 
 public class RobotSpace
 {
-    protected Space space;
-    public IRobot Robot { get; protected set; }
+    protected Space? space;
+    public IRobot? Robot { get; protected set; }
 
     private MoveableEntity? currentlyHeldEntity;
     private RobotState currentRobotState;
     private SpacePosition expectedPosition;
     public void Initialize()
     {
-        Robot.Initialize();
+        Robot?.Initialize();
     }
     public void Initialize(IRobot robot)
     {
-        this.Robot = robot;
-        robot.Initialize();
+        Robot = robot;
+        Robot.Initialize();
     }
     protected void MoveEntityFromSourceToTarget(SpacePosition source, SpacePosition target)
     {
@@ -41,6 +42,7 @@ public class RobotSpace
     public RobotState GetState() => Robot.GetState();
     private void TakeEntityFromPosition(SpacePosition position)
     {
+        Move(new Vector3());
         //var commands = new Queue<RobotCommand>();
         //var entity = space.SubSpaces[position.X, position.Y].Entity;
 

@@ -1,16 +1,17 @@
 ﻿using ChessMaster.Chess;
 using ChessMaster.Chess.Property;
+using ChessMaster.ChessDriver.ChessMoves;
 using ChessMaster.Space.Coordinations;
-using System.Linq.Expressions;
 
 namespace ChessMaster.ChessDriver.Strategy;
 
 public class MatchReplayChessStrategy : IChessStrategy
 {
-    private Queue<PgnMove> moves;
     private readonly string filePath;
-    private ChessColor colorOnMove = ChessColor.White;
-    private readonly PgnChessBoard chessBoard;
+    private readonly PgnChessBoard chessBoard = new PgnChessBoard();
+
+    private ChessParsingResult ChessParsingResult { get; set; }
+    private ChessColor ColorOnMove = ChessColor.White;
 
     public MatchReplayChessStrategy(string filePath)
     {
@@ -18,20 +19,28 @@ public class MatchReplayChessStrategy : IChessStrategy
         this.chessBoard = new PgnChessBoard();
     }
 
-    public async Task Initialize()
+    public ChessMove Initialize()
     {
-        moves = await ChessFileParser.GetMoves(filePath);
-        chessBoard.Initialize();
-    }
+        ChessParsingResult = ChessFileParser.GetMoves(filePath);
 
-    public async Task<ChessMove> GetNextMove()
-    {
-        if (moves.Count <= 0)
+        chessBoard.Initialize();
+
+        if (ChessParsingResult.Moves.Count <= 0)
         {
-            return new ChessMove(true);
+            return new ChessMove(true, "Invalid Game");
         }
 
-        var pgnMove = moves.Dequeue();
+        return new ChessMove(false);
+    }
+
+    public ChessMove GetNextMove()
+    {
+        if (ChessParsingResult.Moves.Count == 0)
+        {
+            return new ChessMove(true, $"End of the game. Result: {ChessParsingResult.MatchResultMessage}");
+        }
+
+        var pgnMove = ChessParsingResult.Moves.Dequeue();
 
         SpacePosition source = new SpacePosition();
         SpacePosition target = new SpacePosition();
@@ -52,19 +61,22 @@ public class MatchReplayChessStrategy : IChessStrategy
         if (pgnMove.MoveType == MoveType.PawnPromotion)
         {
             AdvanceColor();
-            return new PawnPromotionMove(source, target, pgnMove.PawnPromotion!.Value.FigureType, false);
+
+            FinishMove(source, target, pgnMove.PawnPromotion!.Value.FigureType);
+            return new PawnPromotionMove(source, target, pgnMove.PawnPromotion!.Value.FigureType, false, pgnMove.Message);
         }
 
         if (pgnMove.MoveType == MoveType.Capture)
         {
-            AdvanceColor();
-            return new CaptureMove(source, target, false);
+            FinishMove(source, target);
+            return new CaptureMove(source, target, false, pgnMove.Message);
         }
 
         var castling = new Castling();
+
         if (pgnMove.MoveType == MoveType.KingCastling)
         {
-            if (colorOnMove == ChessColor.White)
+            if (ColorOnMove == ChessColor.White)
             {
                 SpacePosition whiteKingSource = new SpacePosition()
                 {
@@ -97,12 +109,13 @@ public class MatchReplayChessStrategy : IChessStrategy
                 };
             }
 
-            AdvanceColor();
-            return new CastlingMove(castling, false);
+            FinishMove(castling);
+
+            return new CastlingMove(castling, false, pgnMove.Message);
         }
         else if (pgnMove.MoveType == MoveType.QueenSideCastling)
         {
-            if (colorOnMove == ChessColor.White)
+            if (ColorOnMove == ChessColor.White)
             {
                 SpacePosition whiteKingSource = new SpacePosition()
                 {
@@ -134,13 +147,17 @@ public class MatchReplayChessStrategy : IChessStrategy
                     RookTarget = new SpacePosition(blackKingSource.X - 1, blackKingSource.Y)
                 };
             }
-            AdvanceColor();
-            return new CastlingMove(castling, false);
+
+            FinishMove(castling);
+
+            return new CastlingMove(castling, false, pgnMove.Message);
         }
 
-        AdvanceColor();
-        return new ChessMove(source, target, false);
+        FinishMove(source, target);
+
+        return new ChessMove(source, target, false, pgnMove.Message);
     }
+
     public SpacePosition FindSourcePosition(PgnMove move)
     {
         if (move.Source is not null)
@@ -201,11 +218,38 @@ public class MatchReplayChessStrategy : IChessStrategy
 
     private void AdvanceColor()
     {
-        if (colorOnMove == ChessColor.White)
+        if (ColorOnMove == ChessColor.White)
         {
-            colorOnMove = ChessColor.Black;
+            ColorOnMove = ChessColor.Black;
             return;
         }
-        colorOnMove = ChessColor.White;
+        ColorOnMove = ChessColor.White;
+    }
+
+    private void AdvanceFigureState(SpacePosition source, SpacePosition target)
+    {
+        chessBoard.Grid[target.X, target.Y].Figure = chessBoard.Grid[source.X, source.Y].Figure;
+        chessBoard.Grid[source.X, source.Y].Figure = null;
+    }
+
+    private void FinishMove(Castling castling)
+    {
+        AdvanceColor();
+
+        AdvanceFigureState(castling.KingSource, castling.KingTarget);
+        AdvanceFigureState(castling.RookSource, castling.RookTarget);
+    }
+
+    private void FinishMove(SpacePosition source, SpacePosition target)
+    {
+        AdvanceColor();
+
+        AdvanceFigureState(source, target);
+    }
+
+    private void FinishMove(SpacePosition source, SpacePosition target, FigureType pawnPromotion)
+    {
+        FinishMove(source, target);
+        chessBoard.Grid[target.X, target.Y].Figure!.FigureType = pawnPromotion;
     }
 }

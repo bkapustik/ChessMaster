@@ -4,33 +4,46 @@ using ChessMaster.Space.Coordinations;
 
 namespace ChessMaster.ChessDriver.Strategy;
 
+public struct ChessParsingResult
+{
+    public readonly Queue<PgnMove> Moves;
+    public readonly string MatchResultMessage;
+
+    public ChessParsingResult(Queue<PgnMove> moves, string matchResultMessage)
+    {
+        Moves = moves;
+        MatchResultMessage = matchResultMessage;
+    }
+}
+
 public static class ChessFileParser
 {
-    public static async Task<Queue<PgnMove>> GetMoves(string filePath)
+    public static ChessParsingResult GetMoves(string filePath)
     {
         var queue = new Queue<PgnMove>();
 
         using (var streamReader = new StreamReader(filePath))
         {
-            var line = await streamReader.ReadLineAsync();
+            var line = streamReader.ReadLine();
 
             bool isCurrentWhite = true;
+            string[] tokens = Array.Empty<string>();
 
             while (line != null)
             {
                 if (line.StartsWith('['))
                 {
-                    line = await streamReader.ReadLineAsync();
+                    line = streamReader.ReadLine();
                     continue;
                 }
 
                 if (string.IsNullOrWhiteSpace(line))
                 {
-                    line = await streamReader.ReadLineAsync();
+                    line = streamReader.ReadLine();
                     continue;
                 }
 
-                var tokens = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                tokens = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
                 foreach (var token in tokens)
                 {
                     if (token[0] == ';')
@@ -47,16 +60,18 @@ public static class ChessFileParser
                     }
                 }
 
-                line = await streamReader.ReadLineAsync();
+                line = streamReader.ReadLine();
             }
-        }
 
-        return queue;
+            string matchResult = tokens[tokens.Length - 1];
+
+            return new ChessParsingResult(queue, matchResult);
+        }
     }
 
     public static PgnMove ParseMove(string moveString)
     {
-        var move = new PgnMove();
+        var move = new PgnMove(moveString);
 
         move.MoveType = GetMoveType(moveString);
 

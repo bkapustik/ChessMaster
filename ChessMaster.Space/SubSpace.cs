@@ -6,23 +6,22 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ChessMaster.Space
+namespace ChessMaster.Space;
+
+public class SubSpace : Entity
 {
-    public class SubSpace : Entity
+    public MoveableEntity? Entity { get; set; }
+
+    public SubSpace(float width)
     {
-        public MoveableEntity? Entity { get; set; }
+        this.Width = width;
+        this.Length = width;
+    }
 
-        public SubSpace(float width)
-        {
-            this.Width = width;
-            this.Length = width;
-        }
-
-        public SubSpace(float width, Vector2 center)
-        {
-            this.Width = width;
-            this.Height = width;
-            this.Center = center;
-        }
+    public SubSpace(float width, Vector2 center)
+    {
+        this.Width = width;
+        this.Length = width;
+        this.Center = center;
     }
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.UI.Xaml;
+﻿using ChessMaster.ControlApp.Pages;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
@@ -41,10 +42,15 @@ namespace ChessMaster.ControlApp
         /// <param name="args">Details about the launch request and process.</param>
         protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
         {
-            m_window = new MainWindow();
+            MainWindow = new MainWindow();
+            MainWindow.NavigateTo(typeof(PortSelectionPage));
+
+            m_window = MainWindow;
             m_window.Activate();
         }
 
         private Window m_window;
+
+        public static MainWindow MainWindow;
     }
 }

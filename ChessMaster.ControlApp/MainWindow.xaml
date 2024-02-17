@@ -6,119 +6,63 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
-    <Page x:Name="MainPage"> 
-        <Grid Background="{ThemeResource CardStrokeColorDefaultSolid}">
-            <Grid x:Name="RestartWindow" Visibility="Collapsed">
-                <TextBlock>Restart Required. Please close the app.</TextBlock>
+    <Page x:Name="MainPage">
+        <Grid RowDefinitions="40, *"  Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+            <Grid x:Name="AppTitleBar"
+                  Grid.Row="0">
+                <Image Width="16"
+                       Height="16"
+                       Margin="8"
+                       HorizontalAlignment="Left"
+                       Source="Assets/logo.jpeg"/>
+                <TextBlock
+                    x:Name="AppTitleTextBlock"
+                    Margin="28,0,0,0"
+                    VerticalAlignment="Center"
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    Text="ChessMaster"
+                    TextWrapping="NoWrap" />
             </Grid>
-            <Grid x:Name="ControlsWindow">
+            <Grid Grid.Row="1" x:Name="RestartWindow" Visibility="Collapsed">
+                <TextBlock Style="{StaticResource TitleTextBlockStyle}">Restart Required. Please close the app.</TextBlock>
+            </Grid>
+            <Grid Grid.Row="1" x:Name="ControlsWindow">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="150"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <Grid x:Name="PortGrid" Grid.Column="1">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"></RowDefinition>
-                    </Grid.RowDefinitions>
+                <Grid RowDefinitions="1.5*, 1*" x:Name="ThreeDCoordinatesGrid" Grid.Column="0" Height="Auto" VerticalAlignment="Top">
+                    <TextBlock Grid.Row="0" Text="3D Coordinates" Style="{StaticResource TextBlockInGridStyle}"/>
 
-                    <ComboBox Grid.Row="0" x:Name="PortComboBox" ItemsSource="{x:Bind Ports}"
-                            Loaded="PortSelectionLoaded" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,10,0,0">
-                        <ComboBox.HeaderTemplate>
-                            <DataTemplate>
-                                <TextBlock VerticalAlignment="Center" Text="Select a port"></TextBlock>
-                            </DataTemplate>
-                        </ComboBox.HeaderTemplate>
-                    </ComboBox>
+                    <Grid Grid.Row="1" RowDefinitions="1*,1*,1*" ColumnDefinitions="1*,1*">
+                        <TextBlock Grid.Column="0" Grid.Row="0" Text="X:" Style="{StaticResource TextBlockInGridStyle}"/>
+                        <TextBlock Grid.Column="0" Grid.Row="1" Text="Y:" Style="{StaticResource TextBlockInGridStyle}"/>
+                        <TextBlock Grid.Column="0" Grid.Row="2" Text="Z:" Style="{StaticResource TextBlockInGridStyle}"/>
 
-                    <Button Grid.Row="1" x:Name="SelectButton" Content="Select" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,10,0,0" Click="PortSelectedButton"/>
+                        <TextBlock Grid.Column="1" Grid.Row="0" x:Name="XValueLabel" Style="{StaticResource TextBlockInGridStyle}"/>
+                        <TextBlock Grid.Column="1" Grid.Row="1" x:Name="YValueLabel" Style="{StaticResource TextBlockInGridStyle}"/>
+                        <TextBlock Grid.Column="1" Grid.Row="2" x:Name="ZValueLabel" Style="{StaticResource TextBlockInGridStyle}"/>
+                    </Grid>
                 </Grid>
-                <Grid x:Name="ConfigurationGrid" Grid.Column="1" Visibility="Collapsed">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="2"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="2"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="2"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="2"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="2"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="2"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="2"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="50"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-
-                    <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" VerticalAlignment="Center" HorizontalAlignment="Center"> Configure the coordinates of the chessboard</TextBlock>
-
-                    <Button x:Name="Up" Grid.Row="2" Grid.Column="2" Content="Up" VerticalAlignment="Center" HorizontalAlignment="Center" Width="80" Height="40" />
-                    <Button x:Name="Down" Grid.Row="6" Grid.Column="2" Content="Down" VerticalAlignment="Center" HorizontalAlignment="Center" Width="80" Height="40"/>
-                    <Button x:Name="Left" Grid.Row="4" Grid.Column="0" Content="Left" VerticalAlignment="Center" HorizontalAlignment="Center" Width="80" Height="40"/>
-                    <Button x:Name="Right" Grid.Row="4" Grid.Column="4" Content="Right" VerticalAlignment="Center" HorizontalAlignment="Center" Width="80" Height="40"/>
-                    <Button x:Name="Speed" Grid.Row="4" Grid.Column="2" Content="SpeedUp (Shift)" VerticalAlignment="Center" HorizontalAlignment="Center" Click="SpeedUpButton" Width="150" Height="40"/>
-
-                    <Button x:Name="LockA1" Grid.Row="2" Grid.Column="8" Content="Lock A1" VerticalAlignment="Top" HorizontalAlignment="Right" Click="LockCorner" Width="120" Height="40"/>
-                    <Button x:Name="LockH8" Grid.Row="4" Grid.Column="8" Content="Lock H8" VerticalAlignment="Top" HorizontalAlignment="Right" Click="LockCorner" Width="120" Height="40"/>
-                    <Button x:Name="PickPawnButton" Grid.Row="6" Grid.Column="8" Content="Pick Pawn" VerticalAlignment="Top" HorizontalAlignment="Right" Click="PickPawn" Width="120" Height="40"/>
-                    <Button x:Name="ReleasePawnButton" Grid.Row="8" Grid.Column="8" Content="Release Pawn" VerticalAlignment="Top" HorizontalAlignment="Right" Click="ReleasePawn" Width="120" Height="40"/>
-
-                    <Button x:Name="HomeButton" Grid.Row="10" Grid.Column="4" Grid.ColumnSpan="3" Content="Home" Click="Home" Height="40"/>
-                    <Button x:Name="ConfirmButton" Grid.Row="10" Grid.Column="0" Grid.ColumnSpan="3" Content="Confirm Configuration" VerticalAlignment="Center" HorizontalAlignment="Center" Click="ConfirmConfiguration" Width="200" Height="40"/>
-                </Grid>
-                <Grid x:Name="StrategyPickGrid" Visibility="Collapsed" Grid.Column="1">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"></RowDefinition>
-                    </Grid.RowDefinitions>
-
-                    <ComboBox Grid.Row="0" x:Name="StrategyComboBox" ItemsSource="{x:Bind Strategies}" DisplayMemberPath="Name"
-                        Loaded="StrategySelectionLoaded" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,10,0,0">
-                        <ComboBox.HeaderTemplate>
-                            <DataTemplate>
-                                <TextBlock VerticalAlignment="Center" Text="Select match type"></TextBlock>
-                            </DataTemplate>
-                        </ComboBox.HeaderTemplate>
-                    </ComboBox>
-
-                    <Button Grid.Row="1" x:Name="SelectStrategyButton" Content="Select" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,10,0,0" Click="StrategySelectedButton"/>
-                </Grid>
-                <Grid x:Name="PgnStrategyFilePick" Visibility="Collapsed" Grid.Column="1">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition/>
-                        <ColumnDefinition/>
-                        <ColumnDefinition/>
-                    </Grid.ColumnDefinitions>
-
-                    <TextBox x:Name="PgnFilePicker" Grid.Column="0"
-                                VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,10,0,0">
-                    </TextBox>
-                    <Button x:Name="SelectPgnFileButton" Grid.Column="1" Content="Pick a file" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,10,0,0" Click="SelectPgnFileButtonClicked"/>
-                    <Button x:Name="ConfirmPgnFileButton" Grid.Column="2" Content="Confirm" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,10,0,0" Click="ConfirmPgnFile"/>
-                </Grid>
-                <Grid x:Name="ThreeDCoordinatesGrid" Visibility="Visible" Grid.Column="0">
-                    <TextBlock Text="3D Coordinates" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="10"/>
-
-                    <!-- Labels for x, y, and z -->
-                    <TextBlock Text="X:" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="10,30,0,0"/>
-                    <TextBlock Text="Y:" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="10,60,0,0"/>
-                    <TextBlock Text="Z:" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="10,90,0,0"/>
-
-                    <!-- Numeric values for x, y, and z -->
-                    <TextBlock x:Name="XValueLabel" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="40,30,0,0"/>
-                    <TextBlock x:Name="YValueLabel" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="40,60,0,0"/>
-                    <TextBlock x:Name="ZValueLabel" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="40,90,0,0"/>
+                <Grid Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" 
+                      Grid.Column="1" 
+                      CornerRadius="8">
+                    <Canvas Background="Transparent">
+                        <Rectangle Canvas.Left="30" Canvas.Top="30" 
+                            Fill="Aquamarine" Width="200" Height="200" />
+                        <Rectangle Canvas.Left="150" Canvas.Top="150" 
+                            Fill="HotPink" Width="200" Height="200" />
+                        <Rectangle Canvas.Left="350" Canvas.Top="350" 
+                            Fill="Yellow" Width="200" Height="200" />
+                        <Rectangle Canvas.Left="500" Canvas.Top="50" 
+                            Fill="LawnGreen" Width="200" Height="200" />
+                    </Canvas>
+                    <Frame 
+                        x:Name="ContentFrame" 
+                        Grid.Column="1" 
+                        Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}"
+                        Padding="20"/>
                 </Grid>
             </Grid>
         </Grid>

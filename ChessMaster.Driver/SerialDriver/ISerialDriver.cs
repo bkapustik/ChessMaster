@@ -1,5 +1,4 @@
-﻿using ChessMaster.RobotDriver.SerialDriver;
-using ChessMaster.RobotDriver.SerialResponse;
+﻿using ChessMaster.RobotDriver.SerialResponse;
 using System.Numerics;
 
 namespace ChessMaster.RobotDriver.Driver

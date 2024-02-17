@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="ChessMaster.ControlApp.Pages.ConfigurationPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+    <Grid RowDefinitions="Auto, Auto">
+        <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" VerticalAlignment="Center" HorizontalAlignment="Center" Style="{StaticResource TitleTextBlockStyle}"> Configure the coordinates of the chessboard</TextBlock>
+        <Grid x:Name="ConfigurationGrid" Grid.Row="1" Padding="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="2"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="2"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="2"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="2"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="2"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="2"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="2"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="50"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <Button x:Name="Up" Grid.Row="2" Grid.Column="2" Content="Up" VerticalAlignment="Center" HorizontalAlignment="Center" Width="80" Height="40" />
+            <Button x:Name="Down" Grid.Row="6" Grid.Column="2" Content="Down" VerticalAlignment="Center" HorizontalAlignment="Center" Width="80" Height="40"/>
+            <Button x:Name="Left" Grid.Row="4" Grid.Column="0" Content="Left" VerticalAlignment="Center" HorizontalAlignment="Center" Width="80" Height="40"/>
+            <Button x:Name="Right" Grid.Row="4" Grid.Column="4" Content="Right" VerticalAlignment="Center" HorizontalAlignment="Center" Width="80" Height="40"/>
+            <Button x:Name="Speed" Grid.Row="4" Grid.Column="2" Content="SpeedUp (Shift)" VerticalAlignment="Center" HorizontalAlignment="Center" Click="SpeedUpButton" Width="150" Height="40"/>
+
+            <Button x:Name="LockA1" Grid.Row="2" Grid.Column="8" Content="Lock A1" VerticalAlignment="Top" HorizontalAlignment="Right" Click="LockCorner" Width="120" Height="40"/>
+            <Button x:Name="LockH8" Grid.Row="4" Grid.Column="8" Content="Lock H8" VerticalAlignment="Top" HorizontalAlignment="Right" Click="LockCorner" Width="120" Height="40"/>
+            <Button x:Name="PickPawnButton" Grid.Row="6" Grid.Column="8" Content="Pick Pawn" VerticalAlignment="Top" HorizontalAlignment="Right" Click="PickPawn" Width="120" Height="40"/>
+            <Button x:Name="ReleasePawnButton" Grid.Row="8" Grid.Column="8" Content="Release Pawn" VerticalAlignment="Top" HorizontalAlignment="Right" Click="ReleasePawn" Width="120" Height="40"/>
+
+            <Button x:Name="HomeButton" Grid.Row="10" Grid.Column="4" Grid.ColumnSpan="3" Content="Home" Click="Home" Height="40"/>
+            <Button x:Name="ConfirmButton" Grid.Row="10" Grid.Column="0" Grid.ColumnSpan="3" Content="Confirm Configuration" VerticalAlignment="Center" HorizontalAlignment="Center" Click="ConfirmConfiguration" Width="200" Height="40"/>
+        </Grid>
+    </Grid>
+</Page>

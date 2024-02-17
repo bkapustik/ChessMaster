@@ -8,9 +8,18 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
-                <!-- Other merged dictionaries here -->
             </ResourceDictionary.MergedDictionaries>
-            <!-- Other app resources here -->
+            
+            
+            
+                <Style TargetType="TextBlock" x:Key="TextBlockInGridStyle">
+                    <Setter Property="VerticalAlignment" Value="Top"/>
+                    <Setter Property="HorizontalAlignment" Value="Left"/>
+                    <Setter Property="Margin" Value="10"/>
+                    <Setter Property="Style" Value="{StaticResource BodyTextBlockStyle}"/>
+                </Style>
+        
+        
         </ResourceDictionary>
     </Application.Resources>
 </Application>

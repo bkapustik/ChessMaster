@@ -1,8 +1,8 @@
-﻿namespace ChessMaster.RobotDriver.SerialDriver
+﻿namespace ChessMaster.RobotDriver.Driver
 {
     public class SerialCommand
     {
-        public string Command { get; set; }
+        public string Command { get; set; } = "";
         public int Timeout { get; set; }
         public int? TimeToExecute { get; set; }
 

@@ -1,7 +1,9 @@
-﻿namespace ChessMaster.ChessDriver.Strategy;
+﻿using ChessMaster.ChessDriver.ChessMoves;
+
+namespace ChessMaster.ChessDriver.Strategy;
 
 public interface IChessStrategy
 {
-    Task Initialize();
-    Task<ChessMove> GetNextMove();
+    ChessMove Initialize();
+    ChessMove GetNextMove();
 }

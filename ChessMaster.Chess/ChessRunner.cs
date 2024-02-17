@@ -1,124 +1,102 @@
 ﻿using ChessMaster.ChessDriver.ChessStrategy;
 using ChessMaster.ChessDriver.Strategy;
 using ChessMaster.RobotDriver.Robotic;
+using ChessMaster.RobotDriver.Robotic.Events;
 using ChessMaster.RobotDriver.State;
-using System.Numerics;
 
-namespace ChessMaster.ChessDriver
+namespace ChessMaster.ChessDriver;
+
+public class ChessRunner
 {
-    public class ChessRunner
+    public readonly ChessRobot robot;
+    private IChessStrategy? chessStrategy;
+
+    public bool IsInitialized = false;
+
+    public RobotState RobotState { get; set; }
+
+    public MessageLoggedEvent? OnMessageLogged { get; set; }
+
+    public ChessRunner(IRobot robot)
     {
-        public readonly ChessRobot robot;
-        private IChessStrategy? chessStrategy;
+        this.robot = new ChessRobot(robot);
+    }
 
-        public const string DUMMY_ROBOT = "DUMMY";
-
-        public bool IsInitialized = false;
-
-        public RobotState RobotState { get; set; }
-
-        public ChessRunner(string portName)
+    public void Run()
+    {
+        if (!IsInitialized)
         {
-            if (portName == DUMMY_ROBOT)
+            throw new InvalidOperationException("You must initialize the robot first");
+        }
+        if (chessStrategy is null)
+        {
+            throw new InvalidOperationException("You must initialize the chess strategy first");
+        }
+
+        bool isMoveDone = false;
+        var move = chessStrategy.GetNextMove();
+
+        robot.SubscribeToCommandsCompletion(new CommandsCompletedEvent((object? o, RobotEventArgs e) =>
+        {
+            isMoveDone = true;
+        }));
+
+        while (!move.IsEndOfGame)
+        {
+            move.Execute(robot);
+
+            if (isMoveDone)
             {
-                robot = new ChessRobot(new MockRobot());
+                LogMove(new LogEventArgs(move.Message ?? ""));
+                move = chessStrategy.GetNextMove();
+                isMoveDone = false;
             }
             else
             {
-                robot = new ChessRobot(portName);
-            }
-        }
-
-        public ChessRunner(IRobot robot)
-        {
-            this.robot = new ChessRobot(robot);
-        }
-
-        public async Task Run()
-        {
-            if (!IsInitialized)
-            {
-                throw new InvalidOperationException("You must initialize the robot first");
-            }
-            if (chessStrategy is null)
-            {
-                throw new InvalidOperationException("You must initialize the chess strategy first");
+                Thread.Sleep(100);
             }
 
-            var move = await chessStrategy.GetNextMove();
-            bool isMoveDone = true;
-            bool isEndOfGame = false;
-
-            while (isEndOfGame)
-            {
-                if (move.IsEndOfGame)
-                {
-                    isEndOfGame = true;
-                }
-                else
-                {
-                    move.Execute(robot);
-
-                    if (isMoveDone)
-                    {
-                        move = await chessStrategy.GetNextMove();
-
-                        isMoveDone = false;
-
-                        robot.SubscribeToCommandsCompletion(new CommandsCompletedEvent((object? o, RobotEventArgs e) =>
-                        {
-                            isMoveDone = true;
-                        }));
-                    }
-                    else
-                    {
-                        await Task.Delay(100);
-                    }
-
-                    RobotState = robot.GetState();
-                }
-            }
+            RobotState = robot.GetState();
         }
+    }
 
-        public void Initialize()
+    public void Initialize()
+    {
+        robot.Initialize();
+        IsInitialized = true;
+    }
+
+    public void InitializeStrategy(IChessStrategy chessStrategy)
+    {
+        this.chessStrategy = chessStrategy;
+        var initializationResult = this.chessStrategy.Initialize();
+
+        if (initializationResult.IsEndOfGame)
         {
-            robot.Initialize();
-            IsInitialized = true;
+            LogMove(new LogEventArgs(initializationResult.Message ?? ""));
         }
+    }
 
-        public void InitializeMock()
-        {
-            robot.InitializeMock();
-            IsInitialized = true;
-        }
+    public void SwapStrategy(IChessStrategy chessStrategy)
+    {
+        throw new NotImplementedException();
+    }
 
-        public async Task InitializeStrategy(IChessStrategy chessStrategy)
+    public List<ChessStrategyFacade> GetStrategies()
+    {
+        return new()
         {
-            this.chessStrategy = chessStrategy;
-            await this.chessStrategy.Initialize();
-        }
+            new PgnStrategyFacade()
+        };
+    }
 
-        public void Configure(Vector2 a1Center, Vector2 h8Center)
-        {
-            robot.Configure(a1Center, h8Center);
-        }
+    public void PickStrategy(IChessStrategy strategy)
+    {
+        InitializeStrategy(strategy);
+    }
 
-        public void SwapStrategy(IChessStrategy chessStrategy)
-        {
-            throw new NotImplementedException();
-        }
-
-        public List<ChessStrategyFacade> GetStrategies()
-        {
-            return new()
-            {
-                new PgnStrategyFacade()
-            };
-        }
-
-        public async Task PickStrategy(IChessStrategy strategy)
-        {
-            await InitializeStrategy(strategy);
-        }
+    private void LogMove(LogEventArgs e)
+    {
+        OnMessageLogged?.Invoke(this, e);
     }
 }

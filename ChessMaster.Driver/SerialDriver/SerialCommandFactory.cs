@@ -1,6 +1,4 @@
-﻿using ChessMaster.RobotDriver.SerialDriver;
-
-namespace ChessMaster.RobotDriver.Driver;
+﻿namespace ChessMaster.RobotDriver.Driver;
 
 public class SerialCommandFactory
 {

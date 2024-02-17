@@ -1,12 +1,11 @@
-﻿namespace ChessMaster.RobotDriver.Robotic
+﻿namespace ChessMaster.RobotDriver.Robotic;
+
+public enum RobotResponse
 {
-    public enum RobotResponse
-    {
-        Ok,
-        NotInitialized,
-        Initialized,
-        HomingRequired,
-        UnknownError,
-        AlreadyExecuting
-    }
+    Ok,
+    NotInitialized,
+    Initialized,
+    HomingRequired,
+    UnknownError,
+    AlreadyExecuting
 }

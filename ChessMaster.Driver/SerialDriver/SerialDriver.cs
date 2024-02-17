@@ -1,5 +1,5 @@
 ﻿using ChessMaster.RobotDriver.Robotic;
-using ChessMaster.RobotDriver.SerialDriver;
+using ChessMaster.RobotDriver.Robotic.Events;
 using ChessMaster.RobotDriver.SerialResponse;
 using System.Diagnostics;
 using System.IO.Ports;
@@ -10,18 +10,19 @@ namespace ChessMaster.RobotDriver.Driver;
 public class SerialDriver : ISerialDriver
 {
     private string portName;
-    private SerialPort serialPort = null;
+    private SerialPort? serialPort = null;
     private List<string> comlog = new List<string>();
     private readonly SerialCommandFactory commandFactory;
     private int lastAlarm = 0;
     public bool HomingRequired { get; private set; }
+    public CommandsCompletedEvent? CommandsExecuted { get; set; }
 
     public SerialDriver(string portName)
     {
         this.portName = portName;
         commandFactory = new SerialCommandFactory();
     }
-    public CommandsCompletedEvent CommandsExecuted { get; set; }
+    
     public Vector3 GetOrigin()
     {
         SerialWriteLine(commandFactory.Info().Command);

@@ -42,14 +42,13 @@ public class ChessBoard : IChessBoard
 
     public void Initialize(Vector2 a1Center, Vector2 h8Center)
     {
-        tileWidth = (float)Math.Sqrt(Math.Pow(Math.Abs(a1Center.X - h8Center.X), 2) + Math.Pow(Math.Abs(a1Center.Y - h8Center.Y), 2)) / (float)boardTiles - 1;
-        origin = new Vector2(a1Center.X - tileWidth / 2, a1Center.Y - tileWidth / 2);
+        tileWidth = (float)Math.Abs(a1Center.X - h8Center.X) / ((float)boardTiles - 1);
 
         for (int i = 0; i < chessBoardEnd + padding; i++)
         {
             for (int j = 0; j < chessBoardEnd + padding; j++)
             {
-                Space.SubSpaces[i, j] = new SubSpace(tileWidth, new Vector2(origin.X - i * tileWidth, origin.Y - j * tileWidth));
+                Space.SubSpaces[i, j] = new SubSpace(tileWidth, new Vector2(a1Center.X + i * tileWidth, a1Center.Y + j * tileWidth));
             }
         }
         AssignFigures();

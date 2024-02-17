@@ -11,6 +11,16 @@
     <UseWinUI>true</UseWinUI>
     <EnableMsixTooling>true</EnableMsixTooling>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="ViewModels\**" />
+    <Compile Remove="Views\**" />
+    <EmbeddedResource Remove="ViewModels\**" />
+    <EmbeddedResource Remove="Views\**" />
+    <None Remove="ViewModels\**" />
+    <None Remove="Views\**" />
+    <Page Remove="ViewModels\**" />
+    <Page Remove="Views\**" />
+  </ItemGroup>
 
   <ItemGroup>
     <Content Include="Assets\SplashScreen.scale-200.png" />
@@ -20,6 +30,7 @@
     <Content Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png" />
     <Content Include="Assets\StoreLogo.png" />
     <Content Include="Assets\Wide310x150Logo.scale-200.png" />
+	<Content Include="Assets\logo.jpeg" />
   </ItemGroup>
 
   <ItemGroup>
@@ -49,4 +60,30 @@
   <PropertyGroup Condition="'$(DisableHasPackageAndPublishMenuAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">
     <HasPackageAndPublishMenu>true</HasPackageAndPublishMenu>
   </PropertyGroup>
+  <ItemGroup>
+    <PRIResource Remove="ViewModels\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <PRIResource Remove="Views\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="Pages\GamePage.xaml" />
+    <None Remove="Pages\PgnFilePickerPage.xaml" />
+    <None Remove="Pages\SelectStrategyPage.xaml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Pages\GamePage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Pages\PgnFilePickerPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Pages\SelectStrategyPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
 </Project>

@@ -14,4 +14,15 @@ public struct PgnMove
     public SpacePosition? Source { get; set; }
     public SpacePosition? Target { get; set; }
     public bool IsEnfOfGame { get; set; }
+    public string Message { get; set; } = "";
+
+    public PgnMove()
+    {
+        
+    }
+
+    public PgnMove(string message)
+    { 
+        Message = message;
+    }
 }

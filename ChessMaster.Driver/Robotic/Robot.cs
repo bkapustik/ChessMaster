@@ -1,5 +1,5 @@
 ﻿using ChessMaster.RobotDriver.Driver;
-using ChessMaster.RobotDriver.SerialDriver;
+using ChessMaster.RobotDriver.Robotic.Events;
 using ChessMaster.RobotDriver.SerialResponse;
 using ChessMaster.RobotDriver.State;
 using System.Numerics;
@@ -18,22 +18,22 @@ public class Robot : IRobot
     private bool hasBeenInitialized = false;
     private SemaphoreSlim semaphore;
 
-    public CommandsCompletedEvent CommandsSucceeded { get; set; }
-    public CommandsCompletedEvent Initialized { get; set; }
-    public CommandsCompletedEvent NotInitialized { get; set; }
-    public CommandsCompletedEvent CommandsFinished { get; set; }
-    public CommandsCompletedEvent HomingRequired { get; set; }
-    public CommandsCompletedEvent RestartRequired { get; set; }
+    public CommandsCompletedEvent? CommandsSucceeded { get; set; }
+    public CommandsCompletedEvent? Initialized { get; set; }
+    public CommandsCompletedEvent? NotInitialized { get; set; }
+    public CommandsCompletedEvent? CommandsFinished { get; set; }
+    public CommandsCompletedEvent? HomingRequired { get; set; }
+    public CommandsCompletedEvent? RestartRequired { get; set; }
 
     public Vector3 Limits
     {
         get => new Vector3(-origin.X - safePadding, -origin.Y - safePadding, -origin.Z - safePadding);
     }
 
-    public Robot(ISerialDriver robotDriver)
+    public Robot(string portName)
     {
         commands = new SerialCommandFactory();
-        driver = robotDriver;
+        driver = new SerialDriver(portName);
         commandQueue = new Queue<SerialCommand>();
         semaphore = new SemaphoreSlim(1);
     }
@@ -119,6 +119,7 @@ public class Robot : IRobot
     {
         SendCommandAtLastCompletion(commands.Resume());
     }
+    
     public RobotState GetState()
     {
         if (!hasBeenInitialized)
@@ -134,6 +135,7 @@ public class Robot : IRobot
 
         return new RobotState(stateResult, RobotResponse.Ok, x, y, z);
     }
+    
     public void ScheduleCommands(Queue<RobotCommand> commands)
     {
         semaphore.Wait();
@@ -205,7 +207,6 @@ public class Robot : IRobot
     { 
         RestartRequired?.Invoke(this, e);   
     }
-
     private void SendCommandAtLastCompletion(SerialCommand command)
     {
         bool isIdle = false;
