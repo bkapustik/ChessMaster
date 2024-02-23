@@ -3,8 +3,8 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml;
 using System;
 using Windows.System;
-using ChessMaster.ControlApp.Models;
 using ChessMaster.ControlApp.Helpers;
+using ChessMaster.ChessDriver.Models;
 
 namespace ChessMaster.ControlApp;
 

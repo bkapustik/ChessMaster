@@ -1,4 +1,4 @@
-﻿using ChessMaster.ControlApp.Models;
+﻿using ChessMaster.ChessDriver.Models;
 using ChessMaster.RobotDriver.Robotic;
 using System.Numerics;
 using Windows.System;

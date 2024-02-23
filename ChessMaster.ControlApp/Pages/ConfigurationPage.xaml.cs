@@ -5,7 +5,7 @@ using Microsoft.UI.Xaml.Navigation;
 using Windows.System;
 using ChessMaster.RobotDriver.Robotic;
 using System.Threading.Tasks;
-using ChessMaster.ControlApp.Extensions;
+using ChessMaster.Space.Coordinations;
 using System.Numerics;
 using ChessMaster.RobotDriver.State;
 using ChessMaster.ControlApp.Helpers;
@@ -46,10 +46,10 @@ public sealed partial class ConfigurationPage : Page
 
         mainWindow.Timer.Tick += MovementControl;
 
-        var holdableUpButton = new HoldableMoveButton(Up, mainWindow.PositionSetupState);
-        var holdableDownButton = new HoldableMoveButton(Down, mainWindow.PositionSetupState);
-        var holdableLeftButton = new HoldableMoveButton(Left, mainWindow.PositionSetupState);
-        var holdableRightButton = new HoldableMoveButton(Right, mainWindow.PositionSetupState);
+        var holdableUpButton = new HoldableMoveButton(Up, mainWindow.SetupState);
+        var holdableDownButton = new HoldableMoveButton(Down, mainWindow.SetupState);
+        var holdableLeftButton = new HoldableMoveButton(Left, mainWindow.SetupState);
+        var holdableRightButton = new HoldableMoveButton(Right, mainWindow.SetupState);
 
         mainWindow.RegisterKeyboardControl(VirtualKey.Up);
         mainWindow.RegisterKeyboardControl(VirtualKey.Down);
@@ -63,7 +63,7 @@ public sealed partial class ConfigurationPage : Page
 
     private void RequireHoming()
     {
-        mainWindow.PositionSetupState.RobotState = RobotResponse.HomingRequired;
+        mainWindow.SetupState.RobotState = RobotResponse.HomingRequired;
 
         foreach (var button in AllButtons)
         {
@@ -76,12 +76,12 @@ public sealed partial class ConfigurationPage : Page
 
     private void SpeedUpButton(object sender, RoutedEventArgs e)
     {
-        mainWindow.PositionSetupState.IsSpedUp = !mainWindow.PositionSetupState.IsSpedUp;
+        mainWindow.SetupState.IsSpedUp = !mainWindow.SetupState.IsSpedUp;
     }
 
     private void LockCorner(object sender, RoutedEventArgs e)
     {
-        if (mainWindow.PositionSetupState.RobotState == RobotResponse.HomingRequired)
+        if (mainWindow.SetupState.RobotState == RobotResponse.HomingRequired)
         {
             return;
         }
@@ -89,9 +89,9 @@ public sealed partial class ConfigurationPage : Page
         var button = sender as Button;
         if (button.Name == "LockA1")
         {
-            if (mainWindow.PositionSetupState.IsA1Locked)
+            if (mainWindow.SetupState.IsA1Locked)
             {
-                mainWindow.PositionSetupState.IsA1Locked = false;
+                mainWindow.SetupState.IsA1Locked = false;
                 mainWindow.DispatcherQueue.TryEnqueue(() => { button.Content = "Lock A1"; });
             }
             else
@@ -99,10 +99,10 @@ public sealed partial class ConfigurationPage : Page
                 Task.Run(() =>
                 {
                     var state = mainWindow.ChessRunner.robot.GetState();
-                    if (mainWindow.ChessRunner.robot.IsAtDesired(mainWindow.PositionSetupState.DesiredPosition, state))
+                    if (mainWindow.ChessRunner.robot.IsAtDesired(mainWindow.SetupState.DesiredPosition, state))
                     {
-                        mainWindow.PositionSetupState.IsA1Locked = true;
-                        mainWindow.PositionSetupState.A1Position = mainWindow.PositionSetupState.DesiredPosition.ToVector2();
+                        mainWindow.SetupState.IsA1Locked = true;
+                        mainWindow.SetupState.A1Position = mainWindow.SetupState.DesiredPosition.ToVector2();
                         mainWindow.DispatcherQueue.TryEnqueue(() => { button.Content = "Unlock A1"; });
                     }
                 });
@@ -110,9 +110,9 @@ public sealed partial class ConfigurationPage : Page
         }
         else if (button.Name == "LockH8")
         {
-            if (mainWindow.PositionSetupState.IsH8Locked)
+            if (mainWindow.SetupState.IsH8Locked)
             {
-                mainWindow.PositionSetupState.IsH8Locked = false;
+                mainWindow.SetupState.IsH8Locked = false;
                 mainWindow.DispatcherQueue.TryEnqueue(() => { button.Content = "Lock H8"; });
             }
             else
@@ -120,10 +120,10 @@ public sealed partial class ConfigurationPage : Page
                 Task.Run(() =>
                 {
                     var state = mainWindow.ChessRunner.robot.GetState();
-                    if (mainWindow.ChessRunner.robot.IsAtDesired(mainWindow.PositionSetupState.DesiredPosition, state))
+                    if (mainWindow.ChessRunner.robot.IsAtDesired(mainWindow.SetupState.DesiredPosition, state))
                     {
-                        mainWindow.PositionSetupState.IsH8Locked = true;
-                        mainWindow.PositionSetupState.H8Position = mainWindow.PositionSetupState.DesiredPosition.ToVector2();
+                        mainWindow.SetupState.IsH8Locked = true;
+                        mainWindow.SetupState.H8Position = mainWindow.SetupState.DesiredPosition.ToVector2();
                         mainWindow.DispatcherQueue.TryEnqueue(() => { button.Content = "Unlock H8"; });
                     }
                 });
@@ -173,16 +173,16 @@ public sealed partial class ConfigurationPage : Page
             return;
         }
 
-        bool atDesired = mainWindow.ChessRunner.robot.IsAtDesired(mainWindow.PositionSetupState.DesiredPosition, state);
+        bool atDesired = mainWindow.ChessRunner.robot.IsAtDesired(mainWindow.SetupState.DesiredPosition, state);
 
         if (!atDesired)
         {
-            Task.Run(() => mainWindow.ChessRunner.robot.Move(mainWindow.PositionSetupState.DesiredPosition));
+            Task.Run(() => mainWindow.ChessRunner.robot.Move(mainWindow.SetupState.DesiredPosition));
         }
     }
 
     private bool CanMove()
     {
-        return MoveHelper.CanMove(mainWindow.PositionSetupState.RobotState);
+        return MoveHelper.CanMove(mainWindow.SetupState.RobotState);
     }
 }

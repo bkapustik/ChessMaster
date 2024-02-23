@@ -13,6 +13,8 @@ public class MatchReplayChessStrategy : IChessStrategy
     private ChessParsingResult ChessParsingResult { get; set; }
     private ChessColor ColorOnMove = ChessColor.White;
 
+    public MoveComputedEvent? MoveComputed { get; set; }
+
     public MatchReplayChessStrategy(string filePath)
     {
         this.filePath = filePath;
@@ -33,11 +35,12 @@ public class MatchReplayChessStrategy : IChessStrategy
         return new ChessMove(false);
     }
 
-    public ChessMove GetNextMove()
+    public void ComputeNextMove()
     {
         if (ChessParsingResult.Moves.Count == 0)
         {
-            return new ChessMove(true, $"End of the game. Result: {ChessParsingResult.MatchResultMessage}");
+            HandleMoveComputed(true, new ChessMove(true, $"End of the game. Result: {ChessParsingResult.MatchResultMessage}"));
+            return;
         }
 
         var pgnMove = ChessParsingResult.Moves.Dequeue();
@@ -63,13 +66,15 @@ public class MatchReplayChessStrategy : IChessStrategy
             AdvanceColor();
 
             FinishMove(source, target, pgnMove.PawnPromotion!.Value.FigureType);
-            return new PawnPromotionMove(source, target, pgnMove.PawnPromotion!.Value.FigureType, false, pgnMove.Message);
+            HandleMoveComputed(true, new PawnPromotionMove(source, target, pgnMove.PawnPromotion!.Value.FigureType, false, pgnMove.Message));
+            return;
         }
 
         if (pgnMove.MoveType == MoveType.Capture)
         {
             FinishMove(source, target);
-            return new CaptureMove(source, target, false, pgnMove.Message);
+            HandleMoveComputed(true, new CaptureMove(source, target, false, pgnMove.Message));
+            return;
         }
 
         var castling = new Castling();
@@ -110,8 +115,8 @@ public class MatchReplayChessStrategy : IChessStrategy
             }
 
             FinishMove(castling);
-
-            return new CastlingMove(castling, false, pgnMove.Message);
+            HandleMoveComputed(true, new CastlingMove(castling, false, pgnMove.Message));
+            return;
         }
         else if (pgnMove.MoveType == MoveType.QueenSideCastling)
         {
@@ -149,13 +154,12 @@ public class MatchReplayChessStrategy : IChessStrategy
             }
 
             FinishMove(castling);
-
-            return new CastlingMove(castling, false, pgnMove.Message);
+            HandleMoveComputed(true, new CastlingMove(castling, false, pgnMove.Message));
+            return;
         }
 
         FinishMove(source, target);
-
-        return new ChessMove(source, target, false, pgnMove.Message);
+        HandleMoveComputed(true, new ChessMove(source, target, false, pgnMove.Message));
     }
 
     public SpacePosition FindSourcePosition(PgnMove move)
@@ -251,5 +255,15 @@ public class MatchReplayChessStrategy : IChessStrategy
     {
         FinishMove(source, target);
         chessBoard.Grid[target.X, target.Y].Figure!.FigureType = pawnPromotion;
+    }
+
+    private void OnMoveComputed(StrategyEventArgs e)
+    {
+        MoveComputed?.Invoke(this, e);
+    }
+
+    private void HandleMoveComputed(bool success, ChessMove move)
+    {
+        Task.Run(() => { OnMoveComputed(new StrategyEventArgs(success, move)); });
     }
 }

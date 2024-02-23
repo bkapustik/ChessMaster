@@ -18,7 +18,7 @@ public class RobotPicker
         AddPort(MOCK_PORT_CONFIGURED, new MockRobotConfiguredDTO());
     }
 
-    public IRobot GetRobot(string portName) => SelectedRobots[portName].GetRobot(portName);
+    public RobotDTO GetRobot(string portName) => SelectedRobots[portName];
 
     public void AddPort(string portName)
     {

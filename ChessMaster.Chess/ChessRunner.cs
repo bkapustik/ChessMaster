@@ -1,4 +1,5 @@
-﻿using ChessMaster.ChessDriver.ChessStrategy;
+﻿using ChessMaster.ChessDriver.ChessMoves;
+using ChessMaster.ChessDriver.ChessStrategy;
 using ChessMaster.ChessDriver.Strategy;
 using ChessMaster.RobotDriver.Robotic;
 using ChessMaster.RobotDriver.Robotic.Events;
@@ -32,24 +33,31 @@ public class ChessRunner
         {
             throw new InvalidOperationException("You must initialize the chess strategy first");
         }
+        bool isMoveDone = true;
+        bool isMoveComputed = true;
+        ChessMove move = new ChessMove(false);
 
-        bool isMoveDone = false;
-        var move = chessStrategy.GetNextMove();
-
+        chessStrategy.MoveComputed += (object? o, StrategyEventArgs e) =>
+        {
+            move = e.Move;
+            isMoveComputed = true;
+        };
         robot.SubscribeToCommandsCompletion(new CommandsCompletedEvent((object? o, RobotEventArgs e) =>
         {
             isMoveDone = true;
         }));
+        chessStrategy.ComputeNextMove();
 
         while (!move.IsEndOfGame)
         {
-            move.Execute(robot);
-
-            if (isMoveDone)
+            if (isMoveDone && isMoveComputed)
             {
-                LogMove(new LogEventArgs(move.Message ?? ""));
-                move = chessStrategy.GetNextMove();
                 isMoveDone = false;
+                isMoveComputed = false;
+                
+                move.Execute(robot);
+                LogMove(new LogEventArgs(move.Message ?? ""));
+                chessStrategy.ComputeNextMove();
             }
             else
             {
@@ -86,7 +94,8 @@ public class ChessRunner
     {
         return new()
         {
-            new PgnStrategyFacade()
+            new PgnStrategyFacade(),
+            new MockPgnStrategyFacade()
         };
     }
 

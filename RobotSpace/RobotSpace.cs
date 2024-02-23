@@ -42,7 +42,7 @@ public class RobotSpace
     public RobotState GetState() => Robot.GetState();
     private void TakeEntityFromPosition(SpacePosition position)
     {
-        Move(new Vector3());
+        Move(space?.SubSpaces[position.X, position.Y].Center3 ?? default);
         //var commands = new Queue<RobotCommand>();
         //var entity = space.SubSpaces[position.X, position.Y].Entity;
 

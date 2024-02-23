@@ -1,6 +1,8 @@
 ﻿using ChessMaster.Chess;
 using ChessMaster.Chess.Property;
 using ChessMaster.Space.Coordinations;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Text;
 
 namespace ChessMaster.ChessDriver.Strategy;
 
@@ -18,54 +20,66 @@ public struct ChessParsingResult
 
 public static class ChessFileParser
 {
-    public static ChessParsingResult GetMoves(string filePath)
+    public static ChessParsingResult ReadMoves(StreamReader streamReader)
     {
         var queue = new Queue<PgnMove>();
+        var line = streamReader.ReadLine();
 
-        using (var streamReader = new StreamReader(filePath))
+        bool isCurrentWhite = true;
+        string[] tokens = Array.Empty<string>();
+
+        while (line != null)
         {
-            var line = streamReader.ReadLine();
-
-            bool isCurrentWhite = true;
-            string[] tokens = Array.Empty<string>();
-
-            while (line != null)
+            if (line.StartsWith('['))
             {
-                if (line.StartsWith('['))
-                {
-                    line = streamReader.ReadLine();
-                    continue;
-                }
-
-                if (string.IsNullOrWhiteSpace(line))
-                {
-                    line = streamReader.ReadLine();
-                    continue;
-                }
-
-                tokens = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                foreach (var token in tokens)
-                {
-                    if (token[0] == ';')
-                    {
-                        break;
-                    }
-
-                    if (token[0] != '{' && token[token.Length - 1] != '.' && !IsEndOfGameScoreString(token))
-                    {
-                        var move = ParseMove(token);
-                        move.Color = isCurrentWhite ? ChessColor.White : ChessColor.Black;
-                        queue.Enqueue(move);
-                        isCurrentWhite = !isCurrentWhite;
-                    }
-                }
-
                 line = streamReader.ReadLine();
+                continue;
             }
 
-            string matchResult = tokens[tokens.Length - 1];
+            if (string.IsNullOrWhiteSpace(line))
+            {
+                line = streamReader.ReadLine();
+                continue;
+            }
 
-            return new ChessParsingResult(queue, matchResult);
+            tokens = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            foreach (var token in tokens)
+            {
+                if (token[0] == ';')
+                {
+                    break;
+                }
+
+                if (token[0] != '{' && token[token.Length - 1] != '.' && !IsEndOfGameScoreString(token))
+                {
+                    var move = ParseMove(token);
+                    move.Color = isCurrentWhite ? ChessColor.White : ChessColor.Black;
+                    queue.Enqueue(move);
+                    isCurrentWhite = !isCurrentWhite;
+                }
+            }
+
+            line = streamReader.ReadLine();
+        }
+
+        string matchResult = tokens[tokens.Length - 1];
+
+        return new ChessParsingResult(queue, matchResult);
+    }
+
+    public static ChessParsingResult GetMoves(byte[] fileData)
+    {
+        using (var streamReader = new StreamReader(new MemoryStream(fileData), Encoding.UTF8))
+        {
+            return ReadMoves(streamReader);
+        }
+    }
+
+    public static ChessParsingResult GetMoves(string filePath)
+    {
+        using (var streamReader = new StreamReader(filePath))
+        {
+            return ReadMoves(streamReader);
         }
     }
 

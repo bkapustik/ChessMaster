@@ -38,6 +38,6 @@ public sealed partial class PortSelectionPage : Page
         
         var robot = robotPicker.GetRobot(selectedPort);
 
-        mainWindow.SelectRobot(robot);
+        mainWindow.SelectPort(robot, selectedPort);
     }
 }

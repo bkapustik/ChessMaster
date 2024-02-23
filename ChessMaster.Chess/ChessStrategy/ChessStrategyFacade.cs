@@ -1,4 +1,5 @@
-﻿using ChessMaster.ChessDriver.Strategy;
+﻿using ChessMaster.ChessDriver.ChessStrategy.MatchReplayStrategy;
+using ChessMaster.ChessDriver.Strategy;
 
 namespace ChessMaster.ChessDriver.ChessStrategy;
 
@@ -19,5 +20,16 @@ public class PgnStrategyFacade : ChessStrategyFacade
     public override void Configure(string configuration)
     {
         file = configuration;
+    }
+}
+
+public class MockPgnStrategyFacade : ChessStrategyFacade
+{
+    private byte[] data = Properties.Resources.Anatoly_Karpov_vs_Garry_Kasparov_1985;
+    public override string Name { get => "MOCK Replay Match"; }
+    public override IChessStrategy CreateStrategy() => new MockMatchReplayChessStrategy(data);
+    public override bool NeedsConfiguration => false;
+    public override void Configure(string configuration)
+    {
     }
 }

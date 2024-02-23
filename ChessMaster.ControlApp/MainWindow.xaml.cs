@@ -8,7 +8,6 @@ using System.Numerics;
 using ChessMaster.ChessDriver.ChessStrategy;
 using WinRT.Interop;
 using Windows.System;
-using ChessMaster.ControlApp.Models;
 using ChessMaster.ControlApp.Pages;
 using ChessMaster.ChessDriver.Models;
 
@@ -24,7 +23,7 @@ public sealed partial class MainWindow : Window
 
     public readonly DispatcherTimer Timer;
 
-    public PositionSetupState PositionSetupState = new PositionSetupState();
+    public PositionSetupState SetupState = new PositionSetupState();
 
     public ChessRunner ChessRunner { get; private set; }
 
@@ -47,17 +46,17 @@ public sealed partial class MainWindow : Window
 
     public void RegisterKeyboardControl(VirtualKey key)
     {
-        var holdableKey = new HoldableMoveKey(MainPage, key, PositionSetupState);
+        var holdableKey = new HoldableMoveKey(MainPage, key, SetupState);
     }
 
     public void ConfirmConfiguration()
     {
-        if (!PositionSetupState.IsA1Locked || !PositionSetupState.IsH8Locked)
+        if (!SetupState.IsA1Locked || !SetupState.IsH8Locked)
         {
             return;
         }
 
-        ChessRunner.robot.InitializeChessBoard(PositionSetupState.A1Position, PositionSetupState.H8Position);
+        ChessRunner.robot.InitializeChessBoard(SetupState.A1Position, SetupState.H8Position);
 
         NavigateTo(typeof(SelectStrategyPage));
     }
@@ -65,8 +64,6 @@ public sealed partial class MainWindow : Window
     public void PickPgnFile(string file)
     {
         selectedStrategy.Configure(file);
-
-        StartGame();
 
         NavigateTo(typeof(GamePage));
     }
@@ -77,7 +74,7 @@ public sealed partial class MainWindow : Window
 
         if (!selectedStrategy.NeedsConfiguration)
         {
-            StartGame();
+            NavigateTo(typeof(GamePage));
         }
         else
         {
@@ -109,19 +106,31 @@ public sealed partial class MainWindow : Window
         CenterToScreen(windowHandle);
     }
 
-    public void SelectRobot(IRobot selectedRobot)
+    public void SelectPort(RobotDTO selectedRobot, string portName)
     {
         InitializeTimer();
-        ChessRunner = new ChessRunner(selectedRobot);
+        ChessRunner = new ChessRunner(selectedRobot.GetRobot(portName));
         InitializeRobot();
-        NavigateTo(typeof(ConfigurationPage));
+
+        SetupState = selectedRobot.GetSetupState();
+        if (SetupState.RobotState == RobotResponse.Initialized)
+        {
+            ChessRunner.Initialize();
+            ChessRunner.robot.InitializeChessBoard(SetupState.A1Position, SetupState.H8Position);
+            var selectedStrategy = new MockPgnStrategyFacade();
+            PickStrategy(selectedStrategy);
+        }
+        else
+        {
+            NavigateTo(typeof(ConfigurationPage));
+        }
     }
 
     private void RequireRestart()
     {
         DispatcherQueue.TryEnqueue(() =>
         {
-            PositionSetupState.RobotState = RobotResponse.UnknownError;
+            SetupState.RobotState = RobotResponse.UnknownError;
 
             ControlsWindow.Visibility = Visibility.Collapsed;
             RestartWindow.Visibility = Visibility.Visible;
@@ -140,13 +149,13 @@ public sealed partial class MainWindow : Window
         ChessRunner.robot.Robot.RestartRequired += (object o, RobotEventArgs e) => RequireRestart();
         ChessRunner.robot.Robot.Initialized += (object o, RobotEventArgs e) =>
         {
-            PositionSetupState.RobotState = RobotResponse.Initialized;
+            SetupState.RobotState = RobotResponse.Initialized;
             var position = e.RobotState.Position;
-            PositionSetupState.DesiredPosition = new Vector3(position.X, position.Y, position.Z);
+            SetupState.DesiredPosition = new Vector3(position.X, position.Y, position.Z);
         };
         ChessRunner.robot.Robot.CommandsSucceeded += (object o, RobotEventArgs e) =>
         {
-            PositionSetupState.RobotState = RobotResponse.Ok;
+            SetupState.RobotState = RobotResponse.Ok;
         };
         ChessRunner.robot.Robot.NotInitialized += (object o, RobotEventArgs e) => RequireRestart();
     }
