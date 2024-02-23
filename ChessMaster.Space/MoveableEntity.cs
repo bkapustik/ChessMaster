@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ChessMaster.Space.Coordinations;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -11,12 +12,12 @@ namespace ChessMaster.Space
     {
         public virtual Vector2 Get2DCenter()
         { 
-            return Center!.Value;
+            return Center2!.Value;
         }
 
         public virtual Vector3 GetHoldingPointVector()
         {
-            return Center3!.Value;
+            return Center2!.Value.ToVector3();
         }
     }
 }

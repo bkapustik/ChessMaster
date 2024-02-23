@@ -5,8 +5,8 @@ namespace ChessMaster.ChessDriver.ChessMoves;
 
 public class ChessMove
 {
-    private readonly SpacePosition source;
-    private readonly SpacePosition target;
+    protected readonly SpacePosition source;
+    protected readonly SpacePosition target;
     public bool IsEndOfGame { get; set; }
     public string? Message { get; set; }
 

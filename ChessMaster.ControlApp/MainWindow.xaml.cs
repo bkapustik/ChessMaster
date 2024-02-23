@@ -162,7 +162,7 @@ public sealed partial class MainWindow : Window
 
     private void UpdateDisplayedPosition(object sender, object args)
     {
-        if (timerCounter == 9)
+        if (timerCounter == 1)
         {
             Task.Run(() =>
             {
@@ -173,7 +173,7 @@ public sealed partial class MainWindow : Window
             });
         }
 
-        timerCounter = (timerCounter + 1) % 10;
+        timerCounter = (timerCounter + 1) % 2;
     }
 
     public void StartGame()

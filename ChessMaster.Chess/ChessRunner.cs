@@ -14,8 +14,6 @@ public class ChessRunner
 
     public bool IsInitialized = false;
 
-    public RobotState RobotState { get; set; }
-
     public MessageLoggedEvent? OnMessageLogged { get; set; }
 
     public ChessRunner(IRobot robot)
@@ -35,7 +33,7 @@ public class ChessRunner
         }
         bool isMoveDone = true;
         bool isMoveComputed = true;
-        ChessMove move = new ChessMove(false);
+        ChessMove move = new StartGameMove();
 
         chessStrategy.MoveComputed += (object? o, StrategyEventArgs e) =>
         {
@@ -63,8 +61,6 @@ public class ChessRunner
             {
                 Thread.Sleep(100);
             }
-
-            RobotState = robot.GetState();
         }
     }
 

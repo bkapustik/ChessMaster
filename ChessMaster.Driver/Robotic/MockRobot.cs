@@ -41,11 +41,22 @@ public class MockRobot : IRobot
             {
                 if (command is MoveCommand)
                 {
-                    Thread.Sleep(300);
                     var moveCommand = (MoveCommand)command;
-                    displayedPosition.X = moveCommand.X;
-                    displayedPosition.Y = moveCommand.Y;
-                    displayedPosition.Z = moveCommand.Z;
+
+                    var positionDifferenceVector = new Vector3(
+                        moveCommand.X - displayedPosition.X,
+                        moveCommand.Y - displayedPosition.Y,
+                        moveCommand.Z - displayedPosition.Z
+                    );
+
+                    var positionVectorDenominator = 100;
+                    var partOfPositionDifferenceVector = positionDifferenceVector / positionVectorDenominator;
+
+                    for (int i = 0; i < positionVectorDenominator; i++)
+                    {
+                        displayedPosition += partOfPositionDifferenceVector;
+                        Thread.Sleep(5);
+                    }
                 }
             }
 
@@ -130,7 +141,7 @@ public class MockRobot : IRobot
     }
     protected void HandleFinishedCommands(RobotResponse robotResponse)
     {
-        var resultState = new RobotState(robotResponse);
+        var resultState = new RobotState(MovementState.Idle, RobotResponse.Ok, displayedPosition.X, displayedPosition.Y, displayedPosition.Z);
         Task.Run(() => OnCommandsFinished(new RobotEventArgs(success: false, resultState)));
     }
     protected virtual void HandleInitialized()
@@ -139,21 +150,21 @@ public class MockRobot : IRobot
     }
     protected void HandleNotInitialized()
     {
-        var resultState = new RobotState(RobotResponse.NotInitialized);
+        var resultState = new RobotState(MovementState.Idle, RobotResponse.NotInitialized, displayedPosition.X, displayedPosition.Y, displayedPosition.Z);;
         Task.Run(() => OnNotInitialized(new RobotEventArgs(success: false, resultState)));
     }
     protected void HandleOkReponse()
     {
-        Task.Run(() => OnCommandsSucceded(new RobotEventArgs(success: true, new RobotState(RobotResponse.Ok))));
+        Task.Run(() => OnCommandsSucceded(new RobotEventArgs(success: true, new RobotState(MovementState.Idle, RobotResponse.Ok, displayedPosition.X, displayedPosition.Y, displayedPosition.Z))));
     }
     private void HandleHomingRequired()
     {
-        var resultState = new RobotState(RobotResponse.HomingRequired);
+        var resultState = new RobotState(MovementState.Idle, RobotResponse.HomingRequired, displayedPosition.X, displayedPosition.Y, displayedPosition.Z);
         Task.Run(() => OnHomingRequired(new RobotEventArgs(success: false, resultState)));
     }
     private void HandleRestartRequired()
     {
-        var resultState = new RobotState(RobotResponse.UnknownError);
+        var resultState = new RobotState(MovementState.Idle, RobotResponse.UnknownError, displayedPosition.X, displayedPosition.Y, displayedPosition.Z);
         Task.Run(() => OnRestartRequired(new RobotEventArgs(success: false, resultState)));
     }
 }

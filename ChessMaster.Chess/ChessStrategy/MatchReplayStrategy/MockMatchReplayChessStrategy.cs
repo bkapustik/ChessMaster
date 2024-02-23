@@ -41,7 +41,7 @@ namespace ChessMaster.ChessDriver.ChessStrategy.MatchReplayStrategy
         {
             if (IsPlayerMove)
             {
-                Thread.Sleep(2000);
+                Thread.Sleep(500);
                 IsPlayerMove = false;
             }
             else 

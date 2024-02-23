@@ -4,15 +4,12 @@ namespace ChessMaster.ChessDriver.ChessMoves;
 
 public class CaptureMove : ChessMove
 {
-    private readonly SpacePosition source;
-    private readonly SpacePosition target;
-
-    public CaptureMove(SpacePosition source, SpacePosition target, bool isEndOfGame, string? message = null)
+    public CaptureMove(bool isEndOfGame, string? message = null)
         : base(isEndOfGame, message)
-    {
-        this.source = source;
-        this.target = target;
-    }
+    { }
+    public CaptureMove(SpacePosition source, SpacePosition target, bool isEndOfGame, string? message = null)
+        : base(source, target, isEndOfGame, message)
+    { }
 
     public override void Execute(ChessRobot robot)
     {

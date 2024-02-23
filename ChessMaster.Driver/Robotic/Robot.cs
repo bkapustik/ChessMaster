@@ -6,7 +6,7 @@ using System.Numerics;
 
 namespace ChessMaster.RobotDriver.Robotic;
 
-public class Robot : IRobot 
+public class Robot : IRobot
 {
     private Queue<SerialCommand> commandQueue;
     private bool isBeingExecuted = true;
@@ -54,7 +54,7 @@ public class Robot : IRobot
             state = driver.GetRawState();
             hasBeenInitialized = true;
         }
-        catch (Exception ex) 
+        catch (Exception ex)
         {
             semaphore.Release();
             HandleRestartRequired();
@@ -119,12 +119,12 @@ public class Robot : IRobot
     {
         SendCommandAtLastCompletion(commands.Resume());
     }
-    
+
     public RobotState GetState()
     {
         if (!hasBeenInitialized)
         {
-            return new RobotState(RobotResponse.NotInitialized);
+            return new RobotState(MovementState.Unknown, RobotResponse.NotInitialized, 0, 0, 0);
         }
 
         MovementState stateResult = state.MovementState.ToMovementState();
@@ -135,7 +135,7 @@ public class Robot : IRobot
 
         return new RobotState(stateResult, RobotResponse.Ok, x, y, z);
     }
-    
+
     public void ScheduleCommands(Queue<RobotCommand> commands)
     {
         semaphore.Wait();
@@ -188,11 +188,11 @@ public class Robot : IRobot
         CommandsSucceeded?.Invoke(this, e);
     }
     private void OnInitialized(RobotEventArgs e)
-    { 
+    {
         Initialized?.Invoke(this, e);
     }
     private void OnNotInitialized(RobotEventArgs e)
-    { 
+    {
         NotInitialized?.Invoke(this, e);
     }
     private void OnCommandsFinished(RobotEventArgs e)
@@ -204,8 +204,8 @@ public class Robot : IRobot
         HomingRequired?.Invoke(this, e);
     }
     private void OnRestartRequired(RobotEventArgs e)
-    { 
-        RestartRequired?.Invoke(this, e);   
+    {
+        RestartRequired?.Invoke(this, e);
     }
     private void SendCommandAtLastCompletion(SerialCommand command)
     {
@@ -245,7 +245,7 @@ public class Robot : IRobot
 
     private void HandleFinishedCommands(RobotResponse robotResponse)
     {
-        var resultState = new RobotState(robotResponse);
+        var resultState = GetState();
         Task.Run(() => OnCommandsFinished(new RobotEventArgs(success: false, resultState)));
     }
     private void HandleInitialized()
@@ -256,7 +256,7 @@ public class Robot : IRobot
     }
     private void HandleNotInitialized()
     {
-        var resultState = new RobotState(RobotResponse.NotInitialized);
+        var resultState = new RobotState(MovementState.Unknown, RobotResponse.NotInitialized, 0, 0, 0);
         Task.Run(() => OnNotInitialized(new RobotEventArgs(success: false, resultState)));
     }
     private void HandleOkReponse()
@@ -267,12 +267,14 @@ public class Robot : IRobot
     }
     private void HandleHomingRequired()
     {
-        var resultState = new RobotState(RobotResponse.HomingRequired);
+        var state = GetState();
+        var resultState = new RobotState(MovementState.Unknown, RobotResponse.HomingRequired, state.Position);
         Task.Run(() => OnHomingRequired(new RobotEventArgs(success: false, resultState)));
     }
     private void HandleRestartRequired()
     {
-        var resultState = new RobotState(RobotResponse.UnknownError);
+        var state = GetState();
+        var resultState = new RobotState(MovementState.Unknown, RobotResponse.UnknownError, state.Position);
         Task.Run(() => OnRestartRequired(new RobotEventArgs(success: false, resultState)));
     }
 }

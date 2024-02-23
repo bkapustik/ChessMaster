@@ -1,4 +1,5 @@
 ﻿using ChessMaster.RobotDriver.Robotic;
+using ChessMaster.Space.Coordinations;
 using System;
 using System.Numerics;
 
@@ -16,6 +17,7 @@ public class MockRobotConfiguredDTO : RobotDTO
         IsA1Locked = true,
         IsH8Locked = true,
         A1Position = a1Position,
-        H8Position = h8Position
+        H8Position = h8Position,
+        DesiredPosition = h8Position.ToVector3()
     };
 }

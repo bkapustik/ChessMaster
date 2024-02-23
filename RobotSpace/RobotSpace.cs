@@ -12,16 +12,10 @@ public class RobotSpace
     public IRobot? Robot { get; protected set; }
 
     private MoveableEntity? currentlyHeldEntity;
-    private RobotState currentRobotState;
     private SpacePosition expectedPosition;
     public void Initialize()
     {
         Robot?.Initialize();
-    }
-    public void Initialize(IRobot robot)
-    {
-        Robot = robot;
-        Robot.Initialize();
     }
     protected void MoveEntityFromSourceToTarget(SpacePosition source, SpacePosition target)
     {
@@ -118,8 +112,8 @@ public class RobotSpace
     }
     private Queue<Vector3> GetBestTrajectory(SpacePosition targetPosition)
     {
-        var currentCoordinations = space.SubSpaces[expectedPosition.X, expectedPosition.Y].Center.Value;
-        var targetCoordinations = space.SubSpaces[targetPosition.X, targetPosition.Y].Center.Value;
+        var currentCoordinations = space.SubSpaces[expectedPosition.X, expectedPosition.Y].Center2.Value;
+        var targetCoordinations = space.SubSpaces[targetPosition.X, targetPosition.Y].Center2.Value;
 
         //var intersectedSpaceIndices = new List<int>();
 

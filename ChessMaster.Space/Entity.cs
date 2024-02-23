@@ -13,7 +13,8 @@ namespace ChessMaster.Space
         public float? Width;
         public float? Length;
         public float? Height;
-        public Vector2? Center { get; set; }
+        public Vector2? Center2 { get; set; }
+
         public Vector3? Center3 { get; set; }
     }
 }

@@ -20,31 +20,19 @@ public class ChessRobot : RobotSpace
     {
         this.Robot = robot;
         this.chessBoard = new ChessBoard();
+        this.space = chessBoard.Space;
     }
     public void InitializeChessBoard(Vector2 a1Center, Vector2 h8Center)
     {
         chessBoard.Initialize(a1Center, h8Center);
     }
-    public void Configure(Vector2 a1Center, Vector2 h8Center)
-    {
-        //robot.Move(100, 100, 100);
-        //board.Initialize(new Vector2(20,20), new Vector2(750,500));
-        ////20, 200 - h1
-
-        ////var origin = new Vector3(420, 600, 20);
-        ////var length = 57;
-        ////a kedze druhy roh je 20, 200 tak delime ich rozdiel siedmymi
-        ////robot.OpenGrip();QAW
-        ////robot.MoveZ(100);
-        ////robot.Move(418 - 342 + 57*3, 598, 100);
-
-        //robot.MoveZ(100);
-        //robot.OpenGrip();
-    }
-    
     public void MoveFigureTo(SpacePosition figurePosition, SpacePosition targetPosition)
     {
         MoveEntityFromSourceToTarget(figurePosition, targetPosition);
+    }
+    public void StartGame()
+    {
+        Robot.ScheduleCommands(new Queue<RobotCommand>());
     }
 
     public void CaptureFigure(SpacePosition sourcePosition, SpacePosition targetPosition)
