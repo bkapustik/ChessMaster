@@ -24,6 +24,7 @@ public class Robot : IRobot
     public CommandsCompletedEvent? CommandsFinished { get; set; }
     public CommandsCompletedEvent? HomingRequired { get; set; }
     public CommandsCompletedEvent? RestartRequired { get; set; }
+    public RobotPausedEvent? Paused { get; set; }
 
     public Vector3 Limits
     {
@@ -40,38 +41,40 @@ public class Robot : IRobot
 
     public void Initialize()
     {
-        bool problematicPosition = false;
-        semaphore.Wait();
-        try
+        if (!hasBeenInitialized)
         {
-            driver.Initialize();
-            origin = driver.GetOrigin();
-            if (origin.X < 0 || origin.Y < 0 || origin.Z < 0)
+            bool problematicPosition = false;
+            semaphore.Wait();
+            try
             {
-                problematicPosition = true;
+                driver.Initialize();
+                origin = driver.GetOrigin();
+                if (origin.X < 0 || origin.Y < 0 || origin.Z < 0)
+                {
+                    problematicPosition = true;
+                }
+                driver.SetMovementType(commands.LinearMovement());
+                state = driver.GetRawState();
+                hasBeenInitialized = true;
             }
-            driver.SetMovementType(commands.LinearMovement());
-            state = driver.GetRawState();
-            hasBeenInitialized = true;
-        }
-        catch (Exception ex)
-        {
-            semaphore.Release();
-            HandleRestartRequired();
-            return;
-        }
-        if (driver.HomingRequired || problematicPosition)
-        {
-            semaphore.Release();
-            HandleHomingRequired();
-            problematicPosition = false;
-            return;
-        }
-        else
-        {
-            semaphore.Release();
-            HandleInitialized();
-            return;
+            catch (Exception ex)
+            {
+                semaphore.Release();
+                HandleRestartRequired();
+                return;
+            }
+
+            if (driver.HomingRequired || problematicPosition)
+            {
+                semaphore.Release();
+                HandleHomingRequired();
+                problematicPosition = false;
+            }
+            else
+            {
+                semaphore.Release();
+                HandleInitialized();
+            }
         }
     }
     public bool IsAtDesired(Vector3 desired, RobotState state)
@@ -85,6 +88,7 @@ public class Robot : IRobot
     {
         semaphore.Wait();
 
+        //TODO - to je nejak spatne
         semaphore.Release();
 
         isBeingExecuted = true;
@@ -110,6 +114,7 @@ public class Robot : IRobot
     public void Reset()
     {
         driver.Reset();
+        
     }
     public void Pause()
     {

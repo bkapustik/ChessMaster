@@ -12,6 +12,7 @@ public interface IRobot
     CommandsCompletedEvent? CommandsFinished { get; set; }
     CommandsCompletedEvent? HomingRequired { get; set; }
     CommandsCompletedEvent? RestartRequired { get; set; }
+    RobotPausedEvent? Paused { get; set; }
 
     Vector3 Limits { get; }
     void Initialize();

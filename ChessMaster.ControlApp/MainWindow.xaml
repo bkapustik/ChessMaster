@@ -32,7 +32,7 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <Grid RowDefinitions="1.5*, 1*" x:Name="ThreeDCoordinatesGrid" Grid.Column="0" Height="Auto" VerticalAlignment="Top">
+                <Grid RowDefinitions="1.5*, 1*, *" x:Name="ThreeDCoordinatesGrid" Grid.Column="0" Height="Auto" VerticalAlignment="Top">
                     <TextBlock Grid.Row="0" Text="3D Coordinates" Style="{StaticResource TextBlockInGridStyle}"/>
 
                     <Grid Grid.Row="1" RowDefinitions="1*,1*,1*" ColumnDefinitions="1*,1*">
@@ -44,10 +44,14 @@
                         <TextBlock Grid.Column="1" Grid.Row="1" x:Name="YValueLabel" Style="{StaticResource TextBlockInGridStyle}"/>
                         <TextBlock Grid.Column="1" Grid.Row="2" x:Name="ZValueLabel" Style="{StaticResource TextBlockInGridStyle}"/>
                     </Grid>
+                    <Grid Grid.Row="2">
+                        <StackPanel x:Name="InformationPanel" Orientation="Vertical"/>
+                    </Grid>
                 </Grid>
                 <Grid Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" 
                       Grid.Column="1" 
-                      CornerRadius="8">
+                      CornerRadius="8"
+                      RowDefinitions="50, *">
                     <Canvas Background="Transparent">
                         <Rectangle Canvas.Left="30" Canvas.Top="30" 
                             Fill="Aquamarine" Width="200" Height="200" />
@@ -58,9 +62,15 @@
                         <Rectangle Canvas.Left="500" Canvas.Top="50" 
                             Fill="LawnGreen" Width="200" Height="200" />
                     </Canvas>
+                    <Grid 
+                        x:Name="OptionMenu"
+                        Grid.Row="0"
+                        Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}">
+                        <StackPanel x:Name="DynamicButtonPanel" Orientation="Horizontal"/>
+                    </Grid>
                     <Frame 
-                        x:Name="ContentFrame" 
-                        Grid.Column="1" 
+                        Grid.Row="1"
+                        x:Name="ContentFrame"
                         Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}"
                         Padding="20"/>
                 </Grid>

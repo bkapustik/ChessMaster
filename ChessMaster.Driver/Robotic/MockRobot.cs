@@ -8,7 +8,8 @@ public class MockRobot : IRobot
 {
     protected RobotResponse State { get; set; } = RobotResponse.NotInitialized;
 
-    private Vector3 position = new Vector3(0f, 0f, 0f);
+    private SemaphoreSlim semaphore;
+    private bool isPaused = false;
     protected Vector3 displayedPosition = new Vector3(0f, 0f, 0f);
 
     private float originX = -490f, originY = -820f, originZ = -200f;
@@ -20,6 +21,12 @@ public class MockRobot : IRobot
     public CommandsCompletedEvent? CommandsFinished { get; set; }
     public CommandsCompletedEvent? HomingRequired { get; set; }
     public CommandsCompletedEvent? RestartRequired { get; set; }
+    public RobotPausedEvent? Paused { get; set; }
+
+    public MockRobot()
+    { 
+        semaphore = new SemaphoreSlim(1);
+    }
 
     public void ScheduleCommands(Queue<RobotCommand> commands)
     {
@@ -49,12 +56,21 @@ public class MockRobot : IRobot
                         moveCommand.Z - displayedPosition.Z
                     );
 
-                    var positionVectorDenominator = 100;
-                    var partOfPositionDifferenceVector = positionDifferenceVector / positionVectorDenominator;
+                    int positionVectorDenominator = 100;
 
-                    for (int i = 0; i < positionVectorDenominator; i++)
+                    var partOfPositionDifferenceVector = positionDifferenceVector / (float)positionVectorDenominator;
+
+                    int movePartsLeft = positionVectorDenominator;
+
+                    while (movePartsLeft > 0)
                     {
-                        displayedPosition += partOfPositionDifferenceVector;
+                        semaphore.Wait();
+                        if (!isPaused)
+                        {
+                            displayedPosition += partOfPositionDifferenceVector;
+                            movePartsLeft--;
+                        }
+                        semaphore.Release();
                         Thread.Sleep(5);
                     }
                 }
@@ -71,8 +87,18 @@ public class MockRobot : IRobot
     {
         return new RobotState(MovementState.Idle, RobotResponse.Ok, displayedPosition.X, displayedPosition.Y, displayedPosition.Z);
     }
-    public void Pause() { }
-    public void Resume() { }
+    public void Pause() 
+    {
+        semaphore.Wait();
+        isPaused = true;
+        semaphore.Release();
+    }
+    public void Resume() 
+    {
+        semaphore.Wait();
+        isPaused = false;   
+        semaphore.Release();
+    }
     public virtual void Initialize()
     {
         var diceThrow = new Random().Next(1,15);

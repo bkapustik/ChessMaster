@@ -10,6 +10,7 @@ using WinRT.Interop;
 using Windows.System;
 using ChessMaster.ControlApp.Pages;
 using ChessMaster.ChessDriver.Models;
+using Microsoft.UI.Xaml.Controls;
 
 namespace ChessMaster.ControlApp;
 
@@ -20,6 +21,7 @@ public sealed partial class MainWindow : Window
     private int timerCounter = 0;
 
     private ChessStrategyFacade selectedStrategy;
+    private Style TextBlockInGridStyle;
 
     public readonly DispatcherTimer Timer;
 
@@ -37,10 +39,46 @@ public sealed partial class MainWindow : Window
         SetTitleBar(AppTitleBar);
 
         Timer = new DispatcherTimer();
+
+        if (Application.Current.Resources.TryGetValue("TextBlockInGridStyle", out var style))
+        {
+            TextBlockInGridStyle = style as Style;
+        }
+    }
+
+    public void AddMenuButton(Button button)
+    {
+        DynamicButtonPanel.Children.Add(button);
+    }
+
+    public void TryRemoveMenuButton(Button button) 
+    {
+        if (DynamicButtonPanel.Children.Contains(button))
+        {
+            DynamicButtonPanel.Children.Remove(button);
+        }
+    }
+
+    public void AddLeftTabInfo(TextBlock label, TextBlock value)
+    {
+        var panel = new StackPanel
+        {
+            Orientation = Orientation.Horizontal
+        };
+
+        label.Style = TextBlockInGridStyle;
+        value.Style = TextBlockInGridStyle;
+
+        panel.Children.Add(label);
+        panel.Children.Add(value);
+
+        InformationPanel.Children.Add(panel);
     }
 
     public void NavigateTo(Type page)
     {
+        DynamicButtonPanel.Children.Clear();
+        InformationPanel.Children.Clear();
         ContentFrame.Navigate(page);
     }
 
@@ -178,11 +216,30 @@ public sealed partial class MainWindow : Window
 
     public void StartGame()
     {
+        var strategy = selectedStrategy.CreateStrategy();
+
         Task.Run(() =>
         {
-            var strategy = selectedStrategy.CreateStrategy();
-            ChessRunner.PickStrategy(strategy);
-            ChessRunner.Run();
+            if (ChessRunner.HadBeenStarted)
+            {
+                if (strategy.CanAcceptOldContext)
+                {
+                    throw new NotImplementedException();
+                    ChessRunner.TryChangeStrategyWithContext(strategy, true);
+                }
+                else
+                {
+                    if (ChessRunner.TryChangeStrategyWithContext(strategy, false))
+                    {
+                        ChessRunner.Start();
+                    }
+                }
+            }
+            else
+            {
+                ChessRunner.TryPickStrategy(strategy);
+                ChessRunner.Start();
+            }
         });
     }
 }

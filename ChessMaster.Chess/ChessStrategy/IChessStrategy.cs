@@ -5,8 +5,8 @@ namespace ChessMaster.ChessDriver.Strategy;
 public interface IChessStrategy
 {
     MoveComputedEvent? MoveComputed { get; set; }
-
     ChessMove Initialize();
+    bool CanAcceptOldContext { get; }
     void ComputeNextMove();
 }
 

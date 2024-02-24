@@ -9,13 +9,6 @@ namespace ChessMaster.ChessDriver;
 public class ChessRobot : RobotSpace
 {
     private ChessBoard chessBoard;
-
-    public ChessRobot(string portName)
-    {
-        this.Robot = new Robot(portName);
-        this.chessBoard = new ChessBoard();
-        this.space = chessBoard.Space;
-    }
     public ChessRobot(IRobot robot)
     {
         this.Robot = robot;

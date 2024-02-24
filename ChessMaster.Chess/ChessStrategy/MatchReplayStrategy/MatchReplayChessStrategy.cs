@@ -21,6 +21,11 @@ public class MatchReplayChessStrategy : IChessStrategy
         this.chessBoard = new PgnChessBoard();
     }
 
+    public bool CanAcceptOldContext
+    {
+        get { return false; }
+    }
+
     public ChessMove Initialize()
     {
         ChessParsingResult = ChessFileParser.GetMoves(filePath);
