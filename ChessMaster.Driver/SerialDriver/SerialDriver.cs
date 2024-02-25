@@ -1,5 +1,5 @@
-﻿using ChessMaster.RobotDriver.Robotic;
-using ChessMaster.RobotDriver.Robotic.Events;
+﻿using ChessMaster.RobotDriver.Events;
+using ChessMaster.RobotDriver.Robotic;
 using ChessMaster.RobotDriver.SerialResponse;
 using System.Diagnostics;
 using System.IO.Ports;

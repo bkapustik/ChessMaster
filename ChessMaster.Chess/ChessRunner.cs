@@ -1,8 +1,9 @@
 ﻿using ChessMaster.ChessDriver.ChessMoves;
 using ChessMaster.ChessDriver.ChessStrategy;
+using ChessMaster.ChessDriver.Events;
 using ChessMaster.ChessDriver.Strategy;
+using ChessMaster.RobotDriver.Events;
 using ChessMaster.RobotDriver.Robotic;
-using ChessMaster.RobotDriver.Robotic.Events;
 
 namespace ChessMaster.ChessDriver;
 
@@ -11,7 +12,8 @@ public class ChessRunner
     public readonly ChessRobot robot;
     private IChessStrategy? chessStrategy;
     private SemaphoreSlim semaphore;
-    private ChessMove currentMove = new StartGameMove();
+    private ChessMove currentMove = new StartGameMove("Waiting for moves");
+    private GameState gameState = GameState.NotInProgress;
 
     public bool IsInitialized { get; private set; } = false;
     public bool HadBeenStarted { get; private set; } = false;
@@ -21,6 +23,7 @@ public class ChessRunner
     private bool isMoveComputed = true;
 
     public MessageLoggedEvent? OnMessageLogged { get; set; }
+    public GameStateEvent? OnGameStateChanged { get; set; }
 
     public ChessRunner(IRobot robot)
     {
@@ -38,13 +41,14 @@ public class ChessRunner
         {
             throw new InvalidOperationException("You must initialize the chess strategy first");
         }
-        if (HadBeenStarted)
+        if (gameState == GameState.InProgress)
         {
             Resume();
         }
         else
         {
             HadBeenStarted = true;
+            ChangeGameState(GameState.InProgress);
             Run();
         }
     }
@@ -176,13 +180,19 @@ public class ChessRunner
         OnMessageLogged?.Invoke(this, e);
     }
 
+    private void ChangeGameState(GameState newState)
+    {
+        gameState = newState;
+        OnGameStateChanged?.Invoke(this, new GameStateEventArgs(newState));
+    }
+
     private void Run()
     {
         robot.SubscribeToCommandsCompletion(new CommandsCompletedEvent((object? o, RobotEventArgs e) =>
         {
             isMoveDone = true;
         }));
-        
+
         while (!currentMove.IsEndOfGame)
         {
             semaphore.Wait();
@@ -202,5 +212,6 @@ public class ChessRunner
                 Thread.Sleep(100);
             }
         }
+        ChangeGameState(GameState.NotInProgress);
     }
 }

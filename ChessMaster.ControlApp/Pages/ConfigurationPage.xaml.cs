@@ -8,31 +8,32 @@ using ChessMaster.RobotDriver.Robotic;
 using System.Threading.Tasks;
 using ChessMaster.Space.Coordinations;
 using System.Numerics;
-using ChessMaster.RobotDriver.State;
 using ChessMaster.ControlApp.Helpers;
 using System.ComponentModel;
+using ChessMaster.RobotDriver.Events;
 
 namespace ChessMaster.ControlApp.Pages;
 
 public sealed partial class ConfigurationPage : Page, INotifyPropertyChanged
 {
     private MainWindow mainWindow;
-
     public List<Button> AllButtons { get; set; }
     public event PropertyChangedEventHandler PropertyChanged;
     private string a1Value;
     private string h8Value;
+
+    private const string LOCK_A1_BUTTON_TEXT = "Lock A1";
+    private const string UNLOCK_A1_BUTTON_TEXT = "Unlock A1";
+    private const string LOCK_H8_BUTTON_TEXT = "Lock H8";
+    private const string UNLOCK_H8_BUTTON_TEXT = "Unlock H8";
 
     public string A1Value
     {
         get { return a1Value; }
         set
         {
-            if (a1Value != value)
-            { 
-                a1Value = value;
-                OnPropertyChanged(nameof(A1Value));
-            }
+            a1Value = value;
+            OnPropertyChanged(nameof(A1Value));
         }
     }
     public string H8Value
@@ -40,11 +41,8 @@ public sealed partial class ConfigurationPage : Page, INotifyPropertyChanged
         get { return h8Value; }
         set
         {
-            if (h8Value != value)
-            { 
-                h8Value = value;
-                OnPropertyChanged(nameof(H8Value));
-            }
+            h8Value = value;
+            OnPropertyChanged(nameof(H8Value));
         }
     }
 
@@ -58,6 +56,25 @@ public sealed partial class ConfigurationPage : Page, INotifyPropertyChanged
         base.OnNavigatedTo(e);
 
         mainWindow = App.MainWindow;
+
+        if (mainWindow.UIGameState.IsA1Locked)
+        {
+            LockA1.Content = UNLOCK_A1_BUTTON_TEXT;
+        }
+        else
+        {
+            LockA1.Content = LOCK_A1_BUTTON_TEXT;
+        }
+
+        if (mainWindow.UIGameState.IsH8Locked)
+        {
+            LockH8.Content = UNLOCK_H8_BUTTON_TEXT;
+        }
+        else
+        {
+            LockH8.Content = LOCK_H8_BUTTON_TEXT;
+        }
+
 
         AllButtons = new List<Button>()
         {
@@ -76,10 +93,10 @@ public sealed partial class ConfigurationPage : Page, INotifyPropertyChanged
 
         mainWindow.Timer.Tick += MovementControl;
 
-        var holdableUpButton = new HoldableMoveButton(Up, mainWindow.SetupState);
-        var holdableDownButton = new HoldableMoveButton(Down, mainWindow.SetupState);
-        var holdableLeftButton = new HoldableMoveButton(Left, mainWindow.SetupState);
-        var holdableRightButton = new HoldableMoveButton(Right, mainWindow.SetupState);
+        var holdableUpButton = new HoldableMoveButton(Up, mainWindow.UIGameState);
+        var holdableDownButton = new HoldableMoveButton(Down, mainWindow.UIGameState);
+        var holdableLeftButton = new HoldableMoveButton(Left, mainWindow.UIGameState);
+        var holdableRightButton = new HoldableMoveButton(Right, mainWindow.UIGameState);
 
         mainWindow.RegisterKeyboardControl(VirtualKey.Up);
         mainWindow.RegisterKeyboardControl(VirtualKey.Down);
@@ -115,12 +132,22 @@ public sealed partial class ConfigurationPage : Page, INotifyPropertyChanged
         mainWindow.AddLeftTabInfo(a1Label, a1Value);
         mainWindow.AddLeftTabInfo(h8Label, h8Value);
 
+        H8Value = mainWindow.UIGameState.GetH8String();
+        A1Value = mainWindow.UIGameState.GetA1String();
+
+        var controlFactory = new ControlFactory(mainWindow);
+
+        if (mainWindow.UIGameState.GameState == ChessDriver.Events.GameState.InProgress)
+        {
+            mainWindow.AddMenuButton(controlFactory.CreateContinueInGameButton());
+        }
+
         Task.Run(mainWindow.ChessRunner.Initialize);
     }
 
     private void RequireHoming()
     {
-        mainWindow.SetupState.RobotState = RobotResponse.HomingRequired;
+        mainWindow.UIGameState.RobotState = RobotResponse.HomingRequired;
 
         foreach (var button in AllButtons)
         {
@@ -133,12 +160,12 @@ public sealed partial class ConfigurationPage : Page, INotifyPropertyChanged
 
     private void SpeedUpButton(object sender, RoutedEventArgs e)
     {
-        mainWindow.SetupState.IsSpedUp = !mainWindow.SetupState.IsSpedUp;
+        mainWindow.UIGameState.IsSpedUp = !mainWindow.UIGameState.IsSpedUp;
     }
 
     private void LockCorner(object sender, RoutedEventArgs e)
     {
-        if (mainWindow.SetupState.RobotState == RobotResponse.HomingRequired)
+        if (mainWindow.UIGameState.RobotState == RobotResponse.HomingRequired)
         {
             return;
         }
@@ -146,23 +173,23 @@ public sealed partial class ConfigurationPage : Page, INotifyPropertyChanged
         var button = sender as Button;
         if (button.Name == "LockA1")
         {
-            if (mainWindow.SetupState.IsA1Locked)
+            if (mainWindow.UIGameState.IsA1Locked)
             {
-                mainWindow.SetupState.IsA1Locked = false;
-                mainWindow.DispatcherQueue.TryEnqueue(() => { button.Content = "Lock A1"; });
+                mainWindow.UIGameState.IsA1Locked = false;
+                mainWindow.DispatcherQueue.TryEnqueue(() => { button.Content = LOCK_A1_BUTTON_TEXT; });
             }
             else
             {
                 Task.Run(() =>
                 {
                     var state = mainWindow.ChessRunner.robot.GetState();
-                    if (mainWindow.ChessRunner.robot.IsAtDesired(mainWindow.SetupState.DesiredPosition, state))
+                    if (mainWindow.ChessRunner.robot.IsAtDesired(mainWindow.UIGameState.DesiredPosition))
                     {
-                        mainWindow.SetupState.IsA1Locked = true;
-                        mainWindow.SetupState.A1Position = mainWindow.SetupState.DesiredPosition.ToVector2();
+                        mainWindow.UIGameState.IsA1Locked = true;
+                        mainWindow.UIGameState.A1Position = mainWindow.UIGameState.DesiredPosition.ToVector2();
                         mainWindow.DispatcherQueue.TryEnqueue(() => { 
-                            button.Content = "Unlock A1";
-                            A1Value = mainWindow.SetupState.A1Position.ToString();
+                            button.Content = UNLOCK_A1_BUTTON_TEXT;
+                            A1Value = mainWindow.UIGameState.GetA1String();
                         });
                         
                     }
@@ -171,23 +198,23 @@ public sealed partial class ConfigurationPage : Page, INotifyPropertyChanged
         }
         else if (button.Name == "LockH8")
         {
-            if (mainWindow.SetupState.IsH8Locked)
+            if (mainWindow.UIGameState.IsH8Locked)
             {
-                mainWindow.SetupState.IsH8Locked = false;
-                mainWindow.DispatcherQueue.TryEnqueue(() => { button.Content = "Lock H8"; });
+                mainWindow.UIGameState.IsH8Locked = false;
+                mainWindow.DispatcherQueue.TryEnqueue(() => { button.Content = LOCK_H8_BUTTON_TEXT; });
             }
             else
             {
                 Task.Run(() =>
                 {
                     var state = mainWindow.ChessRunner.robot.GetState();
-                    if (mainWindow.ChessRunner.robot.IsAtDesired(mainWindow.SetupState.DesiredPosition, state))
+                    if (mainWindow.ChessRunner.robot.IsAtDesired(mainWindow.UIGameState.DesiredPosition))
                     {
-                        mainWindow.SetupState.IsH8Locked = true;
-                        mainWindow.SetupState.H8Position = mainWindow.SetupState.DesiredPosition.ToVector2();
+                        mainWindow.UIGameState.IsH8Locked = true;
+                        mainWindow.UIGameState.H8Position = mainWindow.UIGameState.DesiredPosition.ToVector2();
                         mainWindow.DispatcherQueue.TryEnqueue(() => {
-                            button.Content = "Unlock H8";
-                            H8Value = mainWindow.SetupState.H8Position.ToString();
+                            button.Content = UNLOCK_H8_BUTTON_TEXT;
+                            H8Value = mainWindow.UIGameState.GetH8String();
                         });
                     }
                 });
@@ -230,28 +257,26 @@ public sealed partial class ConfigurationPage : Page, INotifyPropertyChanged
 
     private void MovementControl(object sender, object args)
     {
+        var state = mainWindow.ChessRunner.robot.GetState();
+
+        mainWindow.UIGameState.MovementState = state.MovementState;
+        mainWindow.UIGameState.RobotState = state.RobotResponse;
+
         if (!CanMove())
         {
             return;
         }
 
-        var state = mainWindow.ChessRunner.robot.GetState();
-
-        if (state.MovementState == MovementState.Unknown)
-        {
-            return;
-        }
-
-        bool atDesired = mainWindow.ChessRunner.robot.IsAtDesired(mainWindow.SetupState.DesiredPosition, state);
+        bool atDesired = mainWindow.ChessRunner.robot.IsAtDesired(mainWindow.UIGameState.DesiredPosition);
 
         if (!atDesired)
         {
-            Task.Run(() => mainWindow.ChessRunner.robot.Move(mainWindow.SetupState.DesiredPosition));
+            Task.Run(() => mainWindow.ChessRunner.robot.Move(mainWindow.UIGameState.DesiredPosition));
         }
     }
 
     private bool CanMove()
     {
-        return MoveHelper.CanMove(mainWindow.SetupState.RobotState);
+        return MoveHelper.CanMove(mainWindow.UIGameState.RobotState, mainWindow.UIGameState.MovementState);
     }
 }

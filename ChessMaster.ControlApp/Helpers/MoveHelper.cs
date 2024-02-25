@@ -1,5 +1,6 @@
 ﻿using ChessMaster.ChessDriver.Models;
 using ChessMaster.RobotDriver.Robotic;
+using ChessMaster.RobotDriver.State;
 using System.Numerics;
 using Windows.System;
 
@@ -7,12 +8,13 @@ namespace ChessMaster.ControlApp.Helpers;
 
 public class MoveHelper
 {
-    public static bool CanMove(RobotResponse robotState)
+    public static bool CanMove(RobotResponse robotState, MovementState movementState)
     {
-        return robotState == RobotResponse.Ok || robotState == RobotResponse.Initialized;
+        return (robotState == RobotResponse.Ok || robotState == RobotResponse.Initialized) &&
+            (movementState == MovementState.Idle || movementState == MovementState.Holding);
     }
 
-    public static Vector3 ChangeDesiredPosition(VirtualKey key, long ticksHeld, PositionSetupState state)
+    public static Vector3 ChangeDesiredPosition(VirtualKey key, long ticksHeld, UIGameState state)
     {
         ticksHeld /= 10;
 
@@ -27,7 +29,7 @@ public class MoveHelper
             state.DesiredPosition.Z);
     }
 
-    public static Vector3 ChangeDesiredPosition(string buttonName, long ticksHeld, PositionSetupState state)
+    public static Vector3 ChangeDesiredPosition(string buttonName, long ticksHeld, UIGameState state)
     {
         ticksHeld /= 10;
 

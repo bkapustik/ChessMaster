@@ -11,9 +11,10 @@ public class MockRobotConfiguredDTO : RobotDTO
     private readonly Vector2 h8Position = new Vector2(900, 900);
 
     public override IRobot GetRobot(string portName) => new MockRobotConfigured(h8Position);
-    public override PositionSetupState GetSetupState() => new PositionSetupState
+    public override UIGameState GetSetupState() => new UIGameState
     {
         RobotState = RobotResponse.Initialized,
+        MovementState = RobotDriver.State.MovementState.Idle,
         IsA1Locked = true,
         IsH8Locked = true,
         A1Position = a1Position,

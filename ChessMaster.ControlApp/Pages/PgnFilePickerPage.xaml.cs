@@ -1,3 +1,4 @@
+using ChessMaster.ControlApp.Helpers;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
@@ -22,6 +23,10 @@ public sealed partial class PgnFilePickerPage : Page
         base.OnNavigatedTo(e);
 
         mainWindow = App.MainWindow;
+        var controlFactory = new ControlFactory(mainWindow);
+
+        mainWindow.AddMenuButton(controlFactory.CreateBackToConfigurationButton());
+        mainWindow.AddMenuButton(controlFactory.CreateChangeStrategyButton());
     }
 
     private void SelectPgnFileButtonClicked(object sender, RoutedEventArgs e)

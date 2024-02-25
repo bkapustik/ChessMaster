@@ -2,7 +2,7 @@
 using ChessMaster.Space.Coordinations;
 using System.Numerics;
 using ChessMaster.RobotDriver.State;
-using ChessMaster.RobotDriver.Robotic.Events;
+using ChessMaster.RobotDriver.Events;
 
 namespace ChessMaster.Space.RobotSpace;
 
@@ -137,12 +137,12 @@ public class RobotSpace
     {
         var commands = new Queue<RobotCommand>();
         commands.Enqueue(new MoveCommand(position));
-        Robot.ScheduleCommands(commands);
+        Robot!.ScheduleCommands(commands);
     }
     public void Home()
     {
-        Robot.Home();
+        Robot!.Home();
     }
-    public bool IsAtDesired(Vector3 desired, RobotState state) => Robot.IsAtDesired(desired, state);
+    public bool IsAtDesired(Vector3 desired) => Robot!.IsAtDesired(desired);
 
 }

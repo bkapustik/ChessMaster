@@ -91,10 +91,10 @@ public class HoldableControl : Holdable
 
 public class HoldableMoveKey : HoldableKey
 {
-    private PositionSetupState positionSetupState;
+    private UIGameState positionSetupState;
     private bool hasBeenPressed;
 
-    public HoldableMoveKey(UIElement element, VirtualKey key, PositionSetupState positionSetupState) : base(element, key)
+    public HoldableMoveKey(UIElement element, VirtualKey key, UIGameState positionSetupState) : base(element, key)
     { 
         this.positionSetupState = positionSetupState;
     }
@@ -119,7 +119,7 @@ public class HoldableMoveKey : HoldableKey
             hasBeenPressed = false;
             timer.Stop();
 
-            if (!MoveHelper.CanMove(positionSetupState.RobotState))
+            if (!MoveHelper.CanMove(positionSetupState.RobotState, positionSetupState.MovementState))
             {
                 return;
             }
@@ -136,9 +136,9 @@ public class HoldableMoveKey : HoldableKey
 
 public class HoldableMoveButton : HoldableControl
 {
-    private PositionSetupState positionSetupState;
+    private UIGameState positionSetupState;
 
-    public HoldableMoveButton(Button button, PositionSetupState positionSetupState) :
+    public HoldableMoveButton(Button button, UIGameState positionSetupState) :
         base(button)
     {
         this.positionSetupState = positionSetupState;
@@ -148,7 +148,7 @@ public class HoldableMoveButton : HoldableControl
     {
         timer.Stop();
 
-        if (!MoveHelper.CanMove(positionSetupState.RobotState))
+        if (!MoveHelper.CanMove(positionSetupState.RobotState, positionSetupState.MovementState))
         {
             return;
         }

@@ -1,5 +1,5 @@
 ﻿using System.Numerics;
-using ChessMaster.RobotDriver.Robotic.Events;
+using ChessMaster.RobotDriver.Events;
 using ChessMaster.RobotDriver.State;
 
 namespace ChessMaster.RobotDriver.Robotic;
@@ -25,7 +25,7 @@ public interface IRobot
     void Resume();
     void Home();
 
-    bool IsAtDesired(Vector3 desired, RobotState state);
+    bool IsAtDesired(Vector3 desired);
 }
 
 public class RobotException : Exception

@@ -1,5 +1,5 @@
-using ChessMaster.ChessDriver;
-using ChessMaster.RobotDriver.Robotic.Events;
+using ChessMaster.ControlApp.Helpers;
+using ChessMaster.RobotDriver.Events;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
@@ -39,11 +39,8 @@ public sealed partial class GamePage : Page, INotifyPropertyChanged
     protected override void OnNavigatedTo(NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
-
         mainWindow = App.MainWindow;
-
         MessagesList.ItemsSource = Messages;
-
         Task.Run(() =>
         {
             mainWindow.ChessRunner.OnMessageLogged += (object o, LogEventArgs e) =>
@@ -55,29 +52,28 @@ public sealed partial class GamePage : Page, INotifyPropertyChanged
             };
         });
 
-        mainWindow.StartGame();
+        var controlFactory = new ControlFactory(mainWindow);
 
-        pauseButton = CreateMenuButton("Pause");
+        changeStrategyButton = controlFactory.CreateChangeStrategyButton();
+        reconfigureButton = controlFactory.CreateBackToConfigurationButton();
+
+        mainWindow.Play();
+
+        pauseButton = ControlFactory.CreateMenuButton("Pause");
         pauseButton.Click += PauseClick;
 
-        finishMoveButton = CreateMenuButton("Finish Move");
+        finishMoveButton = ControlFactory.CreateMenuButton("Finish Move");
         finishMoveButton.Click += FinishMoveClick;
 
-        changeStrategyButton = CreateMenuButton("Change Strategy");
-        changeStrategyButton.Click += ChangeStrategyClick;
-
         mainWindow.AddMenuButton(pauseButton);
-    }
-
-    private void ChangeStrategyClick(object o, RoutedEventArgs e)
-    {
-        mainWindow.NavigateTo(typeof(SelectStrategyPage));
     }
 
     private void FinishMoveClick(object o, RoutedEventArgs e)
     {
         mainWindow.ChessRunner.FinishMove();
+        
         mainWindow.TryRemoveMenuButton(finishMoveButton);
+        mainWindow.AddMenuButton(reconfigureButton);
         mainWindow.AddMenuButton(changeStrategyButton);
     }
 
@@ -88,6 +84,7 @@ public sealed partial class GamePage : Page, INotifyPropertyChanged
             mainWindow.ChessRunner.Resume();
             mainWindow.TryRemoveMenuButton(finishMoveButton);
             mainWindow.TryRemoveMenuButton(changeStrategyButton);
+            mainWindow.TryRemoveMenuButton(reconfigureButton);
             pauseButton.Content = "Pause";
         }
         else
@@ -103,13 +100,4 @@ public sealed partial class GamePage : Page, INotifyPropertyChanged
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
-
-    private Button CreateMenuButton(string content) =>
-        new Button
-        {
-            Margin = new Thickness(5),
-            Content = content,
-            VerticalAlignment = VerticalAlignment.Center,
-            Height = 40
-        };
 }

@@ -11,6 +11,8 @@ using Windows.System;
 using ChessMaster.ControlApp.Pages;
 using ChessMaster.ChessDriver.Models;
 using Microsoft.UI.Xaml.Controls;
+using ChessMaster.RobotDriver.Events;
+using ChessMaster.ChessDriver.Events;
 
 namespace ChessMaster.ControlApp;
 
@@ -20,12 +22,14 @@ public sealed partial class MainWindow : Window
     private int windowHeight = 700;
     private int timerCounter = 0;
 
+    private bool continueInOldGame = false;
+
     private ChessStrategyFacade selectedStrategy;
     private Style TextBlockInGridStyle;
 
     public readonly DispatcherTimer Timer;
 
-    public PositionSetupState SetupState = new PositionSetupState();
+    public UIGameState UIGameState = new UIGameState();
 
     public ChessRunner ChessRunner { get; private set; }
 
@@ -44,6 +48,54 @@ public sealed partial class MainWindow : Window
         {
             TextBlockInGridStyle = style as Style;
         }
+    }
+
+    public void ContinueGame()
+    {
+        continueInOldGame = true;
+        NavigateTo(typeof(GamePage));
+    }
+
+    public void Play()
+    {
+        var strategy = selectedStrategy.CreateStrategy();
+
+        if (UIGameState.GameState == GameState.InProgress && continueInOldGame)
+        {
+            continueInOldGame = false;
+            ChessRunner.Resume();
+        }
+        else
+        {
+            Task.Run(() =>
+            {
+                if (ChessRunner.HadBeenStarted)
+                {
+                    if (strategy.CanAcceptOldContext)
+                    {
+                        throw new NotImplementedException();
+                        ChessRunner.TryChangeStrategyWithContext(strategy, true);
+                    }
+                    else
+                    {
+                        if (ChessRunner.TryChangeStrategyWithContext(strategy, false))
+                        {
+                            ChessRunner.Start();
+                        }
+                    }
+                }
+                else
+                {
+                    ChessRunner.TryPickStrategy(strategy);
+                    ChessRunner.Start();
+                }
+            });
+        }
+    }
+
+    public void BackToConfiguration()
+    {
+        NavigateTo(typeof(ConfigurationPage));
     }
 
     public void AddMenuButton(Button button)
@@ -84,17 +136,17 @@ public sealed partial class MainWindow : Window
 
     public void RegisterKeyboardControl(VirtualKey key)
     {
-        var holdableKey = new HoldableMoveKey(MainPage, key, SetupState);
+        var holdableKey = new HoldableMoveKey(MainPage, key, UIGameState);
     }
 
     public void ConfirmConfiguration()
     {
-        if (!SetupState.IsA1Locked || !SetupState.IsH8Locked)
+        if (!UIGameState.IsA1Locked || !UIGameState.IsH8Locked)
         {
             return;
         }
 
-        ChessRunner.robot.InitializeChessBoard(SetupState.A1Position, SetupState.H8Position);
+        ChessRunner.robot.InitializeChessBoard(UIGameState.A1Position, UIGameState.H8Position);
 
         NavigateTo(typeof(SelectStrategyPage));
     }
@@ -150,11 +202,11 @@ public sealed partial class MainWindow : Window
         ChessRunner = new ChessRunner(selectedRobot.GetRobot(portName));
         InitializeRobot();
 
-        SetupState = selectedRobot.GetSetupState();
-        if (SetupState.RobotState == RobotResponse.Initialized)
+        UIGameState = selectedRobot.GetSetupState();
+        if (UIGameState.RobotState == RobotResponse.Initialized)
         {
             ChessRunner.Initialize();
-            ChessRunner.robot.InitializeChessBoard(SetupState.A1Position, SetupState.H8Position);
+            ChessRunner.robot.InitializeChessBoard(UIGameState.A1Position, UIGameState.H8Position);
             var selectedStrategy = new MockPgnStrategyFacade();
             PickStrategy(selectedStrategy);
         }
@@ -168,7 +220,7 @@ public sealed partial class MainWindow : Window
     {
         DispatcherQueue.TryEnqueue(() =>
         {
-            SetupState.RobotState = RobotResponse.UnknownError;
+            UIGameState.RobotState = RobotResponse.UnknownError;
 
             ControlsWindow.Visibility = Visibility.Collapsed;
             RestartWindow.Visibility = Visibility.Visible;
@@ -187,15 +239,19 @@ public sealed partial class MainWindow : Window
         ChessRunner.robot.Robot.RestartRequired += (object o, RobotEventArgs e) => RequireRestart();
         ChessRunner.robot.Robot.Initialized += (object o, RobotEventArgs e) =>
         {
-            SetupState.RobotState = RobotResponse.Initialized;
+            UIGameState.RobotState = RobotResponse.Initialized;
             var position = e.RobotState.Position;
-            SetupState.DesiredPosition = new Vector3(position.X, position.Y, position.Z);
+            UIGameState.DesiredPosition = new Vector3(position.X, position.Y, position.Z);
         };
         ChessRunner.robot.Robot.CommandsSucceeded += (object o, RobotEventArgs e) =>
         {
-            SetupState.RobotState = RobotResponse.Ok;
+            UIGameState.RobotState = RobotResponse.Ok;
         };
         ChessRunner.robot.Robot.NotInitialized += (object o, RobotEventArgs e) => RequireRestart();
+        ChessRunner.OnGameStateChanged += (object o, GameStateEventArgs e) =>
+        {
+            UIGameState.GameState = e.GameState;
+        };
     }
 
     private void UpdateDisplayedPosition(object sender, object args)
@@ -205,6 +261,10 @@ public sealed partial class MainWindow : Window
             Task.Run(() =>
             {
                 var currentState = ChessRunner.robot.GetState();
+
+                UIGameState.RobotState = currentState.RobotResponse;
+                UIGameState.MovementState = currentState.MovementState;
+
                 DispatcherQueue.TryEnqueue(() => { XValueLabel.Text = $"{currentState.x}"; });
                 DispatcherQueue.TryEnqueue(() => { YValueLabel.Text = $"{currentState.y}"; });
                 DispatcherQueue.TryEnqueue(() => { ZValueLabel.Text = $"{currentState.z}"; });
@@ -212,34 +272,5 @@ public sealed partial class MainWindow : Window
         }
 
         timerCounter = (timerCounter + 1) % 2;
-    }
-
-    public void StartGame()
-    {
-        var strategy = selectedStrategy.CreateStrategy();
-
-        Task.Run(() =>
-        {
-            if (ChessRunner.HadBeenStarted)
-            {
-                if (strategy.CanAcceptOldContext)
-                {
-                    throw new NotImplementedException();
-                    ChessRunner.TryChangeStrategyWithContext(strategy, true);
-                }
-                else
-                {
-                    if (ChessRunner.TryChangeStrategyWithContext(strategy, false))
-                    {
-                        ChessRunner.Start();
-                    }
-                }
-            }
-            else
-            {
-                ChessRunner.TryPickStrategy(strategy);
-                ChessRunner.Start();
-            }
-        });
     }
 }

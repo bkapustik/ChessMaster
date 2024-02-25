@@ -1,5 +1,5 @@
 ﻿using ChessMaster.RobotDriver.Driver;
-using ChessMaster.RobotDriver.Robotic.Events;
+using ChessMaster.RobotDriver.Events;
 using ChessMaster.RobotDriver.SerialResponse;
 using ChessMaster.RobotDriver.State;
 using System.Numerics;
@@ -108,10 +108,10 @@ public class RobotWithRunningQueue : IRobot
             }
         }
     }
-    public bool IsAtDesired(Vector3 desired, RobotState state)
+    public bool IsAtDesired(Vector3 desired)
     {
-        float dx = desired.X - state.Position.X;
-        float dy = desired.Y - state.Position.Y;
+        float dx = desired.X - GetState().Position.X;
+        float dy = desired.Y - GetState().Position.Y;
 
         return Math.Abs(dx) <= 0.5 && Math.Abs(dy) <= 0.5;
     }

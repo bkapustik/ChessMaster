@@ -11,11 +11,13 @@ public class MockRobotConfigured : MockRobot
     public MockRobotConfigured(Vector2 h8Position)
     {
         displayedPosition = h8Position.ToVector3();
-        State = RobotResponse.Initialized;
+        SetupState = RobotResponse.Initialized;
     }
+
     public override void Initialize()
     {
-        State = RobotResponse.Initialized;
+        SetupState = RobotResponse.Initialized;
+        MovementState = State.MovementState.Idle;
         HandleInitialized();
     }
 
