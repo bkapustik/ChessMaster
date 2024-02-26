@@ -14,7 +14,7 @@ public interface IRobot
     CommandsCompletedEvent? RestartRequired { get; set; }
     RobotPausedEvent? Paused { get; set; }
 
-    Vector3 Limits { get; }
+    Vector3 Origin { get; }
     void Initialize();
     RobotState GetState();
     

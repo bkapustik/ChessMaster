@@ -13,6 +13,7 @@ using ChessMaster.ChessDriver.Models;
 using Microsoft.UI.Xaml.Controls;
 using ChessMaster.RobotDriver.Events;
 using ChessMaster.ChessDriver.Events;
+using System.Collections.ObjectModel;
 
 namespace ChessMaster.ControlApp;
 
@@ -23,6 +24,7 @@ public sealed partial class MainWindow : Window
     private int timerCounter = 0;
 
     private bool continueInOldGame = false;
+    public bool ChessBoardHasBeenInitialized { get; private set; } = false;
 
     private ChessStrategyFacade selectedStrategy;
     private Style TextBlockInGridStyle;
@@ -30,6 +32,9 @@ public sealed partial class MainWindow : Window
     public readonly DispatcherTimer Timer;
 
     public UIGameState UIGameState = new UIGameState();
+
+    public ObservableCollection<string> Messages { get; set; } = new ObservableCollection<string>();
+    public bool MessagesInitialized { get; set; } = false;
 
     public ChessRunner ChessRunner { get; private set; }
 
@@ -54,6 +59,12 @@ public sealed partial class MainWindow : Window
     {
         continueInOldGame = true;
         NavigateTo(typeof(GamePage));
+    }
+
+    public void Home()
+    {
+        Task.Run(ChessRunner.robot.Home);
+        UIGameState.DesiredPosition = ChessRunner.robot.Robot.Origin;
     }
 
     public void Play()
@@ -129,6 +140,14 @@ public sealed partial class MainWindow : Window
 
     public void NavigateTo(Type page)
     {
+        if (ChessRunner != null)
+        {
+            if (ChessRunner.IsInitialized)
+            {
+                var currentState = ChessRunner.robot.GetState();
+                UIGameState.DesiredPosition = currentState.Position;
+            }
+        }
         DynamicButtonPanel.Children.Clear();
         InformationPanel.Children.Clear();
         ContentFrame.Navigate(page);
@@ -146,7 +165,15 @@ public sealed partial class MainWindow : Window
             return;
         }
 
-        ChessRunner.robot.InitializeChessBoard(UIGameState.A1Position, UIGameState.H8Position);
+        if (ChessBoardHasBeenInitialized)
+        {
+            ChessRunner.robot.ReconfigureChessBoard(UIGameState.A1Position, UIGameState.H8Position);
+        }
+        else
+        {
+            ChessBoardHasBeenInitialized = true;
+            ChessRunner.robot.TryInitializeChessBoard(UIGameState.A1Position, UIGameState.H8Position);
+        }
 
         NavigateTo(typeof(SelectStrategyPage));
     }
@@ -206,7 +233,7 @@ public sealed partial class MainWindow : Window
         if (UIGameState.RobotState == RobotResponse.Initialized)
         {
             ChessRunner.Initialize();
-            ChessRunner.robot.InitializeChessBoard(UIGameState.A1Position, UIGameState.H8Position);
+            ChessRunner.robot.TryInitializeChessBoard(UIGameState.A1Position, UIGameState.H8Position);
             var selectedStrategy = new MockPgnStrategyFacade();
             PickStrategy(selectedStrategy);
         }

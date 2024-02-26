@@ -13,8 +13,9 @@ public class MockRobot : IRobot
     private bool isPaused = false;
     protected Vector3 displayedPosition = new Vector3(0f, 0f, 0f);
 
-    private float originX = -490f, originY = -820f, originZ = -200f;
-    public Vector3 Limits { get { return new Vector3(-originX, -originY, -originZ); } }
+    private float originX = 200f, originY = 200f, originZ = 200f;
+    public Vector3 Origin { get { return new Vector3(originX, originY, originZ); } }
+
 
     public CommandsCompletedEvent? CommandsSucceeded { get; set; }
     public CommandsCompletedEvent? Initialized { get; set; }
@@ -25,7 +26,7 @@ public class MockRobot : IRobot
     public RobotPausedEvent? Paused { get; set; }
 
     public MockRobot()
-    { 
+    {
         semaphore = new SemaphoreSlim(1);
     }
 
@@ -45,46 +46,9 @@ public class MockRobot : IRobot
         }
         else if (SetupState != RobotResponse.AlreadyExecuting && MovementState == MovementState.Idle)
         {
-            SetupState = RobotResponse.AlreadyExecuting;
-            MovementState = MovementState.Running;
-            
-            foreach (RobotCommand command in commands) 
-            {
-                if (command is MoveCommand)
-                {
-                    var moveCommand = (MoveCommand)command;
-
-                    var positionDifferenceVector = new Vector3(
-                        moveCommand.X - displayedPosition.X,
-                        moveCommand.Y - displayedPosition.Y,
-                        moveCommand.Z - displayedPosition.Z
-                    );
-
-                    int positionVectorDenominator = positionDifferenceVector.X > 50 || positionDifferenceVector.Y > 50 ? 100 : 10;
-
-                    var partOfPositionDifferenceVector = positionDifferenceVector / (float)positionVectorDenominator;
-
-                    int movePartsLeft = positionVectorDenominator;
-
-                    while (movePartsLeft > 0)
-                    {
-                        semaphore.Wait();
-                        if (!isPaused)
-                        {
-                            displayedPosition += partOfPositionDifferenceVector;
-                            movePartsLeft--;
-                        }
-                        semaphore.Release();
-                        Thread.Sleep(5);
-                    }
-                }
-            }
-
-            SetupState = RobotResponse.Ok;
-            MovementState = MovementState.Idle;
-            HandleOkReponse();
+            ExecuteCommands(commands);
         }
-    } 
+    }
     public bool IsAtDesired(Vector3 desired)
     {
         if (SetupState == RobotResponse.AlreadyExecuting)
@@ -100,63 +64,67 @@ public class MockRobot : IRobot
     {
         return new RobotState(MovementState, SetupState, displayedPosition.X, displayedPosition.Y, displayedPosition.Z);
     }
-    public void Pause() 
+    public void Pause()
     {
         semaphore.Wait();
         isPaused = true;
         semaphore.Release();
     }
-    public void Resume() 
+    public void Resume()
     {
         semaphore.Wait();
-        isPaused = false;   
+        isPaused = false;
         semaphore.Release();
     }
     public virtual void Initialize()
     {
-        var diceThrow = new Random().Next(1,15);
+        var diceThrow = new Random().Next(1, 15);
 
         if (diceThrow <= 2)
         {
+            semaphore.Wait();
             SetupState = RobotResponse.HomingRequired;
             MovementState = MovementState.Idle;
+            semaphore.Release();
             HandleHomingRequired();
         }
         else if (diceThrow == 3)
         {
+            semaphore.Wait();
             SetupState = RobotResponse.UnknownError;
             MovementState = MovementState.Unknown;
+            semaphore.Release();
             HandleRestartRequired();
         }
         else
         {
+            semaphore.Wait();
             SetupState = RobotResponse.Initialized;
             MovementState = MovementState.Idle;
+            semaphore.Release();
             HandleInitialized();
         }
     }
     public void Reset() { }
     public void Home()
     {
-        if (SetupState == RobotResponse.HomingRequired)
+        semaphore.Wait();
+        if (SetupState == RobotResponse.HomingRequired || SetupState == RobotResponse.Ok || SetupState == RobotResponse.Initialized)
         {
-            SetupState = RobotResponse.Ok;
-            MovementState = MovementState.Idle;
-            HandleOkReponse();
+            SetupState = RobotResponse.AlreadyExecuting;
+            MovementState = MovementState.Running;
+            semaphore.Release();
+            var commands = new Queue<RobotCommand>();
+            commands.Enqueue(new MoveCommand(originX, originY, originZ));
+            ExecuteCommands(commands);
         }
-        if (SetupState == RobotResponse.UnknownError)
+        else if (SetupState == RobotResponse.UnknownError)
         {
             HandleRestartRequired();
         }
         else if (SetupState == RobotResponse.NotInitialized)
         {
             HandleNotInitialized();
-        }
-        else
-        {
-            SetupState = RobotResponse.Ok;
-            MovementState = MovementState.Idle;
-            HandleOkReponse();
         }
     }
 
@@ -195,7 +163,7 @@ public class MockRobot : IRobot
     }
     protected void HandleNotInitialized()
     {
-        var resultState = new RobotState(MovementState, SetupState, displayedPosition.X, displayedPosition.Y, displayedPosition.Z);;
+        var resultState = new RobotState(MovementState, SetupState, displayedPosition.X, displayedPosition.Y, displayedPosition.Z); ;
         Task.Run(() => OnNotInitialized(new RobotEventArgs(success: false, resultState)));
     }
     protected void HandleOkReponse()
@@ -211,5 +179,46 @@ public class MockRobot : IRobot
     {
         var resultState = new RobotState(MovementState, SetupState, displayedPosition.X, displayedPosition.Y, displayedPosition.Z);
         Task.Run(() => OnRestartRequired(new RobotEventArgs(success: false, resultState)));
+    }
+    private void ExecuteCommands(Queue<RobotCommand> commands)
+    {
+        SetupState = RobotResponse.AlreadyExecuting;
+        MovementState = MovementState.Running;
+
+        foreach (RobotCommand command in commands)
+        {
+            if (command is MoveCommand)
+            {
+                var moveCommand = (MoveCommand)command;
+
+                var positionDifferenceVector = new Vector3(
+                    moveCommand.X - displayedPosition.X,
+                    moveCommand.Y - displayedPosition.Y,
+                    moveCommand.Z - displayedPosition.Z
+                );
+
+                int positionVectorDenominator = positionDifferenceVector.X > 50 || positionDifferenceVector.Y > 50 ? 100 : 10;
+
+                var partOfPositionDifferenceVector = positionDifferenceVector / (float)positionVectorDenominator;
+
+                int movePartsLeft = positionVectorDenominator;
+
+                while (movePartsLeft > 0)
+                {
+                    semaphore.Wait();
+                    if (!isPaused)
+                    {
+                        displayedPosition += partOfPositionDifferenceVector;
+                        movePartsLeft--;
+                    }
+                    semaphore.Release();
+                    Thread.Sleep(5);
+                }
+            }
+        }
+
+        SetupState = RobotResponse.Ok;
+        MovementState = MovementState.Idle;
+        HandleOkReponse();
     }
 }

@@ -12,7 +12,6 @@ namespace ChessMaster.ControlApp.Pages;
 public sealed partial class GamePage : Page, INotifyPropertyChanged
 {
     private MainWindow mainWindow;
-    private ObservableCollection<string> _messages = new ObservableCollection<string>();
     private bool isPaused = false;
     private Button pauseButton;
     private Button finishMoveButton;
@@ -23,10 +22,10 @@ public sealed partial class GamePage : Page, INotifyPropertyChanged
 
     public ObservableCollection<string> Messages
     {
-        get { return _messages; }
+        get { return mainWindow.Messages; }
         set
         {
-            _messages = value;
+            mainWindow.Messages = value;
             OnPropertyChanged(nameof(Messages));
         }
     }
@@ -41,16 +40,22 @@ public sealed partial class GamePage : Page, INotifyPropertyChanged
         base.OnNavigatedTo(e);
         mainWindow = App.MainWindow;
         MessagesList.ItemsSource = Messages;
-        Task.Run(() =>
+
+        if (!mainWindow.MessagesInitialized)
         {
-            mainWindow.ChessRunner.OnMessageLogged += (object o, LogEventArgs e) =>
+            mainWindow.MessagesInitialized = true;
+
+            Task.Run(() =>
             {
-                DispatcherQueue.TryEnqueue(() =>
+                mainWindow.ChessRunner.OnMessageLogged += (object o, LogEventArgs e) =>
                 {
-                    Messages.Add(e.Message);
-                });
-            };
-        });
+                    DispatcherQueue.TryEnqueue(() =>
+                    {
+                        Messages.Add(e.Message);
+                    });
+                };
+            });
+        }
 
         var controlFactory = new ControlFactory(mainWindow);
 

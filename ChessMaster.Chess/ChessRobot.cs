@@ -9,16 +9,38 @@ namespace ChessMaster.ChessDriver;
 public class ChessRobot : RobotSpace
 {
     private ChessBoard chessBoard;
+    private bool hasBeenInitialized;
     public ChessRobot(IRobot robot)
     {
         this.Robot = robot;
         this.chessBoard = new ChessBoard();
         this.space = chessBoard.Space;
     }
-    public void InitializeChessBoard(Vector2 a1Center, Vector2 h8Center)
+    public bool TryInitializeChessBoard(Vector2 a1Center, Vector2 h8Center)
     {
+        if (hasBeenInitialized)
+        {
+            return false;
+        }
+
         chessBoard.Initialize(a1Center, h8Center);
+
+        hasBeenInitialized = true;
+        return true;
     }
+
+    public void ReconfigureChessBoard(Vector2 a1Center, Vector2 h8Center)
+    {
+        if (hasBeenInitialized)
+        {
+            chessBoard.Reconfigure(a1Center, h8Center);
+        }
+        else
+        {
+            throw new InvalidOperationException("ChessBoard has not been initialized yet.");
+        }
+    }
+
     public void MoveFigureTo(SpacePosition figurePosition, SpacePosition targetPosition)
     {
         MoveEntityFromSourceToTarget(figurePosition, targetPosition);

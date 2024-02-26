@@ -51,6 +51,12 @@ public sealed partial class ConfigurationPage : Page, INotifyPropertyChanged
         this.InitializeComponent();
     }
 
+    protected override void OnNavigatedFrom(NavigationEventArgs e)
+    {
+        mainWindow.Timer.Tick -= MovementControl;
+        mainWindow.ChessRunner.robot.Robot.HomingRequired -= RequireHoming;
+    }
+
     protected override void OnNavigatedTo(NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
@@ -91,6 +97,11 @@ public sealed partial class ConfigurationPage : Page, INotifyPropertyChanged
             HomeButton
         };
 
+        if (mainWindow.ChessBoardHasBeenInitialized)
+        {
+            ConfirmButton.Content = "Reconfigure";
+        }
+
         mainWindow.Timer.Tick += MovementControl;
 
         var holdableUpButton = new HoldableMoveButton(Up, mainWindow.UIGameState);
@@ -103,7 +114,7 @@ public sealed partial class ConfigurationPage : Page, INotifyPropertyChanged
         mainWindow.RegisterKeyboardControl(VirtualKey.Left);
         mainWindow.RegisterKeyboardControl(VirtualKey.Right);
 
-        mainWindow.ChessRunner.robot.Robot.HomingRequired += (object o, RobotEventArgs e) => RequireHoming();
+        mainWindow.ChessRunner.robot.Robot.HomingRequired += RequireHoming;
 
         var a1Label = new TextBlock
         {
@@ -142,10 +153,19 @@ public sealed partial class ConfigurationPage : Page, INotifyPropertyChanged
             mainWindow.AddMenuButton(controlFactory.CreateContinueInGameButton());
         }
 
+        var goToA1Position = ControlFactory.CreateMenuButton("Go to A1");
+        var goToH8Position = ControlFactory.CreateMenuButton("Go to H8");
+
+        goToA1Position.Click += GoToA1Click;
+        goToH8Position.Click += GoToH8Click;
+
+        mainWindow.AddMenuButton(goToA1Position);
+        mainWindow.AddMenuButton(goToH8Position);
+
         Task.Run(mainWindow.ChessRunner.Initialize);
     }
 
-    private void RequireHoming()
+    private void RequireHoming(object o, RobotEventArgs e)
     {
         mainWindow.UIGameState.RobotState = RobotResponse.HomingRequired;
 
@@ -244,7 +264,7 @@ public sealed partial class ConfigurationPage : Page, INotifyPropertyChanged
 
     private void Home(object sender, RoutedEventArgs e)
     {
-        Task.Run(mainWindow.ChessRunner.robot.Home);
+        mainWindow.Home();
 
         foreach (var button in AllButtons)
         {
@@ -278,5 +298,17 @@ public sealed partial class ConfigurationPage : Page, INotifyPropertyChanged
     private bool CanMove()
     {
         return MoveHelper.CanMove(mainWindow.UIGameState.RobotState, mainWindow.UIGameState.MovementState);
+    }
+
+    private void GoToA1Click(object sender, RoutedEventArgs e)
+    {
+        mainWindow.UIGameState.DesiredPosition = new Vector3(mainWindow.UIGameState.A1Position,
+            mainWindow.ChessRunner.robot.Robot.Origin.Z);
+    }
+
+    private void GoToH8Click(object sender, RoutedEventArgs e)
+    {
+        mainWindow.UIGameState.DesiredPosition = new Vector3(mainWindow.UIGameState.H8Position,
+            mainWindow.ChessRunner.robot.Robot.Origin.Z);
     }
 }

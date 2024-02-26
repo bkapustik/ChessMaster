@@ -5,9 +5,6 @@ namespace ChessMaster.RobotDriver.Robotic;
 
 public class MockRobotConfigured : MockRobot
 {
-    private float originX = 0, originY = 0, originZ = 0;
-    public Vector3 Limits { get { return new Vector3(-originX, -originY, -originZ); } }
-
     public MockRobotConfigured(Vector2 h8Position)
     {
         displayedPosition = h8Position.ToVector3();

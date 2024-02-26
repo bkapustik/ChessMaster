@@ -26,7 +26,7 @@ public class Robot : IRobot
     public CommandsCompletedEvent? RestartRequired { get; set; }
     public RobotPausedEvent? Paused { get; set; }
 
-    public Vector3 Limits
+    public Vector3 Origin
     {
         get => new Vector3(-origin.X - safePadding, -origin.Y - safePadding, -origin.Z - safePadding);
     }

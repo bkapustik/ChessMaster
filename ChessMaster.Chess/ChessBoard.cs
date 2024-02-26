@@ -1,4 +1,5 @@
 ﻿using ChessMaster.Chess;
+using ChessMaster.ChessDriver.Models;
 using ChessMaster.Space;
 using ChessMaster.Space.Coordinations;
 using System.Numerics;
@@ -20,7 +21,7 @@ public class ChessBoard : IChessBoard
 
     public ChessBoard()
     {
-        Space = new Space.Space(boardTiles + padding*2);
+        Space = new Space.Space(boardTiles + padding * 2);
         chessBoardStart = padding;
         chessBoardEnd = boardTiles + padding;
         lastFreeCaptureSpace = new SpacePosition(0, 0);
@@ -52,6 +53,20 @@ public class ChessBoard : IChessBoard
             }
         }
         AssignFigures();
+    }
+
+    public void Reconfigure(Vector2 a1Center, Vector2 h8Center)
+    {
+        tileWidth = (float)Math.Abs(a1Center.X - h8Center.X) / ((float)boardTiles - 1);
+
+        for (int i = 0; i < chessBoardEnd + padding; i++)
+        {
+            for (int j = 0; j < chessBoardEnd + padding; j++)
+            {
+                Space.SubSpaces[i, j].Width = tileWidth;
+                Space.SubSpaces[i, j].SetCenter(new Vector2(a1Center.X + i * tileWidth, a1Center.Y + j * tileWidth));
+            }
+        }
     }
 
     public SpacePosition GetNextFreeSpace()

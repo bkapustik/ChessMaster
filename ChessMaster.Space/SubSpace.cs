@@ -22,7 +22,6 @@ public class SubSpace : Entity
     {
         this.Width = width;
         this.Length = width;
-        this.Center2 = center;
-        Center3 = Center2.Value.ToVector3();
+        SetCenter(center);
     }
 }
