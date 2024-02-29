@@ -27,5 +27,8 @@ namespace ChessMaster.ChessDriver
                     return 18;
             }
         }
+
+        public static float GetMinimalCarryingHeight() =>
+            GetHeight(FigureType.King) * 2;
     }
 }

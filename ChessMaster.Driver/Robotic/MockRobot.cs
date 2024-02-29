@@ -4,7 +4,7 @@ using System.Numerics;
 
 namespace ChessMaster.RobotDriver.Robotic;
 
-public class MockRobot : IRobot
+public class MockRobot : RobotBase
 {
     protected RobotResponse SetupState { get; set; } = RobotResponse.NotInitialized;
     protected MovementState MovementState { get; set; } = MovementState.Unknown;
@@ -14,23 +14,15 @@ public class MockRobot : IRobot
     protected Vector3 displayedPosition = new Vector3(0f, 0f, 0f);
 
     private float originX = 200f, originY = 200f, originZ = 200f;
-    public Vector3 Origin { get { return new Vector3(originX, originY, originZ); } }
-
-
-    public CommandsCompletedEvent? CommandsSucceeded { get; set; }
-    public CommandsCompletedEvent? Initialized { get; set; }
-    public CommandsCompletedEvent? NotInitialized { get; set; }
-    public CommandsCompletedEvent? CommandsFinished { get; set; }
-    public CommandsCompletedEvent? HomingRequired { get; set; }
-    public CommandsCompletedEvent? RestartRequired { get; set; }
-    public RobotPausedEvent? Paused { get; set; }
+    public override Vector3 Origin { get { return new Vector3(originX, originY, originZ); } }
 
     public MockRobot()
     {
         semaphore = new SemaphoreSlim(1);
+        Events = new RobotStateEvents();
     }
 
-    public void ScheduleCommands(Queue<RobotCommand> commands)
+    public override void ScheduleCommands(Queue<RobotCommand> commands)
     {
         if (SetupState == RobotResponse.NotInitialized)
         {
@@ -44,39 +36,32 @@ public class MockRobot : IRobot
         {
             HandleRestartRequired();
         }
-        else if (SetupState != RobotResponse.AlreadyExecuting && MovementState == MovementState.Idle)
+        else if (SetupState == RobotResponse.AlreadyExecuting)
+        {
+            HandleAlreadyExecuting();
+        }
+        else if (MovementState == MovementState.Idle)
         {
             ExecuteCommands(commands);
         }
     }
-    public bool IsAtDesired(Vector3 desired)
-    {
-        if (SetupState == RobotResponse.AlreadyExecuting)
-        {
-            return false;
-        }
-        float dx = desired.X - GetState().Position.X;
-        float dy = desired.Y - GetState().Position.Y;
-
-        return Math.Abs(dx) <= 0.5 && Math.Abs(dy) <= 0.5;
-    }
-    public RobotState GetState()
+    public override RobotState GetState()
     {
         return new RobotState(MovementState, SetupState, displayedPosition.X, displayedPosition.Y, displayedPosition.Z);
     }
-    public void Pause()
+    public override void Pause()
     {
         semaphore.Wait();
         isPaused = true;
         semaphore.Release();
     }
-    public void Resume()
+    public override void Resume()
     {
         semaphore.Wait();
         isPaused = false;
         semaphore.Release();
     }
-    public virtual void Initialize()
+    public override void Initialize()
     {
         var diceThrow = new Random().Next(1, 15);
 
@@ -105,8 +90,8 @@ public class MockRobot : IRobot
             HandleInitialized();
         }
     }
-    public void Reset() { }
-    public void Home()
+    public override void Reset() { }
+    public override void Home()
     {
         semaphore.Wait();
         if (SetupState == RobotResponse.HomingRequired || SetupState == RobotResponse.Ok || SetupState == RobotResponse.Initialized)
@@ -128,57 +113,13 @@ public class MockRobot : IRobot
         }
     }
 
-    protected void OnCommandsSucceded(RobotEventArgs e)
-    {
-        CommandsSucceeded?.Invoke(this, e);
-    }
-    protected void OnInitialized(RobotEventArgs e)
-    {
-        Initialized?.Invoke(this, e);
-    }
-    protected void OnNotInitialized(RobotEventArgs e)
-    {
-        NotInitialized?.Invoke(this, e);
-    }
-    protected void OnCommandsFinished(RobotEventArgs e)
-    {
-        CommandsFinished?.Invoke(this, e);
-    }
-    protected void OnHomingRequired(RobotEventArgs e)
-    {
-        HomingRequired?.Invoke(this, e);
-    }
-    protected void OnRestartRequired(RobotEventArgs e)
-    {
-        RestartRequired?.Invoke(this, e);
-    }
-    protected void HandleFinishedCommands(RobotResponse robotResponse)
-    {
-        var resultState = new RobotState(MovementState.Idle, RobotResponse.Ok, displayedPosition.X, displayedPosition.Y, displayedPosition.Z);
-        Task.Run(() => OnCommandsFinished(new RobotEventArgs(success: false, resultState)));
-    }
-    protected virtual void HandleInitialized()
+    protected override void HandleInitialized()
     {
         Task.Run(() => HandleHomingRequired());
     }
-    protected void HandleNotInitialized()
-    {
-        var resultState = new RobotState(MovementState, SetupState, displayedPosition.X, displayedPosition.Y, displayedPosition.Z); ;
-        Task.Run(() => OnNotInitialized(new RobotEventArgs(success: false, resultState)));
-    }
-    protected void HandleOkReponse()
+    protected override void HandleOkReponse()
     {
         Task.Run(() => OnCommandsSucceded(new RobotEventArgs(success: true, new RobotState(MovementState, SetupState, displayedPosition.X, displayedPosition.Y, displayedPosition.Z))));
-    }
-    private void HandleHomingRequired()
-    {
-        var resultState = new RobotState(MovementState, SetupState, displayedPosition.X, displayedPosition.Y, displayedPosition.Z);
-        Task.Run(() => OnHomingRequired(new RobotEventArgs(success: false, resultState)));
-    }
-    private void HandleRestartRequired()
-    {
-        var resultState = new RobotState(MovementState, SetupState, displayedPosition.X, displayedPosition.Y, displayedPosition.Z);
-        Task.Run(() => OnRestartRequired(new RobotEventArgs(success: false, resultState)));
     }
     private void ExecuteCommands(Queue<RobotCommand> commands)
     {

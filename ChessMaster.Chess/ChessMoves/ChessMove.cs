@@ -1,5 +1,4 @@
-﻿using ChessMaster.Chess;
-using ChessMaster.Space.Coordinations;
+﻿using ChessMaster.Space.Coordinations;
 
 namespace ChessMaster.ChessDriver.ChessMoves;
 

@@ -9,45 +9,43 @@ namespace ChessMaster.ChessDriver;
 public class ChessRobot : RobotSpace
 {
     private ChessBoard chessBoard;
-    private bool hasBeenInitialized;
     public ChessRobot(IRobot robot)
     {
-        this.Robot = robot;
+        this.Driver = robot;
         this.chessBoard = new ChessBoard();
         this.space = chessBoard.Space;
+        Events = Driver.Events;
     }
-    public bool TryInitializeChessBoard(Vector2 a1Center, Vector2 h8Center)
+
+    public void InitializeChessBoard(Vector2 a1Center, Vector2 h8Center)
     {
-        if (hasBeenInitialized)
-        {
-            return false;
-        }
-
         chessBoard.Initialize(a1Center, h8Center);
-
-        hasBeenInitialized = true;
-        return true;
+        chessBoard.AssignFigures();
     }
 
     public void ReconfigureChessBoard(Vector2 a1Center, Vector2 h8Center)
     {
-        if (hasBeenInitialized)
-        {
-            chessBoard.Reconfigure(a1Center, h8Center);
-        }
-        else
-        {
-            throw new InvalidOperationException("ChessBoard has not been initialized yet.");
-        }
+        chessBoard.Reconfigure(a1Center, h8Center);
     }
 
+    /// <summary>
+    /// Moves figure accross classic 8x8 ChessBoard. This does not include capture position.
+    /// </summary>
+    /// <param name="figurePosition"></param>
+    /// <param name="targetPosition"></param>
     public void MoveFigureTo(SpacePosition figurePosition, SpacePosition targetPosition)
     {
-        MoveEntityFromSourceToTarget(figurePosition, targetPosition);
+        MoveEntityFromSourceToTarget(chessBoard.GetRealSpacePosition(figurePosition),
+            chessBoard.GetRealSpacePosition(targetPosition));
     }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <exception cref="ArgumentNullException"></exception>
     public void StartGame()
     {
-        Robot.ScheduleCommands(new Queue<RobotCommand>());
+        Driver!.ScheduleCommands(new Queue<RobotCommand>());
     }
 
     public void CaptureFigure(SpacePosition sourcePosition, SpacePosition targetPosition)
@@ -68,23 +66,57 @@ public class ChessRobot : RobotSpace
         MoveEntityFromSourceToTarget(castling.RookSource, castling.RookTarget);
     }
 
-    public void ConfigurationPickPawn()
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <exception cref="ArgumentNullException"
+    /// <param name="figure"></param>
+    public void ConfigurationPickUpFigure(FigureType figure)
     {
-        //robot.OpenGrip();
-        
-        //configurationHeight = robot.GetState().Result.Position.Z;
+        var pickUpHeight = HeightProvider.GetHeight(figure);
 
-        //robot.MoveZ(HeightProvider.GetHeight(FigureType.Pawn));
+        var state = GetState();
+        var position = state.Position;
+        position.Z = pickUpHeight;
 
-        //robot.CloseGrip();
+        var commands = new Queue<RobotCommand>();
+        commands.Enqueue(new OpenCommand());
+        commands.Enqueue(new MoveCommand(position));
+        commands.Enqueue(new CloseCommand());
+
+        var carryPosition = state.Position;
+        carryPosition.Z = HeightProvider.GetMinimalCarryingHeight();
+        commands.Enqueue(new MoveCommand(carryPosition));
+
+        Driver!.ScheduleCommands(commands);
     }
 
-    public void ConfigurationReleasePawn()
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <exception cref="ArgumentNullException"></exception>
+    /// <param name="figure"></param>
+    public void ConfigurationReleaseFigure(FigureType figure)
     {
-        //robot.OpenGrip();
+        var releaseHeight = HeightProvider.GetHeight(figure);
 
-        //robot.CloseGrip();
+        var state = GetState();
+        var position = state.Position;
+        position.Z = releaseHeight;
 
-        //robot.MoveZ(configurationHeight);
+        var commands = new Queue<RobotCommand>();
+        commands.Enqueue(new MoveCommand(position));
+        commands.Enqueue(new OpenCommand());
+
+        var carryPosition = state.Position;
+        carryPosition.Z = HeightProvider.GetMinimalCarryingHeight();
+        commands.Enqueue(new CloseCommand());
+        commands.Enqueue(new MoveCommand(carryPosition));
+
+        Driver!.ScheduleCommands(commands);
     }
+
+    public void Resume() => Driver!.Resume();
+
+    public void Pause() => Driver!.Pause();
 }

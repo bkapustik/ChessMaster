@@ -8,14 +8,32 @@ namespace ChessMaster.Space.RobotSpace;
 
 public class RobotSpace
 {
+    public RobotStateEvents? Events { get; protected set; }
+
     protected Space? space;
-    public IRobot? Robot { get; protected set; }
+    protected IRobot? Driver { get; set; }
+
+    private bool DriverInitialized { get; set; } = false;
 
     private MoveableEntity? currentlyHeldEntity;
     private SpacePosition expectedPosition;
+    public Vector3 GetOrigin()
+    {
+        if (Driver == null || !DriverInitialized)
+        {
+            throw new RobotException("Robot is not initialized");
+        }
+
+        return Driver.Origin;
+    }
     public void Initialize()
     {
-        Robot?.Initialize();
+        if (Driver == null)
+        {
+            throw new RobotException("Port Driver has not been chosen yet.");
+        }
+        Driver!.Initialize();
+        DriverInitialized = true;
     }
     protected void MoveEntityFromSourceToTarget(SpacePosition source, SpacePosition target)
     {
@@ -25,46 +43,60 @@ public class RobotSpace
 
         MoveEntityToPosition(target);
     }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="e"></param>
+    /// <exception cref="ArgumentNullException"> If <see cref="IRobot"/> has not been initialized.</exception>
     public void SubscribeToCommandsCompletion(CommandsCompletedEvent e)
     {
-        Robot.CommandsSucceeded += e;
+        Driver!.Events.CommandsSucceeded += e;
     }
-    private void UpdateCurrentState(SpacePosition position)
-    {
-        expectedPosition = position;
-    }
-    public RobotState GetState() => Robot.GetState();
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns><see cref="RobotState"/></returns>
+    /// <exception cref="ArgumentNullException"> If <see cref="IRobot"/> has not been initialized.</exception>
+    public RobotState GetState() => Driver!.GetState();
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="position"></param>
+    /// <exception cref="ArgumentNullException">If <see cref="Space"/> or <see cref="IRobot"/> has not been initialized</exception>
     private void TakeEntityFromPosition(SpacePosition position)
     {
-        Move(space?.SubSpaces[position.X, position.Y].Center3 ?? default);
-        //var commands = new Queue<RobotCommand>();
-        //var entity = space.SubSpaces[position.X, position.Y].Entity;
+        var commands = new Queue<RobotCommand>();
+        var entity = space!.SubSpaces[position.X, position.Y].Entity;
 
-        //var moves = GetBestTrajectory(position);
+        var moves = GetBestTrajectory(position);
 
-        //while (moves.Count > 0)
-        //{
-        //    var move = moves.Dequeue();
+        while (moves.Count > 0)
+        {
+            var move = moves.Dequeue();
 
-        //    commands.Enqueue(new MoveCommand(move));
-        //}
+            commands.Enqueue(new MoveCommand(move));
+        }
 
-        //commands.Enqueue(new OpenCommand());
-        //commands.Enqueue(new MoveCommand(entity!.GetHoldingPointVector()));
-        //commands.Enqueue(new CloseCommand());
+        commands.Enqueue(new OpenCommand());
+        commands.Enqueue(new MoveCommand(entity!.GetHoldingPointVector()));
+        commands.Enqueue(new CloseCommand());
 
-        //if (!robot.ScheduleCommands(commands))
-        //{
-        //    robot.CommandsExecuted += new CommandsCompletedEvent((object? o, RobotEventArgs e) =>
-        //    {
-        //        robot.TryScheduleCommands(commands);
-        //    });
-        //}
+        var state = GetState();
 
-        //currentlyHeldEntity = entity;
-        //space.SubSpaces[position.X, position.Y].Entity = null;
-        //UpdateCurrentState(position);
+        if (state.RobotResponse != RobotResponse.Ok && state.RobotResponse != RobotResponse.Initialized)
+        {
+            throw new InvalidOperationException("Can not schedule commands before previously scheduled commands are executed");
+        }
+
+        Driver!.ScheduleCommands(commands);
+
+        currentlyHeldEntity = entity;
+        space.SubSpaces[position.X, position.Y].Entity = null;
     }
+
     private void MoveEntityToPosition(SpacePosition targetPosition)
     {
         //var commands = new Queue<RobotCommand>();
@@ -93,6 +125,12 @@ public class RobotSpace
 
         //UpdateCurrentState(targetPosition);
     }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="spacePosition"></param>
+    /// <exception cref="ArgumentNullException">If <see cref="Space"/> or <see cref="IRobot"/> has not been initialized</exception>
     private void MoveToCarryingPosition(SpacePosition spacePosition)
     {
         //var carryingMove = GetBestCarryingPosition(spacePosition);
@@ -110,6 +148,12 @@ public class RobotSpace
 
         //UpdateCurrentState(spacePosition);
     }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="targetPosition"></param>
+    /// <returns></returns>
     private Queue<Vector3> GetBestTrajectory(SpacePosition targetPosition)
     {
         var currentCoordinations = space.SubSpaces[expectedPosition.X, expectedPosition.Y].Center2.Value;
@@ -133,16 +177,34 @@ public class RobotSpace
         return new Vector3();
         //TODO implemenet
     }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="position"></param>
+    /// <exception cref="ArgumentNullException"> If <see cref="IRobot"/> has not been initialized.</exception>
     public void Move(Vector3 position)
     {
         var commands = new Queue<RobotCommand>();
         commands.Enqueue(new MoveCommand(position));
-        Robot!.ScheduleCommands(commands);
+        Driver!.ScheduleCommands(commands);
     }
+
     public void Home()
     {
-        Robot!.Home();
-    }
-    public bool IsAtDesired(Vector3 desired) => Robot!.IsAtDesired(desired);
+        if (Driver == null)
+        {
+            throw new NullReferenceException("Driver is null");
+        }
 
+        Driver!.Home();
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="desired"></param>
+    /// <exception cref="ArgumentNullException"> If <see cref="IRobot"/> has not been initialized.</exception>
+    /// <returns></returns>
+    public bool IsAtDesired(Vector3 desired) => Driver!.IsAtDesired(desired);
 }

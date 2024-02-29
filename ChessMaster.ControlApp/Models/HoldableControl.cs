@@ -91,12 +91,15 @@ public class HoldableControl : Holdable
 
 public class HoldableMoveKey : HoldableKey
 {
-    private UIGameState positionSetupState;
     private bool hasBeenPressed;
 
-    public HoldableMoveKey(UIElement element, VirtualKey key, UIGameState positionSetupState) : base(element, key)
+    private readonly UIRobotService robotService;
+    private readonly ConfigurationService configurationService;
+
+    public HoldableMoveKey(UIElement element, VirtualKey key) : base(element, key)
     { 
-        this.positionSetupState = positionSetupState;
+        this.robotService = UIRobotService.Instance;
+        this.configurationService = ConfigurationService.Instance;
     }
 
     protected override void ElementKeyDown(object sender, KeyRoutedEventArgs e)
@@ -119,7 +122,7 @@ public class HoldableMoveKey : HoldableKey
             hasBeenPressed = false;
             timer.Stop();
 
-            if (!MoveHelper.CanMove(positionSetupState.RobotState, positionSetupState.MovementState))
+            if (!robotService.CanMove())
             {
                 return;
             }
@@ -129,26 +132,29 @@ public class HoldableMoveKey : HoldableKey
                 Counter = 10;
             }
 
-            positionSetupState.DesiredPosition = MoveHelper.ChangeDesiredPosition(key, Counter, positionSetupState);
+            configurationService.RobotDesiredPosition = configurationService.ControlDesiredPosition(key, Counter);
         }
     }
 }
 
 public class HoldableMoveButton : HoldableControl
 {
-    private UIGameState positionSetupState;
 
-    public HoldableMoveButton(Button button, UIGameState positionSetupState) :
+    private readonly UIRobotService robotService;
+    private readonly ConfigurationService configurationService;
+
+    public HoldableMoveButton(Button button) :
         base(button)
     {
-        this.positionSetupState = positionSetupState;
+        robotService = UIRobotService.Instance;
+        this.configurationService = ConfigurationService.Instance;
     }
 
     protected override void ReleasedMoveButton(object sender, PointerRoutedEventArgs e)
     {
         timer.Stop();
 
-        if (!MoveHelper.CanMove(positionSetupState.RobotState, positionSetupState.MovementState))
+        if (!robotService.CanMove())
         {
             return;
         }
@@ -158,6 +164,6 @@ public class HoldableMoveButton : HoldableControl
             Counter = 10;
         }
 
-        positionSetupState.DesiredPosition = MoveHelper.ChangeDesiredPosition(button.Name, Counter, positionSetupState);
+       configurationService.RobotDesiredPosition = configurationService.ControlDesiredPosition(button.Name, Counter);
     }
 }

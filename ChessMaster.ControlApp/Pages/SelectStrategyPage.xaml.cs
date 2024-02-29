@@ -1,3 +1,4 @@
+using ChessMaster.ChessDriver;
 using ChessMaster.ChessDriver.ChessStrategy;
 using ChessMaster.ControlApp.Helpers;
 using Microsoft.UI.Xaml;
@@ -12,6 +13,9 @@ public sealed partial class SelectStrategyPage : Page
     private MainWindow mainWindow;
     private List<ChessStrategyFacade> Strategies = new();
 
+    private ChessRunner chessRunner;
+    private UIRobotService robotService;
+
     public SelectStrategyPage()
     {
         this.InitializeComponent();
@@ -22,15 +26,17 @@ public sealed partial class SelectStrategyPage : Page
         base.OnNavigatedTo(e);
 
         mainWindow = App.MainWindow;
+        chessRunner = ChessRunner.Instance;
+        robotService = UIRobotService.Instance;
 
-        var strategies = mainWindow.ChessRunner.GetStrategies();
+        var strategies = chessRunner.GetStrategies();
         Strategies.AddRange(strategies);
 
         StrategyComboBox.SelectedIndex = 0;
 
         var controlFactory = new ControlFactory(mainWindow);
         mainWindow.AddMenuButton(controlFactory.CreateBackToConfigurationButton());
-        if (mainWindow.UIGameState.GameState == ChessDriver.Events.GameState.InProgress)
+        if (robotService.UIGameState.GameState == ChessDriver.Events.GameState.InProgress)
         {
             mainWindow.AddMenuButton(controlFactory.CreateContinueInGameButton());
         }

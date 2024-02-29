@@ -9,11 +9,9 @@ using ChessMaster.ChessDriver.ChessStrategy;
 using WinRT.Interop;
 using Windows.System;
 using ChessMaster.ControlApp.Pages;
-using ChessMaster.ChessDriver.Models;
 using Microsoft.UI.Xaml.Controls;
 using ChessMaster.RobotDriver.Events;
 using ChessMaster.ChessDriver.Events;
-using System.Collections.ObjectModel;
 
 namespace ChessMaster.ControlApp;
 
@@ -24,31 +22,25 @@ public sealed partial class MainWindow : Window
     private int timerCounter = 0;
 
     private bool continueInOldGame = false;
-    public bool ChessBoardHasBeenInitialized { get; private set; } = false;
-
     private ChessStrategyFacade selectedStrategy;
     private Style TextBlockInGridStyle;
 
-    public readonly DispatcherTimer Timer;
-
-    public UIGameState UIGameState = new UIGameState();
-
-    public ObservableCollection<string> Messages { get; set; } = new ObservableCollection<string>();
-    public bool MessagesInitialized { get; set; } = false;
-
-    public ChessRunner ChessRunner { get; private set; }
+    private readonly ChessRunner chessRunner;
+    private readonly UIRobotService robotService;
+    private readonly ConfigurationService configurationService;
 
     public MainWindow()
     {
-        this.InitializeComponent();
-      
-        Resize(windowWidth, windowHeight);
+        InitializeComponent();
 
+        chessRunner = ChessRunner.Instance;
+        robotService = UIRobotService.Instance;
+        configurationService = ConfigurationService.Instance;
         ExtendsContentIntoTitleBar = true;
+        
+        Resize(windowWidth, windowHeight);
         SetTitleBar(AppTitleBar);
-
-        Timer = new DispatcherTimer();
-
+        
         if (Application.Current.Resources.TryGetValue("TextBlockInGridStyle", out var style))
         {
             TextBlockInGridStyle = style as Style;
@@ -61,46 +53,40 @@ public sealed partial class MainWindow : Window
         NavigateTo(typeof(GamePage));
     }
 
-    public void Home()
-    {
-        Task.Run(ChessRunner.robot.Home);
-        UIGameState.DesiredPosition = ChessRunner.robot.Robot.Origin;
-    }
-
     public void Play()
     {
         var strategy = selectedStrategy.CreateStrategy();
 
-        if (UIGameState.GameState == GameState.InProgress && continueInOldGame)
+        if (robotService.UIGameState.GameState == GameState.InProgress && continueInOldGame)
         {
             continueInOldGame = false;
-            ChessRunner.Resume();
+            chessRunner.Resume();
         }
         else
         {
-            Task.Run(() =>
+            Task.Run((Action)(() =>
             {
-                if (ChessRunner.HadBeenStarted)
+                if (this.chessRunner.GameHadBeenStarted)
                 {
                     if (strategy.CanAcceptOldContext)
                     {
                         throw new NotImplementedException();
-                        ChessRunner.TryChangeStrategyWithContext(strategy, true);
+                        chessRunner.TryChangeStrategyWithContext(strategy, true);
                     }
                     else
                     {
-                        if (ChessRunner.TryChangeStrategyWithContext(strategy, false))
+                        if (chessRunner.TryChangeStrategyWithContext(strategy, false))
                         {
-                            ChessRunner.Start();
+                            chessRunner.Start();
                         }
                     }
                 }
                 else
                 {
-                    ChessRunner.TryPickStrategy(strategy);
-                    ChessRunner.Start();
+                    chessRunner.TryPickStrategy(strategy);
+                    chessRunner.Start();
                 }
-            });
+            }));
         }
     }
 
@@ -140,12 +126,12 @@ public sealed partial class MainWindow : Window
 
     public void NavigateTo(Type page)
     {
-        if (ChessRunner != null)
+        if (chessRunner != null)
         {
-            if (ChessRunner.IsInitialized)
+            if (chessRunner.RobotIsInitialized)
             {
-                var currentState = ChessRunner.robot.GetState();
-                UIGameState.DesiredPosition = currentState.Position;
+                var currentState = chessRunner.GetRobotState();
+                configurationService.RobotDesiredPosition = currentState.Position;
             }
         }
         DynamicButtonPanel.Children.Clear();
@@ -155,24 +141,24 @@ public sealed partial class MainWindow : Window
 
     public void RegisterKeyboardControl(VirtualKey key)
     {
-        var holdableKey = new HoldableMoveKey(MainPage, key, UIGameState);
+        var holdableKey = new HoldableMoveKey(MainPage, key);
     }
 
     public void ConfirmConfiguration()
     {
-        if (!UIGameState.IsA1Locked || !UIGameState.IsH8Locked)
+        if (!configurationService.A1Corner.Locked || !configurationService.H8Corner.Locked)
         {
             return;
         }
 
-        if (ChessBoardHasBeenInitialized)
+        if (chessRunner.ChessBoardInitialized)
         {
-            ChessRunner.robot.ReconfigureChessBoard(UIGameState.A1Position, UIGameState.H8Position);
+            chessRunner.ReconfigureChessBoard(configurationService.A1Corner.Position, configurationService.H8Corner.Position);
         }
         else
         {
-            ChessBoardHasBeenInitialized = true;
-            ChessRunner.robot.TryInitializeChessBoard(UIGameState.A1Position, UIGameState.H8Position);
+            robotService.UIGameState.ChessBoardInitialized = true;
+            chessRunner.InitializeChessBoard(configurationService.A1Corner.Position, configurationService.H8Corner.Position);
         }
 
         NavigateTo(typeof(SelectStrategyPage));
@@ -223,17 +209,15 @@ public sealed partial class MainWindow : Window
         CenterToScreen(windowHandle);
     }
 
-    public void SelectPort(RobotDTO selectedRobot, string portName)
+    public void PortSelected()
     {
         InitializeTimer();
-        ChessRunner = new ChessRunner(selectedRobot.GetRobot(portName));
-        InitializeRobot();
+        ConfigureRobotEventReactions();
 
-        UIGameState = selectedRobot.GetSetupState();
-        if (UIGameState.RobotState == RobotResponse.Initialized)
+        if (robotService.UIGameState.RobotState == RobotResponse.Initialized)
         {
-            ChessRunner.Initialize();
-            ChessRunner.robot.TryInitializeChessBoard(UIGameState.A1Position, UIGameState.H8Position);
+            chessRunner.Initialize();
+            chessRunner.InitializeChessBoard(configurationService.A1Corner.Position, configurationService.H8Corner.Position);
             var selectedStrategy = new MockPgnStrategyFacade();
             PickStrategy(selectedStrategy);
         }
@@ -247,7 +231,7 @@ public sealed partial class MainWindow : Window
     {
         DispatcherQueue.TryEnqueue(() =>
         {
-            UIGameState.RobotState = RobotResponse.UnknownError;
+            robotService.UIGameState.RobotState = RobotResponse.UnknownError;
 
             ControlsWindow.Visibility = Visibility.Collapsed;
             RestartWindow.Visibility = Visibility.Visible;
@@ -256,28 +240,28 @@ public sealed partial class MainWindow : Window
 
     private void InitializeTimer()
     {
-        Timer.Interval = new TimeSpan(0, 0, 0, 0, 100);
-        Timer.Tick += UpdateDisplayedPosition;
-        Timer.Start();
+        robotService.Timer.Interval = new TimeSpan(0, 0, 0, 0, 100);
+        robotService.Timer.Tick += UpdateDisplayedPosition;
+        robotService.Timer.Start();
     }
 
-    private void InitializeRobot()
+    private void ConfigureRobotEventReactions()
     {
-        ChessRunner.robot.Robot.RestartRequired += (object o, RobotEventArgs e) => RequireRestart();
-        ChessRunner.robot.Robot.Initialized += (object o, RobotEventArgs e) =>
+        chessRunner.RobotStateEvents.RestartRequired += (object o, RobotEventArgs e) => RequireRestart();
+        chessRunner.RobotStateEvents.Initialized += (object o, RobotEventArgs e) =>
         {
-            UIGameState.RobotState = RobotResponse.Initialized;
+            robotService.UIGameState.RobotState = RobotResponse.Initialized;
             var position = e.RobotState.Position;
-            UIGameState.DesiredPosition = new Vector3(position.X, position.Y, position.Z);
+            configurationService.RobotDesiredPosition = new Vector3(position.X, position.Y, position.Z);
         };
-        ChessRunner.robot.Robot.CommandsSucceeded += (object o, RobotEventArgs e) =>
+        chessRunner.RobotStateEvents.CommandsSucceeded += (object o, RobotEventArgs e) =>
         {
-            UIGameState.RobotState = RobotResponse.Ok;
+            robotService.UIGameState.RobotState = RobotResponse.Ok;
         };
-        ChessRunner.robot.Robot.NotInitialized += (object o, RobotEventArgs e) => RequireRestart();
-        ChessRunner.OnGameStateChanged += (object o, GameStateEventArgs e) =>
+        chessRunner.RobotStateEvents.NotInitialized += (object o, RobotEventArgs e) => RequireRestart();
+        chessRunner.OnGameStateChanged += (object o, GameStateEventArgs e) =>
         {
-            UIGameState.GameState = e.GameState;
+            robotService.UIGameState.GameState = e.GameState;
         };
     }
 
@@ -287,10 +271,10 @@ public sealed partial class MainWindow : Window
         {
             Task.Run(() =>
             {
-                var currentState = ChessRunner.robot.GetState();
+                var currentState = chessRunner.GetRobotState();
 
-                UIGameState.RobotState = currentState.RobotResponse;
-                UIGameState.MovementState = currentState.MovementState;
+                robotService.UIGameState.RobotState = currentState.RobotResponse;
+                robotService.UIGameState.MovementState = currentState.MovementState;
 
                 DispatcherQueue.TryEnqueue(() => { XValueLabel.Text = $"{currentState.x}"; });
                 DispatcherQueue.TryEnqueue(() => { YValueLabel.Text = $"{currentState.y}"; });

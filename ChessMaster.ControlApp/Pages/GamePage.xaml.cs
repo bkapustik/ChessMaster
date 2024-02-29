@@ -1,3 +1,4 @@
+using ChessMaster.ChessDriver;
 using ChessMaster.ControlApp.Helpers;
 using ChessMaster.RobotDriver.Events;
 using Microsoft.UI.Xaml;
@@ -17,15 +18,24 @@ public sealed partial class GamePage : Page, INotifyPropertyChanged
     private Button finishMoveButton;
     private Button changeStrategyButton;
     private Button reconfigureButton;
+    private ChessRunner chessRunner;
+    private UIRobotService robotService;
 
     public event PropertyChangedEventHandler PropertyChanged;
 
     public ObservableCollection<string> Messages
     {
-        get { return mainWindow.Messages; }
+        get 
+        {
+            if (robotService == null)
+            { 
+                robotService = UIRobotService.Instance;
+            }
+            return robotService.GameMessages; 
+        }
         set
         {
-            mainWindow.Messages = value;
+            robotService.GameMessages = value;
             OnPropertyChanged(nameof(Messages));
         }
     }
@@ -38,16 +48,20 @@ public sealed partial class GamePage : Page, INotifyPropertyChanged
     protected override void OnNavigatedTo(NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
+
         mainWindow = App.MainWindow;
         MessagesList.ItemsSource = Messages;
+        robotService = UIRobotService.Instance;
+        chessRunner = ChessRunner.Instance;
 
-        if (!mainWindow.MessagesInitialized)
+
+        if (!robotService.MessagesInitialized)
         {
-            mainWindow.MessagesInitialized = true;
+            robotService.MessagesInitialized = true;
 
             Task.Run(() =>
             {
-                mainWindow.ChessRunner.OnMessageLogged += (object o, LogEventArgs e) =>
+                chessRunner.OnMessageLogged += (object o, LogEventArgs e) =>
                 {
                     DispatcherQueue.TryEnqueue(() =>
                     {
@@ -75,7 +89,7 @@ public sealed partial class GamePage : Page, INotifyPropertyChanged
 
     private void FinishMoveClick(object o, RoutedEventArgs e)
     {
-        mainWindow.ChessRunner.FinishMove();
+        chessRunner.FinishMove();
         
         mainWindow.TryRemoveMenuButton(finishMoveButton);
         mainWindow.AddMenuButton(reconfigureButton);
@@ -86,7 +100,7 @@ public sealed partial class GamePage : Page, INotifyPropertyChanged
     {
         if (isPaused)
         {
-            mainWindow.ChessRunner.Resume();
+            chessRunner.Resume();
             mainWindow.TryRemoveMenuButton(finishMoveButton);
             mainWindow.TryRemoveMenuButton(changeStrategyButton);
             mainWindow.TryRemoveMenuButton(reconfigureButton);
@@ -94,7 +108,7 @@ public sealed partial class GamePage : Page, INotifyPropertyChanged
         }
         else
         {
-            mainWindow.ChessRunner.Pause();
+            chessRunner.Pause();
             mainWindow.AddMenuButton(finishMoveButton);
             pauseButton.Content = "Resume";
         }

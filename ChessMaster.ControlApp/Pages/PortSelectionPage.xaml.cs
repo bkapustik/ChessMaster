@@ -1,3 +1,4 @@
+using ChessMaster.ChessDriver;
 using ChessMaster.ControlApp.Helpers;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -10,11 +11,14 @@ public sealed partial class PortSelectionPage : Page
 {
     private MainWindow mainWindow;
 
-    private readonly RobotPicker robotPicker = new();
+    private RobotPicker robotPicker = new();
+    private ChessRunner chessRunner;
+    private UIRobotService robotService;
+    private ConfigurationService configurationService;
 
     public PortSelectionPage()
     {
-        this.InitializeComponent();
+        InitializeComponent();
     }
 
     protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -22,6 +26,9 @@ public sealed partial class PortSelectionPage : Page
         base.OnNavigatedTo(e);
 
         mainWindow = App.MainWindow;
+        chessRunner = ChessRunner.Instance;
+        robotService = UIRobotService.Instance;
+        configurationService = ConfigurationService.Instance;
 
         PortComboBox.SelectedIndex = 0;
         var ports = SerialPort.GetPortNames();
@@ -38,6 +45,18 @@ public sealed partial class PortSelectionPage : Page
         
         var robot = robotPicker.GetRobot(selectedPort);
 
-        mainWindow.SelectPort(robot, selectedPort);
+        chessRunner.SelectPort(robot.GetRobot(selectedPort));
+
+        robotService.UIGameState = robot.GetSetupState();
+
+        var configurationState = robot.GetConfiguration();
+
+        configurationService.RobotDesiredPosition = configurationState.RobotDesiredPosition;
+        configurationService.A1Corner.Locked = configurationState.A1Locked;
+        configurationService.H8Corner.Locked = configurationState.H8Locked;
+        configurationService.H8Corner.Position = configurationState.H8Position;
+        configurationService.A1Corner.Position = configurationState.A1Position;
+
+        mainWindow.PortSelected();
     }
 }

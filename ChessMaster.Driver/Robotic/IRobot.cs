@@ -4,27 +4,28 @@ using ChessMaster.RobotDriver.State;
 
 namespace ChessMaster.RobotDriver.Robotic;
 
+public class RobotStateEvents
+{
+    public CommandsCompletedEvent? CommandsSucceeded { get; set; }
+    public CommandsCompletedEvent? Initialized { get; set; }
+    public CommandsCompletedEvent? NotInitialized { get; set; }
+    public CommandsCompletedEvent? AlreadyExecuting { get; set; }
+    public CommandsCompletedEvent? HomingRequired { get; set; }
+    public CommandsCompletedEvent? RestartRequired { get; set; }
+    public RobotPausedEvent? Paused { get; set; }
+}
+
 public interface IRobot
 {
-    CommandsCompletedEvent? CommandsSucceeded { get; set; }
-    CommandsCompletedEvent? Initialized { get; set; }
-    CommandsCompletedEvent? NotInitialized { get; set; }
-    CommandsCompletedEvent? CommandsFinished { get; set; }
-    CommandsCompletedEvent? HomingRequired { get; set; }
-    CommandsCompletedEvent? RestartRequired { get; set; }
-    RobotPausedEvent? Paused { get; set; }
-
+    RobotStateEvents Events { get; }
     Vector3 Origin { get; }
     void Initialize();
     RobotState GetState();
-    
     void ScheduleCommands(Queue<RobotCommand> commands);
-
     void Reset();
     void Pause();
     void Resume();
     void Home();
-
     bool IsAtDesired(Vector3 desired);
 }
 

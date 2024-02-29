@@ -15,10 +15,15 @@ public class MockRobotConfiguredDTO : RobotDTO
     {
         RobotState = RobotResponse.Initialized,
         MovementState = RobotDriver.State.MovementState.Idle,
-        IsA1Locked = true,
-        IsH8Locked = true,
+        ChessBoardInitialized = true
+    };
+
+    public override ConfigurationDTO GetConfiguration() => new ConfigurationDTO
+    {
+        A1Locked = true,
+        H8Locked = true,
         A1Position = a1Position,
         H8Position = h8Position,
-        DesiredPosition = h8Position.ToVector3()
+        RobotDesiredPosition = h8Position.ToVector3()
     };
 }

@@ -6,7 +6,7 @@ using System.Numerics;
 
 namespace ChessMaster.RobotDriver.Robotic;
 
-public class Robot : IRobot
+public class Robot : RobotBase
 {
     private Queue<SerialCommand> commandQueue;
     private bool isBeingExecuted = true;
@@ -18,15 +18,7 @@ public class Robot : IRobot
     private bool hasBeenInitialized = false;
     private SemaphoreSlim semaphore;
 
-    public CommandsCompletedEvent? CommandsSucceeded { get; set; }
-    public CommandsCompletedEvent? Initialized { get; set; }
-    public CommandsCompletedEvent? NotInitialized { get; set; }
-    public CommandsCompletedEvent? CommandsFinished { get; set; }
-    public CommandsCompletedEvent? HomingRequired { get; set; }
-    public CommandsCompletedEvent? RestartRequired { get; set; }
-    public RobotPausedEvent? Paused { get; set; }
-
-    public Vector3 Origin
+    public override Vector3 Origin
     {
         get => new Vector3(-origin.X - safePadding, -origin.Y - safePadding, -origin.Z - safePadding);
     }
@@ -39,7 +31,7 @@ public class Robot : IRobot
         semaphore = new SemaphoreSlim(1);
     }
 
-    public void Initialize()
+    public override void Initialize()
     {
         if (!hasBeenInitialized)
         {
@@ -77,14 +69,7 @@ public class Robot : IRobot
             }
         }
     }
-    public bool IsAtDesired(Vector3 desired)
-    {
-        float dx = desired.X - GetState().Position.X;
-        float dy = desired.Y - GetState().Position.Y;
-
-        return Math.Abs(dx) <= 0.5 && Math.Abs(dy) <= 0.5;
-    }
-    public void Home()
+    public override void Home()
     {
         semaphore.Wait();
 
@@ -111,21 +96,20 @@ public class Robot : IRobot
         hasBeenInitialized = true;
         HandleOkReponse();
     }
-    public void Reset()
+    public override void Reset()
     {
         driver.Reset();
-        
     }
-    public void Pause()
+    public override void Pause()
     {
         SendCommandAtLastCompletion(commands.Pause());
     }
-    public void Resume()
+    public override void Resume()
     {
         SendCommandAtLastCompletion(commands.Resume());
     }
 
-    public RobotState GetState()
+    public override RobotState GetState()
     {
         if (!hasBeenInitialized)
         {
@@ -140,8 +124,7 @@ public class Robot : IRobot
 
         return new RobotState(stateResult, RobotResponse.Ok, x, y, z);
     }
-
-    public void ScheduleCommands(Queue<RobotCommand> commands)
+    public override void ScheduleCommands(Queue<RobotCommand> commands)
     {
         semaphore.Wait();
         if (driver.HomingRequired)
@@ -157,7 +140,7 @@ public class Robot : IRobot
         if (commandQueue.Count > 0 || isBeingExecuted)
         {
             semaphore.Release();
-            HandleFinishedCommands(RobotResponse.AlreadyExecuting);
+            HandleAlreadyExecuting();
         }
 
         while (commands.Count > 0)
@@ -188,30 +171,19 @@ public class Robot : IRobot
         }
     }
 
-    private void OnCommandsSucceded(RobotEventArgs e)
+    protected override void HandleInitialized()
     {
-        CommandsSucceeded?.Invoke(this, e);
+        var resultState = PrepareSuccessResponse();
+        resultState.RobotResponse = RobotResponse.Initialized;
+        Task.Run(() => OnInitialized(new RobotEventArgs(success: true, resultState)));
     }
-    private void OnInitialized(RobotEventArgs e)
+    protected override void HandleOkReponse()
     {
-        Initialized?.Invoke(this, e);
+        var resultState = PrepareSuccessResponse();
+        resultState.RobotResponse = RobotResponse.Ok;
+        Task.Run(() => OnCommandsSucceded(new RobotEventArgs(success: true, resultState)));
     }
-    private void OnNotInitialized(RobotEventArgs e)
-    {
-        NotInitialized?.Invoke(this, e);
-    }
-    private void OnCommandsFinished(RobotEventArgs e)
-    {
-        CommandsFinished?.Invoke(this, e);
-    }
-    private void OnHomingRequired(RobotEventArgs e)
-    {
-        HomingRequired?.Invoke(this, e);
-    }
-    private void OnRestartRequired(RobotEventArgs e)
-    {
-        RestartRequired?.Invoke(this, e);
-    }
+
     private void SendCommandAtLastCompletion(SerialCommand command)
     {
         bool isIdle = false;
@@ -230,7 +202,6 @@ public class Robot : IRobot
             }
         }
     }
-
     private RobotState PrepareSuccessResponse()
     {
         state = driver.GetRawState();
@@ -246,40 +217,5 @@ public class Robot : IRobot
         semaphore.Release();
         GetState();
         return GetState();
-    }
-
-    private void HandleFinishedCommands(RobotResponse robotResponse)
-    {
-        var resultState = GetState();
-        Task.Run(() => OnCommandsFinished(new RobotEventArgs(success: false, resultState)));
-    }
-    private void HandleInitialized()
-    {
-        var resultState = PrepareSuccessResponse();
-        resultState.RobotResponse = RobotResponse.Initialized;
-        Task.Run(() => OnInitialized(new RobotEventArgs(success: true, resultState)));
-    }
-    private void HandleNotInitialized()
-    {
-        var resultState = new RobotState(MovementState.Unknown, RobotResponse.NotInitialized, 0, 0, 0);
-        Task.Run(() => OnNotInitialized(new RobotEventArgs(success: false, resultState)));
-    }
-    private void HandleOkReponse()
-    {
-        var resultState = PrepareSuccessResponse();
-        resultState.RobotResponse = RobotResponse.Ok;
-        Task.Run(() => OnCommandsSucceded(new RobotEventArgs(success: true, resultState)));
-    }
-    private void HandleHomingRequired()
-    {
-        var state = GetState();
-        var resultState = new RobotState(MovementState.Unknown, RobotResponse.HomingRequired, state.Position);
-        Task.Run(() => OnHomingRequired(new RobotEventArgs(success: false, resultState)));
-    }
-    private void HandleRestartRequired()
-    {
-        var state = GetState();
-        var resultState = new RobotState(MovementState.Unknown, RobotResponse.UnknownError, state.Position);
-        Task.Run(() => OnRestartRequired(new RobotEventArgs(success: false, resultState)));
     }
 }

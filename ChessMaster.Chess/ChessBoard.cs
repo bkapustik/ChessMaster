@@ -52,7 +52,6 @@ public class ChessBoard : IChessBoard
                 Space.SubSpaces[i, j] = new SubSpace(tileWidth, new Vector2(a1Center.X + i * tileWidth, a1Center.Y + j * tileWidth));
             }
         }
-        AssignFigures();
     }
 
     public void Reconfigure(Vector2 a1Center, Vector2 h8Center)
@@ -84,4 +83,11 @@ public class ChessBoard : IChessBoard
 
         return result;
     }
+
+    /// <summary>
+    /// Counts in padding required for capturing figures.
+    /// </summary>
+    /// <param name="chessBoardPosition"></param>
+    /// <returns></returns>
+    public SpacePosition GetRealSpacePosition(SpacePosition chessBoardPosition) => chessBoardPosition + padding;
 }

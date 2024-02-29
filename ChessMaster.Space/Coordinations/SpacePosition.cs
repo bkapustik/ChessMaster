@@ -24,6 +24,7 @@ namespace ChessMaster.Space.Coordinations
         }
 
         public static SpacePosition operator +(SpacePosition a, SpacePosition b) => new SpacePosition(a.X + b.X, a.Y + b.Y);
+        public static SpacePosition operator +(SpacePosition a, int padding) => new SpacePosition(a.X + padding, a.Y + padding);
         public static SpacePosition operator *(SpacePosition a, int b) => new SpacePosition(a.X * b, a.Y * b);
         public static bool operator ==(SpacePosition a, SpacePosition b) => a.X == b.X && a.Y == b.Y;
         public static bool operator !=(SpacePosition a, SpacePosition b) => a.X != b.X || a.Y != b.Y;
