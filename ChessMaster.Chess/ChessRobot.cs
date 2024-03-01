@@ -8,6 +8,8 @@ namespace ChessMaster.ChessDriver;
 
 public class ChessRobot : RobotSpace
 {
+    private const float safePaddingBetweenFigures = 25;
+
     private ChessBoard chessBoard;
     public ChessRobot(IRobot robot)
     {
@@ -21,11 +23,14 @@ public class ChessRobot : RobotSpace
     {
         chessBoard.Initialize(a1Center, h8Center);
         chessBoard.AssignFigures();
+        TileWidth = chessBoard.tileWidth;
+        SafePaddingBetweenFigures = safePaddingBetweenFigures;
     }
 
     public void ReconfigureChessBoard(Vector2 a1Center, Vector2 h8Center)
     {
         chessBoard.Reconfigure(a1Center, h8Center);
+        TileWidth = chessBoard.tileWidth;
     }
 
     /// <summary>
@@ -70,14 +75,14 @@ public class ChessRobot : RobotSpace
     /// 
     /// </summary>
     /// <exception cref="ArgumentNullException"
-    /// <param name="figure"></param>
-    public void ConfigurationPickUpFigure(FigureType figure)
+    /// <param name="figureType"></param>
+    public void ConfigurationPickUpFigure(FigureType figureType)
     {
-        var pickUpHeight = HeightProvider.GetHeight(figure);
+        var figure = ChessFigure.New(figureType, TileWidth);
 
         var state = GetState();
         var position = state.Position;
-        position.Z = pickUpHeight;
+        position.Z = figure.Center3!.Value.Z;
 
         var commands = new Queue<RobotCommand>();
         commands.Enqueue(new OpenCommand());
@@ -85,7 +90,7 @@ public class ChessRobot : RobotSpace
         commands.Enqueue(new CloseCommand());
 
         var carryPosition = state.Position;
-        carryPosition.Z = HeightProvider.GetMinimalCarryingHeight();
+        carryPosition.Z = GetCarryHeight(figure);
         commands.Enqueue(new MoveCommand(carryPosition));
 
         Driver!.ScheduleCommands(commands);
@@ -95,10 +100,11 @@ public class ChessRobot : RobotSpace
     /// 
     /// </summary>
     /// <exception cref="ArgumentNullException"></exception>
-    /// <param name="figure"></param>
-    public void ConfigurationReleaseFigure(FigureType figure)
+    /// <param name="figureType"></param>
+    public void ConfigurationReleaseFigure(FigureType figureType)
     {
-        var releaseHeight = HeightProvider.GetHeight(figure);
+        var figure = ChessFigure.New(figureType, TileWidth);
+        var releaseHeight = figure.Center3!.Value.Z;
 
         var state = GetState();
         var position = state.Position;
@@ -109,7 +115,7 @@ public class ChessRobot : RobotSpace
         commands.Enqueue(new OpenCommand());
 
         var carryPosition = state.Position;
-        carryPosition.Z = HeightProvider.GetMinimalCarryingHeight();
+        carryPosition.Z = GetCarryHeight(figure);
         commands.Enqueue(new CloseCommand());
         commands.Enqueue(new MoveCommand(carryPosition));
 

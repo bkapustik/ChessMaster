@@ -1,5 +1,4 @@
 ﻿using ChessMaster.Chess;
-using ChessMaster.ChessDriver.Models;
 using ChessMaster.Space;
 using ChessMaster.Space.Coordinations;
 using System.Numerics;
@@ -15,7 +14,7 @@ public class ChessBoard : IChessBoard
     private SpacePosition lastFreeCaptureSpace;
 
     public Vector2 origin;
-    private float tileWidth;
+    public float tileWidth { get; private set; }
 
     public Space.Space Space;
 
@@ -33,11 +32,11 @@ public class ChessBoard : IChessBoard
 
         for (int i = chessBoardStart; i < chessBoardEnd; i++)
         {
-            Space.SubSpaces[chessBoardStart, i].Entity = new Figure(HeightProvider.GetHeight(figures[i - chessBoardStart]));
-            Space.SubSpaces[chessBoardEnd - 1, i].Entity = new Figure(HeightProvider.GetHeight(figures[i - chessBoardStart]));
+            Space.SubSpaces[chessBoardStart, i].Entity = ChessFigure.New(figures[i - chessBoardStart], tileWidth);
+            Space.SubSpaces[chessBoardEnd - 1, i].Entity = ChessFigure.New(figures[i - chessBoardStart], tileWidth);
 
-            Space.SubSpaces[chessBoardStart + 1, i].Entity = new Figure(HeightProvider.GetHeight(FigureType.Pawn));
-            Space.SubSpaces[chessBoardEnd - 2, i].Entity = new Figure(HeightProvider.GetHeight(FigureType.Pawn));
+            Space.SubSpaces[chessBoardStart + 1, i].Entity = ChessFigure.New(FigureType.Pawn, tileWidth);
+            Space.SubSpaces[chessBoardEnd - 2, i].Entity = ChessFigure.New(FigureType.Pawn, tileWidth);
         }
     }
 
