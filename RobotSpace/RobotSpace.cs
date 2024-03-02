@@ -74,7 +74,7 @@ public class RobotSpace
     private void TakeEntityFromPosition(SpacePosition position)
     {
         var commands = new Queue<RobotCommand>();
-        var entity = space!.SubSpaces[position.X, position.Y].Entity;
+        var entity = space!.SubSpaces[position.Row, position.Column].Entity;
 
         commands.Enqueue(new OpenCommand());
 
@@ -104,14 +104,15 @@ public class RobotSpace
         Driver!.ScheduleCommands(commands);
 
         currentlyHeldEntity = entity;
-        space.SubSpaces[position.X, position.Y].Entity = null;
+        space.SubSpaces[position.Row, position.Column].Entity = null;
     }
 
     private void MoveEntityToPosition(SpacePosition targetPosition)
     {
         var commands = new Queue<RobotCommand>();
 
-        space!.SubSpaces[targetPosition.X, targetPosition.Y].Entity = currentlyHeldEntity;
+        float entityHeight = currentlyHeldEntity!.Height!.Value;
+        space!.SubSpaces[targetPosition.Row, targetPosition.Column].Entity = currentlyHeldEntity;
         currentlyHeldEntity = null;
 
         var moves = GetTrajectory(targetPosition);
@@ -129,6 +130,10 @@ public class RobotSpace
         }
 
         commands.Enqueue(new OpenCommand());
+        commands.Enqueue(new MoveCommand(new Vector3(expectedResultingPosition.X, expectedResultingPosition.Y, SafePaddingBetweenFigures + entityHeight)));
+        commands.Enqueue(new CloseCommand());
+
+        expectedResultingPosition.Z = SafePaddingBetweenFigures + entityHeight;
 
         Driver!.ScheduleCommands(commands);
     }
@@ -177,45 +182,51 @@ public class RobotSpace
 
         float heightPadding = GetCarryHeight(currentlyHeldEntity);
 
-        SpacePosition currentPosition = new SpacePosition((int)(expectedResultingPosition.X / TileWidth), (int)(expectedResultingPosition.Y / TileWidth));
+        SpacePosition currentPosition = new SpacePosition((int)(expectedResultingPosition.Y / TileWidth), (int)(expectedResultingPosition.X / TileWidth));
 
         List<SpacePosition> intersectedTiles = ComputeLineSupercoverSet(currentPosition, targetPosition);
 
+        float sourcePointY = expectedResultingPosition.Y;
+        float sourcePointX = expectedResultingPosition.X;
+        float targetPointY = (targetPosition.Row * TileWidth) + (TileWidth / 2);
+        float targetPointX = (targetPosition.Column * TileWidth) + (TileWidth / 2);
+
         if (intersectedTiles.Count > 0)
         {
-            float sourcePointX = expectedResultingPosition.X;
-            float sourcePointY = expectedResultingPosition.Y;
-            float targetPointX = (targetPosition.X * TileWidth) + (TileWidth / 2);
-            float targetPointY = (targetPosition.Y * TileWidth) + (TileWidth / 2);
+            float mLineGradient = 0;
+            float cHeight = 0;
 
-            float mLineGradient = (targetPointY - sourcePointY) / (targetPointX - sourcePointX);
-            float cHeight = -(mLineGradient * sourcePointX) + sourcePointY;
+            if (targetPointX != sourcePointX)
+            {
+                mLineGradient = (targetPointY - sourcePointY) / (targetPointX - sourcePointX);
+                cHeight = -(mLineGradient * sourcePointX) + sourcePointY;
+            }
 
-            int dx = Math.Abs(targetPosition.X - currentPosition.X);
-            int dy = Math.Abs(targetPosition.Y - currentPosition.Y);
+            int dy = Math.Abs(targetPosition.Row - currentPosition.Row);
+            int dx = Math.Abs(targetPosition.Column - currentPosition.Column);
 
             IEnumerable<IGrouping<int, SpacePosition>> tilesGrouped;
 
-            if (dx > dy)
+            if (dy > dx)
             {
-                tilesGrouped = intersectedTiles.GroupBy(tile => tile.Y);
+                tilesGrouped = intersectedTiles.GroupBy(tile => tile.Row);
             }
             else
             {
-                tilesGrouped = intersectedTiles.GroupBy(tile => tile.X);
+                tilesGrouped = intersectedTiles.GroupBy(tile => tile.Column);
             }
 
             List<GroupCoordination> groupCoordinations = tilesGrouped.Select(group => group
-                .MaxBy(tile => space!.SubSpaces[tile.X, tile.Y].Entity?.Height ?? 0))
+                .MaxBy(tile => space!.SubSpaces[tile.Row, tile.Column].Entity?.Height ?? 0))
                 .Select(tile => new GroupCoordination(tile,
-                    space!.SubSpaces[tile.X, tile.Y].Entity?.Height ?? 0)
+                    space!.SubSpaces[tile.Row, tile.Column].Entity?.Height ?? 0)
                 ).ToList();
 
             foreach (var group in groupCoordinations)
             {
-                group.ComputeTileIntersectionTowardsTarget(dx, dy, sourcePointX, sourcePointY, TileWidth, cHeight, mLineGradient);
+                group.ComputeTileIntersectionTowardsTarget(dy, dx, TileWidth, cHeight, mLineGradient);
             }
-
+            
             int maximumHeightIndex = GroupCoordination.GetLastMaximumHeightIndex(groupCoordinations);
             float maximumHeight = groupCoordinations[maximumHeightIndex].Height;
 
@@ -233,7 +244,7 @@ public class RobotSpace
                     resultPoints.Add(new Vector3(groupCoordinations[maximumHeightIndex].RealX, groupCoordinations[maximumHeightIndex].RealY, maximumHeight));
                 }
             }
-            
+
             if (groupCoordinations[groupCoordinations.Count - 1].Height != maximumHeight)
             {
                 var last = groupCoordinations[groupCoordinations.Count - 1];
@@ -271,6 +282,19 @@ public class RobotSpace
             result.Enqueue(point);
         }
 
+        float targetZ = 0;
+
+        if (currentlyHeldEntity == null)
+        {
+            targetZ = space!.SubSpaces[targetPosition.Row, targetPosition.Column].Entity!.Center3!.Value.Z;
+        }
+        else
+        { 
+            targetZ = currentlyHeldEntity.Center3!.Value.Z;
+        }
+
+        result.Enqueue(new Vector3(targetPointX, targetPointY, targetZ));
+
         return result;
     }
 
@@ -287,17 +311,22 @@ public class RobotSpace
             Position = position;
         }
 
-        public void ComputeTileIntersectionTowardsTarget(int dx, int dy, float sourcePointX, float sourcePointY, float tileWidth, float cHeight, float mLineGradient)
+        public void ComputeTileIntersectionTowardsTarget(int dy, int dx, float tileWidth, float cHeight, float mLineGradient)
         {
-            if (dx > dy)
+            if (dx == 0)
             {
-                RealX = Position.X * tileWidth + (tileWidth / 2);
-                RealY = (mLineGradient * (RealX - sourcePointX)) + sourcePointY;
+                RealX = Position.Column * tileWidth + (tileWidth / 2);
+                RealY = Position.Row * tileWidth + (tileWidth / 2);
+            }
+            else if (dy > dx)
+            {
+                RealY = Position.Row * tileWidth + (tileWidth / 2);
+                RealX = (RealY - cHeight) / mLineGradient;
             }
             else
             {
-                RealY = Position.Y * tileWidth + (tileWidth / 2);
-                RealX = ((RealY - sourcePointY) / mLineGradient) + sourcePointX;
+                RealX = Position.Column * tileWidth + (tileWidth / 2);
+                RealY = (mLineGradient * RealX) + cHeight;
             }
         }
 
@@ -319,27 +348,53 @@ public class RobotSpace
 
     private List<SpacePosition> ComputeLineSupercoverSet(SpacePosition source, SpacePosition target)
     {
-        int x1 = source.X;
-        int y1 = source.Y;
-        int x2 = target.X;
-        int y2 = target.Y;
+        int y1 = source.Row;
+        int x1 = source.Column;
+        int y2 = target.Row;
+        int x2 = target.Column;
 
         var points = new List<SpacePosition>();
-        int dx = x2 - x1;
         int dy = y2 - y1;
-        int xstep, ystep;
+        int dx = x2 - x1;
+        int ystep, xstep;
 
-        int ddx = Math.Abs(dx) * 2;
         int ddy = Math.Abs(dy) * 2;
+        int ddx = Math.Abs(dx) * 2;
 
-        if (dy < 0) { ystep = -1; dy = -dy; } else { ystep = 1; }
         if (dx < 0) { xstep = -1; dx = -dx; } else { xstep = 1; }
+        if (dy < 0) { ystep = -1; dy = -dy; } else { ystep = 1; }
 
-        int x = x1, y = y1;
-        int error = ddx - dy;
+        int y = y1, x = x1;
+        int error = 0;
         int errorprev;
 
-        if (ddx >= ddy)
+        if (ddy > ddx)
+        {
+            error = dy;
+            for (int i = 0; i < dy; i++)
+            {
+                y += ystep;
+                errorprev = error;
+                error += ddx;
+
+                if (error > ddy)
+                {
+                    x += xstep;
+                    error -= ddy;
+                    if (error + errorprev < ddy)
+                        points.Add(new SpacePosition(y, x - xstep));
+                    else if (error + errorprev > ddy)
+                        points.Add(new SpacePosition(y - ystep, x));
+                    else
+                    {
+                        points.Add(new SpacePosition(y, x - xstep));
+                        points.Add(new SpacePosition(y - ystep, x));
+                    }
+                }
+                points.Add(new SpacePosition(y, x));
+            }
+        }
+        else
         {
             for (int i = 0; i < dx; i++)
             {
@@ -352,41 +407,16 @@ public class RobotSpace
                     y += ystep;
                     error -= ddx;
                     if (error + errorprev < ddx)
-                        points.Add(new SpacePosition(x, y - ystep));
+                        points.Add(new SpacePosition(y - ystep, x));
                     else if (error + errorprev > ddx)
-                        points.Add(new SpacePosition(x - xstep, y));
+                        points.Add(new SpacePosition(y, x - xstep));
                     else
                     {
-                        points.Add(new SpacePosition(x, y - ystep));
-                        points.Add(new SpacePosition(x - xstep, y));
+                        points.Add(new SpacePosition(y - ystep, x));
+                        points.Add(new SpacePosition(y, x - xstep));
                     }
                 }
-                points.Add(new SpacePosition(x, y));
-            }
-        }
-        else
-        {
-            for (int i = 0; i < dy; i++)
-            {
-                y += ystep;
-                errorprev = error;
-                error += ddx;
-
-                if (error > ddy)
-                {
-                    x += xstep;
-                    error -= ddy;
-                    if (error + errorprev < ddy)
-                        points.Add(new SpacePosition(x - xstep, y));
-                    else if (error + errorprev > ddy)
-                        points.Add(new SpacePosition(x, y - ystep));
-                    else
-                    {
-                        points.Add(new SpacePosition(x - xstep, y));
-                        points.Add(new SpacePosition(x, y - ystep));
-                    }
-                }
-                points.Add(new SpacePosition(x, y));
+                points.Add(new SpacePosition(y, x));
             }
         }
 

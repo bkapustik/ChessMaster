@@ -90,32 +90,32 @@ public class MatchReplayChessStrategy : IChessStrategy
             {
                 SpacePosition whiteKingSource = new SpacePosition()
                 {
-                    X = 4,
-                    Y = 0
+                    Row = 4,
+                    Column = 0
                 };
 
                 castling = new Castling()
                 {
                     KingSource = whiteKingSource,
-                    KingTarget = new SpacePosition(whiteKingSource.X + 2, whiteKingSource.Y),
-                    RookSource = new SpacePosition(whiteKingSource.X + 3, whiteKingSource.Y),
-                    RookTarget = new SpacePosition(whiteKingSource.X + 1, whiteKingSource.Y)
+                    KingTarget = new SpacePosition(whiteKingSource.Row + 2, whiteKingSource.Column),
+                    RookSource = new SpacePosition(whiteKingSource.Row + 3, whiteKingSource.Column),
+                    RookTarget = new SpacePosition(whiteKingSource.Row + 1, whiteKingSource.Column)
                 };
             }
             else
             {
                 SpacePosition blackKingSource = new SpacePosition()
                 {
-                    X = 4,
-                    Y = 7
+                    Row = 4,
+                    Column = 7
                 };
 
                 castling = new Castling()
                 {
                     KingSource = blackKingSource,
-                    KingTarget = new SpacePosition(blackKingSource.X + 2, blackKingSource.Y),
-                    RookSource = new SpacePosition(blackKingSource.X + 3, blackKingSource.Y),
-                    RookTarget = new SpacePosition(blackKingSource.X + 1, blackKingSource.Y)
+                    KingTarget = new SpacePosition(blackKingSource.Row + 2, blackKingSource.Column),
+                    RookSource = new SpacePosition(blackKingSource.Row + 3, blackKingSource.Column),
+                    RookTarget = new SpacePosition(blackKingSource.Row + 1, blackKingSource.Column)
                 };
             }
 
@@ -129,32 +129,32 @@ public class MatchReplayChessStrategy : IChessStrategy
             {
                 SpacePosition whiteKingSource = new SpacePosition()
                 {
-                    X = 4,
-                    Y = 0
+                    Row = 4,
+                    Column = 0
                 };
 
                 castling = new Castling()
                 {
                     KingSource = whiteKingSource,
-                    KingTarget = new SpacePosition(whiteKingSource.X - 2, whiteKingSource.Y),
-                    RookSource = new SpacePosition(0, whiteKingSource.Y),
-                    RookTarget = new SpacePosition(whiteKingSource.X - 1, whiteKingSource.Y)
+                    KingTarget = new SpacePosition(whiteKingSource.Row - 2, whiteKingSource.Column),
+                    RookSource = new SpacePosition(0, whiteKingSource.Column),
+                    RookTarget = new SpacePosition(whiteKingSource.Row - 1, whiteKingSource.Column)
                 };
             }
             else
             {
                 SpacePosition blackKingSource = new SpacePosition()
                 {
-                    X = 4,
-                    Y = 7
+                    Row = 4,
+                    Column = 7
                 };
 
                 castling = new Castling()
                 {
                     KingSource = blackKingSource,
-                    KingTarget = new SpacePosition(blackKingSource.X - 2, blackKingSource.Y),
-                    RookSource = new SpacePosition(0, blackKingSource.Y),
-                    RookTarget = new SpacePosition(blackKingSource.X - 1, blackKingSource.Y)
+                    KingTarget = new SpacePosition(blackKingSource.Row - 2, blackKingSource.Column),
+                    RookSource = new SpacePosition(0, blackKingSource.Column),
+                    RookTarget = new SpacePosition(blackKingSource.Row - 1, blackKingSource.Column)
                 };
             }
 
@@ -171,16 +171,16 @@ public class MatchReplayChessStrategy : IChessStrategy
     {
         if (move.Source is not null)
         {
-            if (move.Source.Value.X != -1 && move.Source.Value.Y != -1)
+            if (move.Source.Value.Row != -1 && move.Source.Value.Column != -1)
             {
                 return move.Source.Value;
             }
 
-            if (move.Source.Value.X != -1)
+            if (move.Source.Value.Row != -1)
             {
                 for (int y = 0; y < PgnChessBoard.BoardDimLength; y++)
                 {
-                    var x = move.Source.Value.X;
+                    var x = move.Source.Value.Row;
                     if (CanFigureMoveToTarget(x, y, move))
                     {
                         return new SpacePosition(x, y);
@@ -189,7 +189,7 @@ public class MatchReplayChessStrategy : IChessStrategy
 
                 for (int x = 0; x < PgnChessBoard.BoardDimLength; x++)
                 {
-                    var y = move.Source.Value.Y;
+                    var y = move.Source.Value.Column;
                     if (CanFigureMoveToTarget(x, y, move))
                     {
                         return new SpacePosition(x, y);
@@ -237,8 +237,8 @@ public class MatchReplayChessStrategy : IChessStrategy
 
     private void AdvanceFigureState(SpacePosition source, SpacePosition target)
     {
-        chessBoard.Grid[target.X, target.Y].Figure = chessBoard.Grid[source.X, source.Y].Figure;
-        chessBoard.Grid[source.X, source.Y].Figure = null;
+        chessBoard.Grid[target.Row, target.Column].Figure = chessBoard.Grid[source.Row, source.Column].Figure;
+        chessBoard.Grid[source.Row, source.Column].Figure = null;
     }
 
     private void FinishMove(Castling castling)
@@ -259,7 +259,7 @@ public class MatchReplayChessStrategy : IChessStrategy
     private void FinishMove(SpacePosition source, SpacePosition target, FigureType pawnPromotion)
     {
         FinishMove(source, target);
-        chessBoard.Grid[target.X, target.Y].Figure!.FigureType = pawnPromotion;
+        chessBoard.Grid[target.Row, target.Column].Figure!.FigureType = pawnPromotion;
     }
 
     private void OnMoveComputed(StrategyEventArgs e)

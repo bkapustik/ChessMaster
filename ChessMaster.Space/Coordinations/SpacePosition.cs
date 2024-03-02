@@ -1,34 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ChessMaster.Space.Coordinations
+﻿namespace ChessMaster.Space.Coordinations
 {
     public struct SpacePosition
     {
-        public int X { get; set; }
-        public int Y { get; set; }
+        public int Row { get; set; }
+        public int Column { get; set; }
 
         public SpacePosition()
         { 
         
         }
 
-        public SpacePosition(int x, int y)
+        public SpacePosition(int row, int column)
         { 
-            X = x;
-            Y = y;
+            Row = row;
+            Column = column;
         }
 
-        public static SpacePosition operator +(SpacePosition a, SpacePosition b) => new SpacePosition(a.X + b.X, a.Y + b.Y);
-        public static SpacePosition operator -(SpacePosition a, SpacePosition b) => new SpacePosition(a.X - b.X, a.Y - b.Y);
-        public static SpacePosition AbsDifference(SpacePosition a, SpacePosition b) => new SpacePosition(Math.Abs(a.X - b.X), Math.Abs(a.Y - b.Y));
-        public static SpacePosition operator +(SpacePosition a, int padding) => new SpacePosition(a.X + padding, a.Y + padding);
-        public static SpacePosition operator *(SpacePosition a, int b) => new SpacePosition(a.X * b, a.Y * b);
-        public static bool operator ==(SpacePosition a, SpacePosition b) => a.X == b.X && a.Y == b.Y;
-        public static bool operator !=(SpacePosition a, SpacePosition b) => a.X != b.X || a.Y != b.Y;
+        public static SpacePosition operator +(SpacePosition a, SpacePosition b) => new SpacePosition(a.Row + b.Row, a.Column + b.Column);
+        public static SpacePosition operator -(SpacePosition a, SpacePosition b) => new SpacePosition(a.Row - b.Row, a.Column - b.Column);
+        public static SpacePosition AbsDifference(SpacePosition a, SpacePosition b) => new SpacePosition(Math.Abs(a.Row - b.Row), Math.Abs(a.Column - b.Column));
+        public static SpacePosition operator +(SpacePosition a, int padding) => new SpacePosition(a.Row + padding, a.Column + padding);
+        public static SpacePosition operator *(SpacePosition a, int b) => new SpacePosition(a.Row * b, a.Column * b);
+        public static bool operator ==(SpacePosition a, SpacePosition b) => a.Row == b.Row && a.Column == b.Column;
+        public static bool operator !=(SpacePosition a, SpacePosition b) => a.Row != b.Row || a.Column != b.Column;
     }
 }

@@ -61,30 +61,30 @@ public class Pawn : PgnFigure
 
     private bool CanMoveToInternal(Movement move, SpacePosition direction, SpacePosition origin = default)
     {
-        if (move.Source.Y == move.Target.Y)
+        if (move.Source.Column == move.Target.Column)
         {
-            if (move.Target.X == (origin + direction * 2).X)
+            if (move.Target.Row == (origin + direction * 2).Row)
             {
-                if (ChessBoard[move.Target.X - 1, move.Target.Y].Figure == null)
+                if (ChessBoard[move.Target.Row - 1, move.Target.Column].Figure == null)
                 {
                     return true;
                 }
                 return false;
             }
 
-            if ((move.Source + direction).X == move.Target.X && ChessBoard[move.Target.X - 1, move.Target.Y].Figure == null)
+            if ((move.Source + direction).Row == move.Target.Row && ChessBoard[move.Target.Row - 1, move.Target.Column].Figure == null)
             {
                 return true;
             }
             return false;
         }
 
-        var captureDirection = new SpacePosition(direction.Y, direction.X);
+        var captureDirection = new SpacePosition(direction.Column, direction.Row);
 
         if (move.Source + captureDirection == move.Target
-            && ChessBoard[move.Target.X, move.Target.Y].Figure != default
-            && ChessBoard[move.Target.X, move.Target.Y].Figure!.ChessColor != ChessColor
-            && ChessBoard[move.Target.X, move.Target.Y].Figure!.FigureType != FigureType.King)
+            && ChessBoard[move.Target.Row, move.Target.Column].Figure != default
+            && ChessBoard[move.Target.Row, move.Target.Column].Figure!.ChessColor != ChessColor
+            && ChessBoard[move.Target.Row, move.Target.Column].Figure!.FigureType != FigureType.King)
         {
             return true;
         }
@@ -113,7 +113,7 @@ public class Knight : PgnFigure
 
     public override bool CanMoveTo(Movement move)
     {
-        if (ChessBoard[move.Target.X, move.Target.Y].Figure == null)
+        if (ChessBoard[move.Target.Row, move.Target.Column].Figure == null)
         {
             if (IsInRange(move))
             {
@@ -121,7 +121,7 @@ public class Knight : PgnFigure
             }
             return false;
         }
-        if (ChessBoard[move.Target.X, move.Target.Y].Figure!.ChessColor != ChessColor)
+        if (ChessBoard[move.Target.Row, move.Target.Column].Figure!.ChessColor != ChessColor)
         {
             if (IsInRange(move))
             {
@@ -181,7 +181,7 @@ public class Bishop : PgnFigure
     }
     public override bool CanMoveTo(Movement move)
     {
-        if (ChessBoard[move.Source.X, move.Source.Y].ChessColor == ChessBoard[move.Target.X, move.Target.Y].ChessColor)
+        if (ChessBoard[move.Source.Row, move.Source.Column].ChessColor == ChessBoard[move.Target.Row, move.Target.Column].ChessColor)
         {
             return true;
         }
@@ -198,13 +198,13 @@ public class Rook : PgnFigure
     }
     public override bool CanMoveTo(Movement move)
     {
-        if (move.Source.X == move.Target.X)
+        if (move.Source.Row == move.Target.Row)
         {
-            if (move.Source.Y > move.Target.Y)
+            if (move.Source.Column > move.Target.Column)
             {
-                for (int i = move.Source.Y; i > move.Target.Y; i--)
+                for (int i = move.Source.Column; i > move.Target.Column; i--)
                 {
-                    if (ChessBoard[move.Source.X, i].Figure != null)
+                    if (ChessBoard[move.Source.Row, i].Figure != null)
                     {
                         return false;
                     }
@@ -213,9 +213,9 @@ public class Rook : PgnFigure
             }
             else
             { 
-                for (int i = move.Source.Y; i < move.Target.Y; i++)
+                for (int i = move.Source.Column; i < move.Target.Column; i++)
                 {
-                    if (ChessBoard[move.Source.X, i].Figure != null)
+                    if (ChessBoard[move.Source.Row, i].Figure != null)
                     {
                         return false;
                     }
@@ -223,13 +223,13 @@ public class Rook : PgnFigure
                 return true;
             }
         }
-        if (move.Source.Y == move.Target.Y)
+        if (move.Source.Column == move.Target.Column)
         {
-            if (move.Source.X > move.Target.X)
+            if (move.Source.Row > move.Target.Row)
             {
-                for (int i = move.Source.X; i > move.Target.X; i--)
+                for (int i = move.Source.Row; i > move.Target.Row; i--)
                 {
-                    if (ChessBoard[i, move.Source.Y].Figure != null)
+                    if (ChessBoard[i, move.Source.Column].Figure != null)
                     {
                         return false;
                     }
@@ -238,9 +238,9 @@ public class Rook : PgnFigure
             }
             else
             {
-                for (int i = move.Source.X; i < move.Target.X; i++)
+                for (int i = move.Source.Row; i < move.Target.Row; i++)
                 {
-                    if (ChessBoard[i, move.Source.Y].Figure != null)
+                    if (ChessBoard[i, move.Source.Column].Figure != null)
                     {
                         return false;
                     }

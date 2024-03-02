@@ -48,7 +48,7 @@ public class ChessBoard : IChessBoard
         {
             for (int j = 0; j < chessBoardEnd + padding; j++)
             {
-                Space.SubSpaces[i, j] = new SubSpace(tileWidth, new Vector2(a1Center.X + i * tileWidth, a1Center.Y + j * tileWidth));
+                Space.SubSpaces[i, j] = new SubSpace(tileWidth, new Vector2(a1Center.X + ((i - padding) * tileWidth), a1Center.Y + ((j - padding) * tileWidth)));
             }
         }
     }
@@ -62,7 +62,7 @@ public class ChessBoard : IChessBoard
             for (int j = 0; j < chessBoardEnd + padding; j++)
             {
                 Space.SubSpaces[i, j].Width = tileWidth;
-                Space.SubSpaces[i, j].SetCenter(new Vector2(a1Center.X + i * tileWidth, a1Center.Y + j * tileWidth));
+                Space.SubSpaces[i, j].SetCenter(new Vector2(a1Center.X + ((i - padding) * tileWidth), a1Center.Y + ((j - padding) * tileWidth)));
             }
         }
     }
@@ -71,13 +71,13 @@ public class ChessBoard : IChessBoard
     {
         var result = lastFreeCaptureSpace;
 
-        if (lastFreeCaptureSpace.Y < chessBoardEnd + padding - 1)
+        if (lastFreeCaptureSpace.Column < chessBoardEnd + padding - 1)
         {
-            lastFreeCaptureSpace.Y++;
+            lastFreeCaptureSpace.Column++;
         }
         else
         {
-            lastFreeCaptureSpace = new SpacePosition(lastFreeCaptureSpace.X + 1, 0);
+            lastFreeCaptureSpace = new SpacePosition(lastFreeCaptureSpace.Row + 1, 0);
         }
 
         return result;

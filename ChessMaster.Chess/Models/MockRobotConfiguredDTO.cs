@@ -7,8 +7,8 @@ namespace ChessMaster.ChessDriver.Models;
 
 public class MockRobotConfiguredDTO : RobotDTO
 {
-    private readonly Vector2 a1Position = new Vector2(100, 100);
-    private readonly Vector2 h8Position = new Vector2(900, 900);
+    private readonly Vector2 a1Position = new Vector2(250, 250);
+    private readonly Vector2 h8Position = new Vector2(950, 950);
 
     public override IRobot GetRobot(string portName) => new MockRobotConfigured(h8Position);
     public override UIGameState GetSetupState() => new UIGameState

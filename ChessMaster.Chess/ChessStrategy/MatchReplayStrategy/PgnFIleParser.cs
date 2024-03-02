@@ -127,8 +127,8 @@ public static class ChessFileParser
 
         move.Target = new Space.Coordinations.SpacePosition()
         {
-            X = GetRowFromRank(moveString[moveString.Length - 1]),
-            Y = GetColumnFromLetter(moveString[moveString.Length - 2])
+            Row = GetRowFromRank(moveString[moveString.Length - 1]),
+            Column = GetColumnFromLetter(moveString[moveString.Length - 2])
         };
 
         if (moveString.Length == 3)
@@ -137,16 +137,16 @@ public static class ChessFileParser
             {
                 move.Source = new SpacePosition()
                 {
-                    Y = GetColumnFromLetter(moveString[0]),
-                    X = -1
+                    Column = GetColumnFromLetter(moveString[0]),
+                    Row = -1
                 };
             }
             else
             {
                 move.Source = new SpacePosition()
                 {
-                    X = GetRowFromRank(moveString[0]),
-                    Y = -1
+                    Row = GetRowFromRank(moveString[0]),
+                    Column = -1
                 };
             }
         }
@@ -154,8 +154,8 @@ public static class ChessFileParser
         {
             move.Source = new Space.Coordinations.SpacePosition()
             {
-                X = GetRowFromRank(moveString[1]),
-                Y = GetColumnFromLetter(moveString[0])
+                Row = GetRowFromRank(moveString[1]),
+                Column = GetColumnFromLetter(moveString[0])
             };
         }
 
