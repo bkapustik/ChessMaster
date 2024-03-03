@@ -1,10 +1,13 @@
 ﻿using ChessMaster.ChessDriver.ChessMoves;
+using ChessMaster.ChessDriver.Models;
 
 namespace ChessMaster.ChessDriver.Strategy;
 
 public interface IChessStrategy
 {
     MoveComputedEvent? MoveComputed { get; set; }
+    ChessMove InitializeFromOldGame(ChessBoardGeneral chessBoard);
+    ChessBoardGeneral GetCurrentChessBoard();
     ChessMove Initialize();
     bool CanAcceptOldContext { get; }
     void ComputeNextMove();

@@ -3,6 +3,7 @@ using ChessMaster.Chess;
 using ChessMaster.ChessDriver.ChessMoves;
 using ChessMaster.ChessDriver.Strategy;
 using ChessMaster.Space.Coordinations;
+using ChessMaster.ChessDriver.Models;
 
 namespace ChessMaster.ChessDriver.ChessStrategy.MatchReplayStrategy;
 
@@ -26,6 +27,11 @@ public class MockMatchReplayChessStrategy : IChessStrategy
     {
         get { return false; }
     }
+    public ChessMove InitializeFromOldGame(ChessBoardGeneral chessBoard)
+    {
+        throw new NotImplementedException();
+    }
+    public ChessBoardGeneral GetCurrentChessBoard() => chessBoard.ToGeneral();
 
     public ChessMove Initialize()
     {
@@ -39,6 +45,14 @@ public class MockMatchReplayChessStrategy : IChessStrategy
         }
 
         return new ChessMove(false);
+    }
+    public ChessMove InitializeFromOldGame(string fenNotation)
+    {
+        throw new NotImplementedException();
+    }
+    public string GetFENNotation()
+    {
+        throw new NotImplementedException();
     }
     public void ComputeNextMove()
     {

@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Stockfish.NET" Version="1.0.7" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\ChessMaster.Driver\ChessMaster.RobotDriver.csproj" />
     <ProjectReference Include="..\ChessMaster.Space\ChessMaster.Space.csproj" />
     <ProjectReference Include="..\ChessStrategy\ChessMaster.Chess.csproj" />

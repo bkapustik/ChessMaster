@@ -3,19 +3,22 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Windows.Storage.Pickers;
 using WinRT.Interop;
 
 namespace ChessMaster.ControlApp.Pages;
 
-public sealed partial class PgnFilePickerPage : Page
+public sealed partial class FilePickerPage : Page
 {
     private MainWindow mainWindow;
-
-    public PgnFilePickerPage()
+    private readonly ConfigurationService configurationService;
+    private List<string> AcceptedFileTypes;
+    public FilePickerPage()
     {
         this.InitializeComponent();
+        configurationService = ConfigurationService.Instance;
     }
 
     protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -27,15 +30,21 @@ public sealed partial class PgnFilePickerPage : Page
 
         mainWindow.AddMenuButton(controlFactory.CreateBackToConfigurationButton());
         mainWindow.AddMenuButton(controlFactory.CreateChangeStrategyButton());
+
+        AcceptedFileTypes = configurationService.AcceptedFileTypes;
     }
 
-    private void SelectPgnFileButtonClicked(object sender, RoutedEventArgs e)
+    private void SelectFileButtonClicked(object sender, RoutedEventArgs e)
     {
         FileOpenPicker filePicker = new()
         {
-            ViewMode = PickerViewMode.Thumbnail,
-            FileTypeFilter = { ".pgn" },
+            ViewMode = PickerViewMode.Thumbnail
         };
+
+        foreach (var fileType in AcceptedFileTypes)
+        {
+            filePicker.FileTypeFilter.Add(fileType);
+        }
 
         var windowHandle = WindowNative.GetWindowHandle(mainWindow);
 
@@ -47,13 +56,13 @@ public sealed partial class PgnFilePickerPage : Page
 
             if (selectedFile is not null && !string.IsNullOrEmpty(selectedFile.Path))
             {
-                mainWindow.DispatcherQueue.TryEnqueue(() => PgnFilePicker.Text = selectedFile.Path);
+                mainWindow.DispatcherQueue.TryEnqueue(() => FilePicker.Text = selectedFile.Path);
             }
         });
     }
 
-    private void ConfirmPgnFile(object sender, RoutedEventArgs e)
+    private void ConfirmFile(object sender, RoutedEventArgs e)
     {
-        mainWindow.PickPgnFile(PgnFilePicker.Text);
+        mainWindow.PickFile(FilePicker.Text);
     }
 }

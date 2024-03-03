@@ -1,4 +1,5 @@
-﻿using ChessMaster.Space.Coordinations;
+﻿using ChessMaster.Chess;
+using ChessMaster.Space.Coordinations;
 
 namespace ChessMaster.ChessDriver.ChessMoves;
 
@@ -26,5 +27,13 @@ public class ChessMove
     public virtual void Execute(ChessRobot robot)
     {
         robot.MoveFigureTo(source, target);
+    }
+
+    public virtual string ToUci()
+    {
+        var source = this.source.ToUci();
+        var target = this.target.ToUci();
+
+        return $"{source}{target}";
     }
 }

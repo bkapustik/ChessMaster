@@ -15,6 +15,13 @@
             Row = row;
             Column = column;
         }
+        public string ToUci()
+        {
+            char columnLetter = (char)('a' + Column);
+            int rowNumber = Row + 1;
+
+            return $"{columnLetter}{rowNumber}";
+        }
 
         public static SpacePosition operator +(SpacePosition a, SpacePosition b) => new SpacePosition(a.Row + b.Row, a.Column + b.Column);
         public static SpacePosition operator -(SpacePosition a, SpacePosition b) => new SpacePosition(a.Row - b.Row, a.Column - b.Column);

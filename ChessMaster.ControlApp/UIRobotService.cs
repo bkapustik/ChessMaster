@@ -5,6 +5,7 @@ using ChessMaster.RobotDriver.State;
 using ChessMaster.Space.Coordinations;
 using Microsoft.UI.Xaml;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Numerics;
 using System.Threading.Tasks;
@@ -72,6 +73,7 @@ public class ConfigurationService
 
     public bool IsRobotAtDesiredPosition() => chessRunner.IsRobotAtDesiredPosition(RobotDesiredPosition);
 
+    public List<string> AcceptedFileTypes { get; set; } = new List<string>();
     public static Vector2 GetDirectionVector(string buttonName)
     {
         switch (buttonName)

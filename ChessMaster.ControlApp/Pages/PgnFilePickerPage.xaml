@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Page
-    x:Class="ChessMaster.ControlApp.Pages.PgnFilePickerPage"
+    x:Class="ChessMaster.ControlApp.Pages.FilePickerPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
-    <Grid x:Name="PgnStrategyFilePick" RowDefinitions="Auto, Auto">
-        <TextBox x:Name="PgnFilePicker" Grid.Row="0"
+    <Grid x:Name="StrategyFilePick" RowDefinitions="Auto, Auto">
+        <TextBox x:Name="FilePicker" Grid.Row="0"
             VerticalAlignment="Center" HorizontalAlignment="Center">
         </TextBox>
         <Grid Grid.Row="1" ColumnDefinitions="Auto, Auto" HorizontalAlignment="Center" Margin="0,10,0,0">
-            <Button Grid.Column="0" Margin="0,0,10,0" x:Name="SelectPgnFileButton" Content="Pick a file" VerticalAlignment="Center" HorizontalAlignment="Center" Click="SelectPgnFileButtonClicked"/>
-            <Button Grid.Column="1" x:Name="ConfirmPgnFileButton" Content="Confirm" VerticalAlignment="Center" HorizontalAlignment="Center" Click="ConfirmPgnFile"/>
+            <Button Grid.Column="0" Margin="0,0,10,0" x:Name="SelectFileButton" Content="Pick a file" VerticalAlignment="Center" HorizontalAlignment="Center" Click="SelectFileButtonClicked"/>
+            <Button Grid.Column="1" x:Name="ConfirmPgnFileButton" Content="Confirm" VerticalAlignment="Center" HorizontalAlignment="Center" Click="ConfirmFile"/>
         </Grid>
     </Grid>
 </Page>

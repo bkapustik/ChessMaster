@@ -17,4 +17,13 @@ public class PawnPromotionMove : ChessMove
     {
         robot.PromotePawn(source, target, figureType);
     }
+
+    public override string ToUci()
+    {
+        var source = base.source.ToUci();
+        var target = base.target.ToUci();
+        var promotion = figureType.ToUci();
+
+        return $"{source}{target}{promotion}";
+    }
 }

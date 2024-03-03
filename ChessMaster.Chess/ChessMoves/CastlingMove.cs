@@ -22,4 +22,12 @@ public class CastlingMove : ChessMove
     {
         robot.ExecuteCastling(castling);
     }
+
+    public override string ToUci()
+    {
+        var kingSourceUci = castling.KingSource.ToUci();
+        var kingTargetUci = castling.KingTarget.ToUci();
+
+        return $"{kingSourceUci}{kingTargetUci}";
+    }
 }

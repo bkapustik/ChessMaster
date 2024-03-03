@@ -92,7 +92,8 @@ public sealed class ChessRunner
         return new()
         {
             new PgnStrategyFacade(),
-            new MockPgnStrategyFacade()
+            new MockPgnStrategyFacade(),
+            new StockFishStrategyFacade()
         };
     }
     public void InitializeChessBoard(Vector2 a1, Vector2 h8)

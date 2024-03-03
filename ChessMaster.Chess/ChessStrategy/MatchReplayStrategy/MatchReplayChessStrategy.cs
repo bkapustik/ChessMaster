@@ -1,6 +1,7 @@
 ﻿using ChessMaster.Chess;
 using ChessMaster.Chess.Property;
 using ChessMaster.ChessDriver.ChessMoves;
+using ChessMaster.ChessDriver.Models;
 using ChessMaster.Space.Coordinations;
 
 namespace ChessMaster.ChessDriver.Strategy;
@@ -38,6 +39,10 @@ public class MatchReplayChessStrategy : IChessStrategy
         }
 
         return new ChessMove(false);
+    }
+    public ChessMove InitializeFromOldGame(ChessBoardGeneral chessBoard)
+    {
+        throw new NotImplementedException();
     }
 
     public void ComputeNextMove()
@@ -90,32 +95,32 @@ public class MatchReplayChessStrategy : IChessStrategy
             {
                 SpacePosition whiteKingSource = new SpacePosition()
                 {
-                    Row = 4,
-                    Column = 0
+                    Row = 0,
+                    Column = 4
                 };
 
                 castling = new Castling()
                 {
                     KingSource = whiteKingSource,
-                    KingTarget = new SpacePosition(whiteKingSource.Row + 2, whiteKingSource.Column),
-                    RookSource = new SpacePosition(whiteKingSource.Row + 3, whiteKingSource.Column),
-                    RookTarget = new SpacePosition(whiteKingSource.Row + 1, whiteKingSource.Column)
+                    KingTarget = new SpacePosition(whiteKingSource.Row, whiteKingSource.Column + 2),
+                    RookSource = new SpacePosition(whiteKingSource.Row, whiteKingSource.Column + 3),
+                    RookTarget = new SpacePosition(whiteKingSource.Row, whiteKingSource.Column + 1)
                 };
             }
             else
             {
                 SpacePosition blackKingSource = new SpacePosition()
                 {
-                    Row = 4,
-                    Column = 7
+                    Row = 7,
+                    Column = 4
                 };
 
                 castling = new Castling()
                 {
                     KingSource = blackKingSource,
-                    KingTarget = new SpacePosition(blackKingSource.Row + 2, blackKingSource.Column),
-                    RookSource = new SpacePosition(blackKingSource.Row + 3, blackKingSource.Column),
-                    RookTarget = new SpacePosition(blackKingSource.Row + 1, blackKingSource.Column)
+                    KingTarget = new SpacePosition(blackKingSource.Row, blackKingSource.Column + 2),
+                    RookSource = new SpacePosition(blackKingSource.Row, blackKingSource.Column + 3),
+                    RookTarget = new SpacePosition(blackKingSource.Row, blackKingSource.Column + 1)
                 };
             }
 
@@ -129,32 +134,32 @@ public class MatchReplayChessStrategy : IChessStrategy
             {
                 SpacePosition whiteKingSource = new SpacePosition()
                 {
-                    Row = 4,
-                    Column = 0
+                    Row = 0,
+                    Column = 4
                 };
 
                 castling = new Castling()
                 {
                     KingSource = whiteKingSource,
-                    KingTarget = new SpacePosition(whiteKingSource.Row - 2, whiteKingSource.Column),
-                    RookSource = new SpacePosition(0, whiteKingSource.Column),
-                    RookTarget = new SpacePosition(whiteKingSource.Row - 1, whiteKingSource.Column)
+                    KingTarget = new SpacePosition(whiteKingSource.Row, whiteKingSource.Column - 2),
+                    RookSource = new SpacePosition(whiteKingSource.Row, 0),
+                    RookTarget = new SpacePosition(whiteKingSource.Row, whiteKingSource.Column - 1)
                 };
             }
             else
             {
                 SpacePosition blackKingSource = new SpacePosition()
                 {
-                    Row = 4,
-                    Column = 7
+                    Row = 7,
+                    Column = 4
                 };
 
                 castling = new Castling()
                 {
                     KingSource = blackKingSource,
-                    KingTarget = new SpacePosition(blackKingSource.Row - 2, blackKingSource.Column),
-                    RookSource = new SpacePosition(0, blackKingSource.Column),
-                    RookTarget = new SpacePosition(blackKingSource.Row - 1, blackKingSource.Column)
+                    KingTarget = new SpacePosition(blackKingSource.Row, blackKingSource.Column - 2),
+                    RookSource = new SpacePosition(blackKingSource.Row, 0),
+                    RookTarget = new SpacePosition(blackKingSource.Row, blackKingSource.Column - 1)
                 };
             }
 
@@ -166,6 +171,7 @@ public class MatchReplayChessStrategy : IChessStrategy
         FinishMove(source, target);
         HandleMoveComputed(true, new ChessMove(source, target, false, pgnMove.Message));
     }
+    public ChessBoardGeneral GetCurrentChessBoard() => chessBoard.ToGeneral();
 
     public SpacePosition FindSourcePosition(PgnMove move)
     {
@@ -211,13 +217,13 @@ public class MatchReplayChessStrategy : IChessStrategy
         return default;
     }
 
-    private bool CanFigureMoveToTarget(int x, int y, PgnMove move)
+    private bool CanFigureMoveToTarget(int row, int column, PgnMove move)
     {
-        if (chessBoard.Grid[x, y].Figure != null &&
-                        chessBoard.Grid[x, y].Figure!.ChessColor == move.Color &&
-                        chessBoard.Grid[x, y].Figure!.FigureType == move.Figure)
+        if (chessBoard.Grid[row, column].Figure != null &&
+                        chessBoard.Grid[row, column].Figure!.ChessColor == move.Color &&
+                        chessBoard.Grid[row, column].Figure!.FigureType == move.Figure)
         {
-            if (chessBoard.Grid[x, y].Figure!.CanMoveTo(new Movement(new SpacePosition(x, y), move.Target!.Value)))
+            if (chessBoard.Grid[row, column].Figure!.CanMoveTo(new Movement(new SpacePosition(row, column), move.Target!.Value)))
             {
                 return true;
             }

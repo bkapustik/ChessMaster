@@ -164,7 +164,7 @@ public sealed partial class MainWindow : Window
         NavigateTo(typeof(SelectStrategyPage));
     }
 
-    public void PickPgnFile(string file)
+    public void PickFile(string file)
     {
         selectedStrategy.Configure(file);
 
@@ -181,7 +181,9 @@ public sealed partial class MainWindow : Window
         }
         else
         {
-            NavigateTo(typeof(PgnFilePickerPage));
+            configurationService.AcceptedFileTypes = selectedStrategy.AcceptedFileTypes;
+
+            NavigateTo(typeof(FilePickerPage));
         }
     }
 

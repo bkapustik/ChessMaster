@@ -1,4 +1,5 @@
 ﻿using ChessMaster.Chess;
+using ChessMaster.ChessDriver.Models;
 
 namespace ChessMaster.ChessDriver.Strategy;
 
@@ -10,6 +11,25 @@ public class PgnChessBoard : IChessBoard
     public PgnChessBoard()
     {
         Grid = new PgnTile[8, 8];
+    }
+
+    public ChessBoardGeneral ToGeneral()
+    {
+        var tiles = new ChessFigureGeneral[BoardDimLength, BoardDimLength];
+
+        for (int i = 0; i < Grid.Length; i++)
+        {
+            for (int j = 0; j < BoardDimLength; j++)
+            {
+                if (Grid[i, j].Figure != null)
+                {
+                    tiles[i, j].FigureType = Grid[i, j]!.Figure!.FigureType;
+                    tiles[i, j].Color = Grid[i, j]!.Figure!.ChessColor;
+                }
+            }
+        }
+
+        return new ChessBoardGeneral(tiles);
     }
 
     public void Initialize()
