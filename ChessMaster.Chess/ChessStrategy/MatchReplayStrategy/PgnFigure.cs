@@ -44,26 +44,26 @@ public class Pawn : PgnFigure
 
     public override bool CanMoveTo(Movement move)
     {
-        SpacePosition direction;
-        SpacePosition origin;
+        SpacePosition rowDirection;
+        SpacePosition rowOrigin;
         if (ChessColor == ChessColor.White)
         {
-            direction = new SpacePosition(1, 0);
-            origin = new SpacePosition(1, 0);
+            rowDirection = new SpacePosition(1, 0);
+            rowOrigin = new SpacePosition(1, 0);
         }
         else
         {
-            direction = new SpacePosition(-1, 0);
-            origin = new SpacePosition(-1, 0);
+            rowDirection = new SpacePosition(-1, 0);
+            rowOrigin = new SpacePosition(6, 0);
         }
-        return CanMoveToInternal(move, direction, origin);
+        return CanMoveToInternal(move, rowDirection, rowOrigin);
     }
 
-    private bool CanMoveToInternal(Movement move, SpacePosition direction, SpacePosition origin = default)
+    private bool CanMoveToInternal(Movement move, SpacePosition rowDirection, SpacePosition origin = default)
     {
         if (move.Source.Column == move.Target.Column)
         {
-            if (move.Target.Row == (origin + direction * 2).Row)
+            if (move.Target.Row == (origin + rowDirection * 2).Row)
             {
                 if (ChessBoard[move.Target.Row - 1, move.Target.Column].Figure == null)
                 {
@@ -72,16 +72,14 @@ public class Pawn : PgnFigure
                 return false;
             }
 
-            if ((move.Source + direction).Row == move.Target.Row && ChessBoard[move.Target.Row - 1, move.Target.Column].Figure == null)
+            if ((move.Source + rowDirection).Row == move.Target.Row && ChessBoard[move.Target.Row - 1, move.Target.Column].Figure == null)
             {
                 return true;
             }
             return false;
         }
 
-        var captureDirection = new SpacePosition(direction.Column, direction.Row);
-
-        if (move.Source + captureDirection == move.Target
+        if ((move.Source + rowDirection).Row == move.Target.Row && Math.Abs(move.Source.Column - move.Target.Column) == 1
             && ChessBoard[move.Target.Row, move.Target.Column].Figure != default
             && ChessBoard[move.Target.Row, move.Target.Column].Figure!.ChessColor != ChessColor
             && ChessBoard[move.Target.Row, move.Target.Column].Figure!.FigureType != FigureType.King)

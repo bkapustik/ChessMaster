@@ -1,7 +1,7 @@
 using ChessMaster.Chess;
 using ChessMaster.Chess.Property;
-using ChessMaster.Chess.Strategy.MatchReplay;
 using ChessMaster.Space.Coordinations;
+using ChessMaster.ChessDriver.Strategy;
 using NuGet.Frameworks;
 
 namespace ChessMaster.Tests

@@ -1,7 +1,6 @@
 ﻿using ChessMaster.Chess;
 using ChessMaster.Chess.Property;
 using ChessMaster.Space.Coordinations;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.Text;
 
 namespace ChessMaster.ChessDriver.Strategy;

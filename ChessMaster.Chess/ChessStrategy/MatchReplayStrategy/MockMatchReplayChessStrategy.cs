@@ -231,7 +231,7 @@ public class MockMatchReplayChessStrategy : IChessStrategy
             }
         }
 
-        return default;
+        throw new InvalidOperationException("Wrong move");
     }
     private bool CanFigureMoveToTarget(int x, int y, PgnMove move)
     {

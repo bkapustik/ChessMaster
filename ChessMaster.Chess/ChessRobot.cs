@@ -56,8 +56,8 @@ public class ChessRobot : RobotSpace
     public void CaptureFigure(SpacePosition sourcePosition, SpacePosition targetPosition)
     {
         var freeSpace = chessBoard.GetNextFreeSpace();
-        MoveEntityFromSourceToTarget(targetPosition, freeSpace);
-        MoveEntityFromSourceToTarget(sourcePosition, targetPosition);
+        MoveEntityFromSourceToTarget(chessBoard.GetRealSpacePosition(targetPosition), freeSpace);
+        MoveEntityFromSourceToTarget(chessBoard.GetRealSpacePosition(sourcePosition), chessBoard.GetRealSpacePosition(targetPosition));
     }
 
     public void PromotePawn(SpacePosition source, SpacePosition target, FigureType promotion)
@@ -67,8 +67,8 @@ public class ChessRobot : RobotSpace
 
     public void ExecuteCastling(Castling castling)
     {
-        MoveEntityFromSourceToTarget(castling.KingSource, castling.KingTarget);
-        MoveEntityFromSourceToTarget(castling.RookSource, castling.RookTarget);
+        MoveEntityFromSourceToTarget(chessBoard.GetRealSpacePosition(castling.KingSource), chessBoard.GetRealSpacePosition(castling.KingTarget));
+        MoveEntityFromSourceToTarget(chessBoard.GetRealSpacePosition(castling.RookSource), chessBoard.GetRealSpacePosition(castling.RookTarget));
     }
 
     /// <summary>

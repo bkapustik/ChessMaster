@@ -44,8 +44,6 @@ public class RobotSpace
 
         TakeEntityFromPosition(source);
 
-        //MoveToCarryingPosition(target);
-
         MoveEntityToPosition(target);
     }
 

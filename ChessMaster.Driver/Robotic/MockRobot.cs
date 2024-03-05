@@ -138,8 +138,8 @@ public class MockRobot : RobotBase
                     moveCommand.Z - displayedPosition.Z
                 );
 
-                int positionVectorDenominator = positionDifferenceVector.X > 50 || positionDifferenceVector.Y > 50 ? 100 : 10;
-
+                int positionVectorDenominator = Math.Abs(positionDifferenceVector.X) > 50 || Math.Abs(positionDifferenceVector.Y) > 50 ? 100 : 10;
+                positionVectorDenominator = 5;
                 var partOfPositionDifferenceVector = positionDifferenceVector / (float)positionVectorDenominator;
 
                 int movePartsLeft = positionVectorDenominator;

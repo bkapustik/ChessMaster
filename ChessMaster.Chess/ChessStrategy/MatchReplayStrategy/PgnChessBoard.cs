@@ -45,12 +45,20 @@ public class PgnChessBoard : IChessBoard
                     {
                         Grid[i, j].ChessColor = ChessColor.Black;
                     }
+                    else
+                    {
+                        Grid[i, j].ChessColor = ChessColor.White;
+                    }
                 }
                 else
                 {
                     if (j % 2 == 0)
                     {
                         Grid[i, j].ChessColor = ChessColor.White;
+                    }
+                    else
+                    {
+                        Grid[i, j].ChessColor = ChessColor.Black;
                     }
                 }
             }
