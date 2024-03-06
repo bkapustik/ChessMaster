@@ -65,14 +65,14 @@ public class Pawn : PgnFigure
         {
             if (move.Target.Row == (origin + rowDirection * 2).Row)
             {
-                if (ChessBoard[move.Target.Row - 1, move.Target.Column].Figure == null)
+                if (ChessBoard[move.Target.Row, move.Target.Column].Figure == null)
                 {
                     return true;
                 }
                 return false;
             }
 
-            if ((move.Source + rowDirection).Row == move.Target.Row && ChessBoard[move.Target.Row - 1, move.Target.Column].Figure == null)
+            if ((move.Source + rowDirection).Row == move.Target.Row && ChessBoard[move.Target.Row, move.Target.Column].Figure == null)
             {
                 return true;
             }
@@ -200,7 +200,7 @@ public class Rook : PgnFigure
         {
             if (move.Source.Column > move.Target.Column)
             {
-                for (int i = move.Source.Column; i > move.Target.Column; i--)
+                for (int i = move.Source.Column - 1; i > move.Target.Column; i--)
                 {
                     if (ChessBoard[move.Source.Row, i].Figure != null)
                     {
@@ -210,8 +210,8 @@ public class Rook : PgnFigure
                 return true;
             }
             else
-            { 
-                for (int i = move.Source.Column; i < move.Target.Column; i++)
+            {
+                for (int i = move.Source.Column + 1; i < move.Target.Column; i++)
                 {
                     if (ChessBoard[move.Source.Row, i].Figure != null)
                     {
@@ -225,7 +225,7 @@ public class Rook : PgnFigure
         {
             if (move.Source.Row > move.Target.Row)
             {
-                for (int i = move.Source.Row; i > move.Target.Row; i--)
+                for (int i = move.Source.Row - 1; i > move.Target.Row; i--)
                 {
                     if (ChessBoard[i, move.Source.Column].Figure != null)
                     {
@@ -236,7 +236,7 @@ public class Rook : PgnFigure
             }
             else
             {
-                for (int i = move.Source.Row; i < move.Target.Row; i++)
+                for (int i = move.Source.Row + 1; i < move.Target.Row; i++)
                 {
                     if (ChessBoard[i, move.Source.Column].Figure != null)
                     {

@@ -58,7 +58,7 @@ public class MockMatchReplayChessStrategy : IChessStrategy
     {
         if (IsPlayerMove)
         {
-            Thread.Sleep(500);
+            //Thread.Sleep(500);
             IsPlayerMove = false;
         }
         else 
@@ -114,32 +114,32 @@ public class MockMatchReplayChessStrategy : IChessStrategy
             {
                 SpacePosition whiteKingSource = new SpacePosition()
                 {
-                    Row = 4,
-                    Column = 0
+                    Row = 0,
+                    Column = 4
                 };
 
                 castling = new Castling()
                 {
                     KingSource = whiteKingSource,
-                    KingTarget = new SpacePosition(whiteKingSource.Row + 2, whiteKingSource.Column),
-                    RookSource = new SpacePosition(whiteKingSource.Row + 3, whiteKingSource.Column),
-                    RookTarget = new SpacePosition(whiteKingSource.Row + 1, whiteKingSource.Column)
+                    KingTarget = new SpacePosition(whiteKingSource.Row, whiteKingSource.Column + 2),
+                    RookSource = new SpacePosition(whiteKingSource.Row, whiteKingSource.Column + 3),
+                    RookTarget = new SpacePosition(whiteKingSource.Row, whiteKingSource.Column + 1)
                 };
             }
             else
             {
                 SpacePosition blackKingSource = new SpacePosition()
                 {
-                    Row = 4,
-                    Column = 7
+                    Row = 7,
+                    Column = 4
                 };
 
                 castling = new Castling()
                 {
                     KingSource = blackKingSource,
-                    KingTarget = new SpacePosition(blackKingSource.Row + 2, blackKingSource.Column),
-                    RookSource = new SpacePosition(blackKingSource.Row + 3, blackKingSource.Column),
-                    RookTarget = new SpacePosition(blackKingSource.Row + 1, blackKingSource.Column)
+                    KingTarget = new SpacePosition(blackKingSource.Row, blackKingSource.Column + 2),
+                    RookSource = new SpacePosition(blackKingSource.Row, blackKingSource.Column + 3),
+                    RookTarget = new SpacePosition(blackKingSource.Row, blackKingSource.Column + 1)
                 };
             }
 
@@ -153,32 +153,32 @@ public class MockMatchReplayChessStrategy : IChessStrategy
             {
                 SpacePosition whiteKingSource = new SpacePosition()
                 {
-                    Row = 4,
-                    Column = 0
+                    Row = 0,
+                    Column = 4
                 };
 
                 castling = new Castling()
                 {
                     KingSource = whiteKingSource,
-                    KingTarget = new SpacePosition(whiteKingSource.Row - 2, whiteKingSource.Column),
+                    KingTarget = new SpacePosition(whiteKingSource.Row, whiteKingSource.Column - 2),
                     RookSource = new SpacePosition(0, whiteKingSource.Column),
-                    RookTarget = new SpacePosition(whiteKingSource.Row - 1, whiteKingSource.Column)
+                    RookTarget = new SpacePosition(whiteKingSource.Row, whiteKingSource.Column - 1)
                 };
             }
             else
             {
                 SpacePosition blackKingSource = new SpacePosition()
                 {
-                    Row = 4,
-                    Column = 7
+                    Row = 7,
+                    Column = 4
                 };
 
                 castling = new Castling()
                 {
                     KingSource = blackKingSource,
-                    KingTarget = new SpacePosition(blackKingSource.Row - 2, blackKingSource.Column),
+                    KingTarget = new SpacePosition(blackKingSource.Row, blackKingSource.Column - 2),
                     RookSource = new SpacePosition(0, blackKingSource.Column),
-                    RookTarget = new SpacePosition(blackKingSource.Row - 1, blackKingSource.Column)
+                    RookTarget = new SpacePosition(blackKingSource.Row, blackKingSource.Column - 1)
                 };
             }
 
@@ -209,7 +209,9 @@ public class MockMatchReplayChessStrategy : IChessStrategy
                         return new SpacePosition(x, y);
                     }
                 }
-
+            }
+            if (move.Source.Value.Column != -1)
+            {
                 for (int x = 0; x < PgnChessBoard.BoardDimLength; x++)
                 {
                     var y = move.Source.Value.Column;

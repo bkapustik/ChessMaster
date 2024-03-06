@@ -192,7 +192,9 @@ public class MatchReplayChessStrategy : IChessStrategy
                         return new SpacePosition(x, y);
                     }
                 }
-
+            }
+            if (move.Source.Value.Column != -1)
+            {
                 for (int x = 0; x < PgnChessBoard.BoardDimLength; x++)
                 {
                     var y = move.Source.Value.Column;
@@ -214,7 +216,7 @@ public class MatchReplayChessStrategy : IChessStrategy
             }
         }
 
-        return default;
+        throw new InvalidOperationException("Wrong move");
     }
 
     private bool CanFigureMoveToTarget(int row, int column, PgnMove move)
