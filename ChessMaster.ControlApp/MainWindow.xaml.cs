@@ -64,7 +64,7 @@ public sealed partial class MainWindow : Window
         }
         else
         {
-            Task.Run((Action)(() =>
+            Task.Run((() =>
             {
                 if (this.chessRunner.GameHadBeenStarted)
                 {

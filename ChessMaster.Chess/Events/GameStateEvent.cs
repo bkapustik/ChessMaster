@@ -1,6 +1,4 @@
-﻿using ChessMaster.RobotDriver.Events;
-
-namespace ChessMaster.ChessDriver.Events;
+﻿namespace ChessMaster.ChessDriver.Events;
 
 public delegate void GameStateEvent(object? o, GameStateEventArgs e);
 

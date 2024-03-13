@@ -67,8 +67,8 @@
     <PRIResource Remove="Views\**" />
   </ItemGroup>
   <ItemGroup>
+    <None Remove="Pages\FilePickerPage.xaml" />
     <None Remove="Pages\GamePage.xaml" />
-    <None Remove="Pages\PgnFilePickerPage.xaml" />
     <None Remove="Pages\SelectStrategyPage.xaml" />
   </ItemGroup>
   <ItemGroup>
@@ -77,7 +77,7 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Page Update="Pages\PgnFilePickerPage.xaml">
+    <Page Update="Pages\FilePickerPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>

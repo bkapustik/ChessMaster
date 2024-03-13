@@ -1,7 +1,6 @@
 ﻿using ChessMaster.ChessDriver.ChessStrategy.MatchReplayStrategy;
 using ChessMaster.ChessDriver.ChessStrategy.StockFishKinectTrackingStrategy;
 using ChessMaster.ChessDriver.Strategy;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ChessMaster.ChessDriver.ChessStrategy;
 
@@ -19,6 +18,7 @@ public class PgnStrategyFacade : ChessStrategyFacade
     private string file;
     public override string Name { get => "Replay Match"; }
     public override IChessStrategy CreateStrategy() => new MatchReplayChessStrategy(file);
+    public override List<string> AcceptedFileTypes => new List<string> { ".pgn" };
     public override bool NeedsConfiguration => true;
     public override void Configure(string configuration)
     {

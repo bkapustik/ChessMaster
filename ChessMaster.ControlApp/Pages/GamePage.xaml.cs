@@ -66,7 +66,6 @@ public sealed partial class GamePage : Page, INotifyPropertyChanged
                     DispatcherQueue.TryEnqueue(() =>
                     {
                         Messages.Add(e.Message);
-                        MessagesList.ScrollIntoView(e.Message);
                     });
                 };
             });

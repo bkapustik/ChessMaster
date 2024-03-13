@@ -5,7 +5,7 @@ namespace ChessMaster.RobotDriver.Robotic;
 
 public class MockRobotConfigured : MockRobot
 {
-    public MockRobotConfigured(Vector2 h8Position)
+    public MockRobotConfigured(Vector2 h8Position) : base()
     {
         displayedPosition = h8Position.ToVector3();
         SetupState = RobotResponse.Initialized;

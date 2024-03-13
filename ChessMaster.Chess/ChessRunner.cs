@@ -22,6 +22,9 @@ public sealed class ChessRunner
     private SemaphoreSlim semaphore;
     private ChessMove currentMove = new StartGameMove("Waiting for moves");
     private GameState gameState = GameState.NotInProgress;
+    
+    private Vector2 LastA1 { get; set; }
+    private Vector2 LastH8 { get; set; }
 
     public bool RobotIsInitialized { get; private set; } = false;
     public bool GameHadBeenStarted { get; private set; } = false;
@@ -108,6 +111,9 @@ public sealed class ChessRunner
             throw new InvalidOperationException("ChessBoard is already initialized");
         }
 
+        LastA1 = a1;
+        LastH8 = h8;
+
         ChessRobot!.InitializeChessBoard(a1, h8);
     }
     public void ReconfigureChessBoard(Vector2 a1, Vector2 h8)
@@ -123,6 +129,9 @@ public sealed class ChessRunner
         }
 
         if (!isPaused)
+
+        LastA1 = a1;
+        LastH8 = h8;
 
         ChessRobot!.ReconfigureChessBoard(a1, h8);
     }
@@ -159,7 +168,9 @@ public sealed class ChessRunner
             {
                 if (strategy.CanAcceptOldContext)
                 {
+                    //TODO zmenit
                     SwapStrategy(strategy, true);
+                    SwapStrategy(strategy, false);
                 }
                 return false;
             }
@@ -331,6 +342,7 @@ public sealed class ChessRunner
     {
         if (!continueWithOldContext)
         {
+            InitializeChessBoard(LastA1, LastH8);
             InitializeStrategy(chessStrategy);
             chessStrategy!.ComputeNextMove();
         }
@@ -364,21 +376,28 @@ public sealed class ChessRunner
 
         while (!currentMove.IsEndOfGame)
         {
-            semaphore.Wait();
-            if (isMoveDone && isMoveComputed && !isPaused)
+            try
             {
-                semaphore.Release();
-                isMoveDone = false;
-                isMoveComputed = false;
+                semaphore.Wait();
+                if (isMoveDone && isMoveComputed && !isPaused)
+                {
+                    semaphore.Release();
+                    isMoveDone = false;
+                    isMoveComputed = false;
 
-                currentMove.Execute(ChessRobot);
-                LogMove(new LogEventArgs(currentMove.Message ?? ""));
-                chessStrategy!.ComputeNextMove();
+                    currentMove.Execute(ChessRobot);
+                    LogMove(new LogEventArgs(currentMove.Message ?? ""));
+                    chessStrategy!.ComputeNextMove();
+                }
+                else
+                {
+                    semaphore.Release();
+                    Thread.Sleep(100);
+                }
             }
-            else
+            catch (Exception e) 
             {
-                semaphore.Release();
-                Thread.Sleep(100);
+                throw new InvalidOperationException("Invalid move");
             }
         }
         ChangeGameState(GameState.NotInProgress);

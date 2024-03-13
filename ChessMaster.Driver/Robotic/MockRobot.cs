@@ -126,36 +126,42 @@ public class MockRobot : RobotBase
         SetupState = RobotResponse.AlreadyExecuting;
         MovementState = MovementState.Running;
 
-        foreach (RobotCommand command in commands)
+        try
         {
-            if (command is MoveCommand)
+            foreach (RobotCommand command in commands)
             {
-                var moveCommand = (MoveCommand)command;
-
-                var positionDifferenceVector = new Vector3(
-                    moveCommand.X - displayedPosition.X,
-                    moveCommand.Y - displayedPosition.Y,
-                    moveCommand.Z - displayedPosition.Z
-                );
-
-                int positionVectorDenominator = Math.Abs(positionDifferenceVector.X) > 50 || Math.Abs(positionDifferenceVector.Y) > 50 ? 100 : 10;
-                positionVectorDenominator = 5;
-                var partOfPositionDifferenceVector = positionDifferenceVector / (float)positionVectorDenominator;
-
-                int movePartsLeft = positionVectorDenominator;
-
-                while (movePartsLeft > 0)
+                if (command is MoveCommand)
                 {
-                    semaphore.Wait();
-                    if (!isPaused)
+                    var moveCommand = (MoveCommand)command;
+
+                    var positionDifferenceVector = new Vector3(
+                        moveCommand.X - displayedPosition.X,
+                        moveCommand.Y - displayedPosition.Y,
+                        moveCommand.Z - displayedPosition.Z
+                    );
+
+                    int positionVectorDenominator = Math.Abs(positionDifferenceVector.X) > 50 || Math.Abs(positionDifferenceVector.Y) > 50 ? 100 : 10;
+                    var partOfPositionDifferenceVector = positionDifferenceVector / (float)positionVectorDenominator;
+
+                    int movePartsLeft = positionVectorDenominator;
+
+                    while (movePartsLeft > 0)
                     {
-                        displayedPosition += partOfPositionDifferenceVector;
-                        movePartsLeft--;
+                        semaphore.Wait();
+                        if (!isPaused)
+                        {
+                            displayedPosition += partOfPositionDifferenceVector;
+                            movePartsLeft--;
+                        }
+                        semaphore.Release();
+                        Thread.Sleep(5);
                     }
-                    semaphore.Release();
-                    Thread.Sleep(5);
                 }
             }
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException("Invalid move");
         }
 
         SetupState = RobotResponse.Ok;

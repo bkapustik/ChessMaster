@@ -1,0 +1,61 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Images\BlackBishop.png" />
+    <None Remove="Images\BlackKing.png" />
+    <None Remove="Images\BlackKnight.png" />
+    <None Remove="Images\BlackPawn.png" />
+    <None Remove="Images\BlackQueen.png" />
+    <None Remove="Images\BlackRook.png" />
+    <None Remove="Images\Chessboard.png" />
+    <None Remove="Images\ChessboardSmaller.png" />
+    <None Remove="Images\icon.ico" />
+    <None Remove="Images\icon.png" />
+    <None Remove="Images\WhiteBishop.png" />
+    <None Remove="Images\WhiteKing.png" />
+    <None Remove="Images\WhiteKnight.png" />
+    <None Remove="Images\WhitePawn.png" />
+    <None Remove="Images\WhiteQueen.png" />
+    <None Remove="Images\WhiteRook.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Images\BlackBishop.png" />
+    <EmbeddedResource Include="Images\BlackKing.png" />
+    <EmbeddedResource Include="Images\BlackKnight.png" />
+    <EmbeddedResource Include="Images\BlackPawn.png" />
+    <EmbeddedResource Include="Images\BlackQueen.png" />
+    <EmbeddedResource Include="Images\BlackRook.png" />
+    <EmbeddedResource Include="Images\Chessboard.png" />
+    <EmbeddedResource Include="Images\ChessboardSmaller.png" />
+    <EmbeddedResource Include="Images\icon.ico" />
+    <EmbeddedResource Include="Images\icon.png" />
+    <EmbeddedResource Include="Images\WhiteBishop.png" />
+    <EmbeddedResource Include="Images\WhiteKing.png" />
+    <EmbeddedResource Include="Images\WhiteKnight.png" />
+    <EmbeddedResource Include="Images\WhitePawn.png" />
+    <EmbeddedResource Include="Images\WhiteQueen.png" />
+    <EmbeddedResource Include="Images\WhiteRook.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Emgu.CV" Version="4.8.1.5350" />
+    <PackageReference Include="Emgu.CV.Bitmap" Version="4.8.1.5350" />
+    <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
+    <PackageReference Include="MathNet.Spatial" Version="0.6.0" />
+    <PackageReference Include="System.Drawing.Common" Version="8.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ChessTracking.Common\ChessTracking.Common.csproj" />
+    <ProjectReference Include="..\MemoryMappedCollections\MemoryMappedCollections.csproj" />
+  </ItemGroup>
+
+</Project>
