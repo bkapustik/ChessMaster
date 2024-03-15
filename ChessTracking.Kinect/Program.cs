@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ChessTracking.Kinect
+﻿namespace ChessTracking.Kinect
 {
     public class Program
     {
         static void Main(string[] args)
         {
+            var trackingManager = new TrackingManager();
+            trackingManager.Run();
         }
     }
 }

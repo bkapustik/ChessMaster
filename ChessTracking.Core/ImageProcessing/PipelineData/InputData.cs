@@ -11,7 +11,7 @@ namespace ChessTracking.Core.ImageProcessing.PipelineData;
 /// <summary>
 /// Data arriving into pipeline
 /// </summary>
-class InputData
+public class InputData
 {
     public KinectData KinectData { get; set; }
     public TrackingResultData ResultData { get; set; }

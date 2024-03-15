@@ -50,6 +50,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ChessMaster.Chess\ChessMaster.ChessDriver.csproj" />
+    <ProjectReference Include="..\ChessTracking.Core\ChessTracking.Core.csproj" />
   </ItemGroup>
 
   <!-- 
@@ -67,9 +68,39 @@
     <PRIResource Remove="Views\**" />
   </ItemGroup>
   <ItemGroup>
+    <None Remove="Pages\AdvancedSettingsPage.xaml" />
+    <None Remove="Pages\CalibrationSnapshotPage.xaml" />
     <None Remove="Pages\FilePickerPage.xaml" />
     <None Remove="Pages\GamePage.xaml" />
+    <None Remove="Pages\MainKinectPage.xaml" />
     <None Remove="Pages\SelectStrategyPage.xaml" />
+    <None Remove="Pages\VizualizationPage.xaml" />
+    <None Remove="Windows\KinectWindow.xaml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Pages\VizualizationPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Pages\CalibrationSnapshotPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Pages\AdvancedSettingsPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Pages\MainKinectPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Windows\KinectWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Page Update="Pages\GamePage.xaml">

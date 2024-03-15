@@ -10,6 +10,7 @@ using ChessMaster.ControlApp.Helpers;
 using System.ComponentModel;
 using ChessMaster.RobotDriver.Events;
 using ChessMaster.ChessDriver;
+using ChessMaster.ControlApp.Services;
 
 namespace ChessMaster.ControlApp.Pages;
 

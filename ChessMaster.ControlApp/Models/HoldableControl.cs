@@ -5,6 +5,7 @@ using System;
 using Windows.System;
 using ChessMaster.ControlApp.Helpers;
 using ChessMaster.ChessDriver.Models;
+using ChessMaster.ControlApp.Services;
 
 namespace ChessMaster.ControlApp;
 

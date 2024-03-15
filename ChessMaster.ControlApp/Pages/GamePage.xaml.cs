@@ -1,5 +1,6 @@
 using ChessMaster.ChessDriver;
 using ChessMaster.ControlApp.Helpers;
+using ChessMaster.ControlApp.Services;
 using ChessMaster.RobotDriver.Events;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;

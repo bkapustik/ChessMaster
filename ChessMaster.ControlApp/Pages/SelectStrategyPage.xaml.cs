@@ -1,6 +1,7 @@
 using ChessMaster.ChessDriver;
 using ChessMaster.ChessDriver.ChessStrategy;
 using ChessMaster.ControlApp.Helpers;
+using ChessMaster.ControlApp.Services;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;

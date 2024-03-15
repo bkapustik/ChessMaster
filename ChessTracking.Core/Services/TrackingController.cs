@@ -21,8 +21,7 @@ public class TrackingController : IDisposable
 
     private readonly Pipeline pipeline;
 
-    //TODO user parameters prijdu raz pri zavolani konstruktora a potom sa parametre menia pri zavolani userparameters change prototype
-    public TrackingController(UserDefinedParametersPrototypeFactory userParameters, GameData game)
+    public TrackingController(UserDefinedParametersPrototypeFactory userParameters, TrackingResultProcessor trackingProcessor)
     {
         KinectInputQueue = new SharedMemoryQueue<KinectInputMessage>(
             CommonMemoryConstants.KinectInputMessageMemorySize,
@@ -34,7 +33,7 @@ public class TrackingController : IDisposable
             CommonMemoryConstants.KinectInputMessageMemoryFileName,
             CommonMemoryConstants.KinectInputMessageMemoryMutexName);
 
-        TrackingProcessor = new TrackingResultProcessor(game);
+        TrackingProcessor = trackingProcessor;
 
         pipeline = new Pipeline(userParameters, TrackingProcessor);
 

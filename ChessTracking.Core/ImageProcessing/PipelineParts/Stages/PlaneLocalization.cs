@@ -200,7 +200,7 @@ class PlaneLocalization : IPlaneLocalization
         bitmap.UnlockBits(bitmapData);
 
         //////////////////
-        Image<Gray, byte> cannyAppliedImage = new Image<Gray, byte>(bitmap);
+        Image<Gray, byte> cannyAppliedImage = bitmap.ToImage<Gray, byte>();
         cannyAppliedImage = cannyAppliedImage.Canny(1000, 1200, 7, true).SmoothGaussian(3, 3, 1, 1).ThresholdBinary(new Gray(65), new Gray(255));
         var canniedBytes = cannyAppliedImage.Bytes;
         return canniedBytes;

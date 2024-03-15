@@ -96,7 +96,8 @@ public sealed class ChessRunner
         {
             new PgnStrategyFacade(),
             new MockPgnStrategyFacade(),
-            new StockFishStrategyFacade()
+            new StockFishStrategyFacade(),
+            new StockFishKinectStrategyFacade()
         };
     }
     public void InitializeChessBoard(Vector2 a1, Vector2 h8)

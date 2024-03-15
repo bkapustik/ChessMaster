@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="ChessMaster.ControlApp.Windows.KinectWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+    <Page x:Name="KinectPage">
+        <Grid RowDefinitions="40, *"  Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+            <Grid x:Name="AppTitleBar"
+                 Grid.Row="0">
+                <Image Width="16"
+                      Height="16"
+                      Margin="8"
+                      HorizontalAlignment="Left"
+                      Source="Assets/logo.jpeg"/>
+                <TextBlock
+                   x:Name="AppTitleTextBlock"
+                   Margin="28,0,0,0"
+                   VerticalAlignment="Center"
+                   Style="{StaticResource CaptionTextBlockStyle}"
+                   Text="ChessTracker"
+                   TextWrapping="NoWrap" />
+            </Grid>
+            <Grid Grid.Row="1" x:Name="ControlsWindow"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" 
+                   CornerRadius="8">
+                <Canvas Background="Transparent">
+                    <Rectangle Canvas.Left="30" Canvas.Top="30" 
+                       Fill="Aquamarine" Width="200" Height="200" />
+                    <Rectangle Canvas.Left="150" Canvas.Top="150" 
+                       Fill="HotPink" Width="200" Height="200" />
+                    <Rectangle Canvas.Left="350" Canvas.Top="350" 
+                       Fill="Yellow" Width="200" Height="200" />
+                    <Rectangle Canvas.Left="500" Canvas.Top="50" 
+                       Fill="LawnGreen" Width="200" Height="200" />
+                </Canvas>
+                <Frame 
+                   x:Name="ContentFrame"
+                   Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}"
+                   Padding="20"/>
+            </Grid>
+        </Grid>
+    </Page>
+</Window>

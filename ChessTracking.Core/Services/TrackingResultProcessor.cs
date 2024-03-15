@@ -10,7 +10,6 @@ namespace ChessTracking.Core.Services;
 
 public class TrackingResultProcessor
 {
-    private GameController GameController { get; }
     private FPSCounter FpsCounter { get; }
     public GameData Game { get; set; }
 
@@ -43,21 +42,27 @@ public class TrackingResultProcessor
 
     public SceneCalibrationSnapshotEvent? OnSceneCalibrationSnapshotChanged { get; set; }
     public HandDetectedEvent? OnHandDetectionEvent { get; set; }
-    public VizualizationUpdatedEvent? OnVizualizationUpdadted { get; set; }
+    public VizualizationUpdatedEvent? OnVizualizationUpdated { get; set; }
     public BoardUpdatedEvent? OnImmediateBoardUpdated { get; set; }
     public AveragedBoardUpdatedEvent? OnAveragedBoardUpdated { get; set; }
     public GameRecognizedEvent? OnGameRecognized { get; set; }
     public ErrorOccuredEvent? OnErrorOccured { get; set; }
     public GameStartedEvent? OnGameStarted { get; set; }
     public FpsUpdatedEvent? OnFpsUpdated { get; set; }
+    public ChessboardStateChangedEvent? OnChessboardStateChanged { get; set; }
+    public GameValidationStateChangedEvent? OnGameValidationStateChanged { get; set; }
 
-    public TrackingResultProcessor(GameData game)
+    public TrackingResultProcessor()
     {
         FpsCounter = new FPSCounter();
         AveragingQueue = new Queue<TimestampObject<TrackingState>>();
         TimeOffset = DateTime.Now + TimeSpan.FromSeconds(1.5);
-        Game = game;
         TrackingInProgress = false;
+    }
+
+    public void Initialize(GameData game)
+    { 
+        Game = game;
     }
 
     public void Reset()
@@ -98,13 +103,10 @@ public class TrackingResultProcessor
             if (average == null)
                 return;
 
-            // send averaging
-            UpdateAveragedBoard(GenerateImageForTrackingState(average, null, GameController.GetTrackingState()));
-            // check so we aren't sending the same state again
+            UpdateAveragedBoard(GenerateImageForTrackingState(average, null, Game.Chessboard.GetTrackingStates()));
             if (LastSentState != null && !LastSentState.IsEquivalentTo(average))
             {
-                // send it to the game
-                GameController.TryChangeChessboardState(average);
+                ChangeChessboardState(average);
             }
 
             LastSentState = average;
@@ -119,11 +121,27 @@ public class TrackingResultProcessor
             else
             {
                 UpdateAveragedBoard(GenerateImageForTrackingState(average, null));
-                var rotation = GameController.InitiateWithTracingInput(average);
-                if (rotation.HasValue)
+
+                var figures = Game.Chessboard.GetTrackingStates().Figures;
+
+                var chessboardState = new TrackingState(figures);
+
+                int rotation = -1;
+
+                for (int i = 0; i < 4; i++)
+                {
+                    if (TrackingState.IsEquivalent(chessboardState, trackingState))
+                    {
+                        ChangeGameValidationState(true);
+                        rotation = i;
+                    }
+                    trackingState.RotateClockWise(1);
+                }
+
+                if (rotation != -1)
                 {
                     RaiseGameRecognized();
-                    NumberOfCwRotations = rotation.Value;
+                    NumberOfCwRotations = rotation;
                     RotateSavedStates();
                     TrackingInProgress = true;
                 }
@@ -243,7 +261,6 @@ public class TrackingResultProcessor
     {
         OnSceneCalibrationSnapshotChanged?.Invoke(this, new SceneCalibrationSnapshotEventArgs(snapshot));
     }
-
     private void UpdateFps()
     {
         int? fps = FpsCounter.Update();
@@ -251,6 +268,14 @@ public class TrackingResultProcessor
         {
             OnFpsUpdated?.Invoke(this, new FpsUpdatedEventArgs(fps.Value));
         }
+    }
+    private void ChangeChessboardState(TrackingState trackingState)
+    {
+        OnChessboardStateChanged?.Invoke(this, new ChessboardStateChangedEventArgs(trackingState));
+    }
+    private void ChangeGameValidationState(bool isValid)
+    {
+        OnGameValidationStateChanged?.Invoke(this, new GameValidationStateChangedEventArgs(isValid));
     }
     private void RaiseGameRecognized()
     {
@@ -262,7 +287,7 @@ public class TrackingResultProcessor
     }
     private void UpdateVizualization(Bitmap bitmap)
     {
-        OnVizualizationUpdadted?.Invoke(this, new VizualizationUpdateEventArgs(bitmap));
+        OnVizualizationUpdated?.Invoke(this, new VizualizationUpdateEventArgs(bitmap));
     }
     private void UpdateImmediateBoard(Bitmap bitmap)
     {

@@ -1,6 +1,6 @@
-﻿using ChessTracking.Kinect.Messages;
-using MemoryMappedCollections;
+﻿using MemoryMappedCollections;
 using ChessTracking.Common;
+using System.Threading;
 
 namespace ChessTracking.Kinect
 {
@@ -10,8 +10,8 @@ namespace ChessTracking.Kinect
     class TrackingManager
     {
         private Kinect Kinect { get; set; }
-        public SharedMemoryQueue<KinectInputMessage> KinectInputQueue { get; }
-        public SharedMemoryQueue<KinectData> Buffer { get; }
+        private SharedMemoryQueue<KinectInputMessage> KinectInputQueue { get; }
+        private SharedMemoryQueue<KinectData> Buffer { get; }
 
         public TrackingManager()
         {
@@ -26,29 +26,38 @@ namespace ChessTracking.Kinect
                 CommonMemoryConstants.KinectInputMessageMemoryMutexName);
         }
 
-        //
-        //TODO - smycka kt. bude citat z KinectInputQueue
-        //
-        //
-        //
-        //
-        //
-        //
+        public void Run()
+        {
+            while (true)
+            {
+                if (KinectInputQueue.GetCount() > 0)
+                {
+                    KinectInputQueue.TryDequeue(out var inputData);
 
-        public void StartTracking()
+                    if (inputData.MessageType == KinectInputMessageType.Start)
+                    {
+                        StartTracking();
+                    }
+
+                    if (inputData.MessageType == KinectInputMessageType.Stop)
+                    {
+                        StopTracking();
+                    }
+                }
+
+                Thread.Sleep(50);
+            }
+        }
+
+        private void StartTracking()
         {
             Kinect = new Kinect(Buffer);
         }
 
-        public void StopTracking(bool gameFinished = false)
+        private void StopTracking(bool gameFinished = false)
         {
             Kinect.Dispose();
             Kinect = null;
-        }
-
-        public void SendChessboardMovement(ChessboardMovement movement)
-        {
-            //TODO add to ProcessingOutputQueue
         }
     }
 }

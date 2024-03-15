@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="ChessMaster.ControlApp.Pages.MainKinectPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+    <Grid RowDefinitions="1*, 1.1*">
+        <Grid Grid.Row="0" ColumnDefinitions="1*, 1*, 1*">
+            <Grid Grid.Column="0" RowDefinitions="40, *" Margin="5,0,0,0">
+                <TextBlock Grid.Row="0" x:Name="materialLabel1" Text="Immediate tracking state + figure pts" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                <Image Grid.Row="1" x:Name="GameStatePictureBox" Stretch="Fill"/>
+            </Grid>
+            <Grid Grid.Column="1" RowDefinitions="40, *" Margin="5,0,0,0">
+                <TextBlock Grid.Row="0" x:Name="materialLabel2" Text="Averaged tracking state" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                <Image Grid.Row="1" x:Name="TrackedBoardStatePictureBox" Stretch="Fill" />
+            </Grid>
+            <Grid Grid.Column="2" RowDefinitions="40, *" Margin="5,0,0,0">
+                <TextBlock Grid.Row="0" x:Name="materialLabel3" Text="Game state" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                <Image Grid.Row="1" x:Name="ImmediateBoardStatePictureBox" Stretch="Fill" />
+            </Grid>
+        </Grid>
+
+        <Grid Grid.Row="1" ColumnDefinitions="190,*,*,200" Margin="10">
+            <StackPanel Orientation="Vertical" Grid.Column="0">
+                <StackPanel.Resources>
+                    <Style x:Key="LeftButtonStyle" TargetType="Button" BasedOn="{StaticResource AccentButtonStyle}">
+                        <Setter Property="Margin" Value="0,5,0,0"/>
+                        <Setter Property="HorizontalAlignment" Value="Center" />
+                        <Setter Property="Width" Value="170"/>
+                    </Style>
+                </StackPanel.Resources>
+                <Button x:Name="NewGameBtn" Content="New Game" HorizontalAlignment="Center" Width="170"/>
+                <Button x:Name="LoadGameBtn" Content="Load Game" Style="{StaticResource LeftButtonStyle}"/>
+                <Button x:Name="SaveGameBtn" Content="Save Game" Style="{StaticResource LeftButtonStyle}"/>
+                <Button x:Name="EndGameBtn" Content="End Game" Style="{StaticResource LeftButtonStyle}"/>
+                <Button x:Name="StartTrackingBtn" Content="Start Tracking" Style="{StaticResource LeftButtonStyle}"/>
+                <Button x:Name="Recalibrate" Content="Recalibrate" Style="{StaticResource LeftButtonStyle}"/>
+                <Button x:Name="StopTrackingBtn" Content="Stop Tracking" Style="{StaticResource LeftButtonStyle}"/>
+                <Button x:Name="CalibrationSnapshotsButton" Content="Calibration Snapshots" Style="{StaticResource LeftButtonStyle}" Click="CalibrationSnapshotsButtonClick"/>
+                <Button x:Name="AdvancedSettingsBtn" Content="Advanced Settings" Style="{StaticResource LeftButtonStyle}" Click="AdvancedSettingsButtonClick"/>
+
+            </StackPanel>
+
+            <ListView x:Name="GameHistoryListBox" Grid.Column="1">
+            </ListView>
+
+            <ListView x:Name="TrackingLogsListBox" Grid.Column="2">
+            </ListView>
+
+            <StackPanel Grid.Column="3">
+                <TextBlock x:Name="ValidationStateBtn" Text="ValidationState"/>
+                <TextBlock x:Name="SceneDisruptionBtn" Text="Scene Disruption"/>
+                <TextBlock x:Name="WhosPlayingLabel" />
+                <TextBlock x:Name="FPSLabel" Text="FPS:" />
+                <TextBlock Text="Chessboard movement" />
+                <StackPanel Orientation="Horizontal">
+                    <Button x:Name="MovementBtn1" Content="X" />
+                    <Button x:Name="MovementBtn2" Content="X" />
+                    <Button x:Name="MovementBtn3" Content="X" />
+                    <Button x:Name="MovementBtn4" Content="X" />
+                </StackPanel>
+                <TextBlock Text="Visualisation choice" />
+                <ComboBox x:Name="VizualizationChoiceComboBox" />
+                <TextBlock Text="Figure color calibration" />
+                <StackPanel Orientation="Horizontal">
+                    <Image x:Name="pictureBox1" Stretch="Fill" />
+                    <Slider x:Name="ColorCalibrationTrackBar" Orientation="Horizontal" Minimum="-150" Maximum="150" Width="50"/>
+                    <Image x:Name="pictureBox2" Stretch="Fill" />
+                </StackPanel>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Page>
