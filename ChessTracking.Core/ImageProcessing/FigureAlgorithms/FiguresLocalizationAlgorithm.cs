@@ -2,12 +2,7 @@
 using ChessTracking.Core.ImageProcessing.PipelineData;
 using ChessTracking.Core.Tracking.State;
 using ChessTracking.Core.Utils;
-using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ChessTracking.Core.ImageProcessing.FigureAlgorithms
 {
@@ -16,12 +11,12 @@ namespace ChessTracking.Core.ImageProcessing.FigureAlgorithms
     /// </summary>
     interface IFiguresLocalizationAlgorithm
     {
-        (TrackingState, int[,]) LocateFigures(KinectData kinectData, double fieldSize, byte[] canniedBytes, UserDefinedParameters userParameters, TrackingResultData resultData, Bitmap ColorBitmap, TrackingState gameTrackingState);
+        (TrackingState, int[,]) LocateFigures(KinectDataClass kinectData, double fieldSize, byte[] canniedBytes, UserDefinedParameters userParameters, TrackingResultData resultData, Bitmap ColorBitmap, TrackingState gameTrackingState);
     }
 
     class FiguresLocalizationAlgorithm : IFiguresLocalizationAlgorithm
     {
-        public (TrackingState, int[,]) LocateFigures(KinectData kinectData, double fieldSize, byte[] canniedBytes, UserDefinedParameters userParameters, TrackingResultData resultData, Bitmap colorBitmap, TrackingState gameTrackingState)
+        public (TrackingState, int[,]) LocateFigures(KinectDataClass kinectData, double fieldSize, byte[] canniedBytes, UserDefinedParameters userParameters, TrackingResultData resultData, Bitmap colorBitmap, TrackingState gameTrackingState)
         {
             // Collection of pixel colors for each field on chessboard
             var colorsOfPointsOverIndividualFields = InitializeColorCollection();
@@ -124,7 +119,7 @@ namespace ChessTracking.Core.ImageProcessing.FigureAlgorithms
         /// Detects points over individual fields of chessboard satisfying required conditions
         /// </summary>
         private List<Point2DWithColor>[,] FillColorsOverFiledsArrayWithData(
-            List<Point2DWithColor>[,] array, KinectData kinectData, double fieldSize, byte[] canniedBytes, UserDefinedParameters userParameters)
+            List<Point2DWithColor>[,] array, KinectDataClass kinectData, double fieldSize, byte[] canniedBytes, UserDefinedParameters userParameters)
         {
             var csp = kinectData.CameraSpacePointsFromDepthData;
             var infraredData = kinectData.InfraredData;

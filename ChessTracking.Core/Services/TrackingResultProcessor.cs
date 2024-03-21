@@ -5,6 +5,7 @@ using ChessTracking.Core.Tracking;
 using ChessTracking.Core.Tracking.State;
 using ChessTracking.Core.Utils;
 using System.Drawing;
+using System.Reflection;
 
 namespace ChessTracking.Core.Services;
 
@@ -51,6 +52,15 @@ public class TrackingResultProcessor
     public FpsUpdatedEvent? OnFpsUpdated { get; set; }
     public ChessboardStateChangedEvent? OnChessboardStateChanged { get; set; }
     public GameValidationStateChangedEvent? OnGameValidationStateChanged { get; set; }
+    public RecordStateUpdatedEvent? OnRecordStateUpdated { get; set; }
+    public BoardUpdatedEvent? OnBoardStateUpdated { get; set; }
+    public WhosPlayingUpdated? OnWhosPlayingUpdated { get; set; }
+
+    static TrackingResultProcessor()
+    {
+        var assembly = Assembly.GetExecutingAssembly();
+        ChessboardBitmap = PropertiesAccessor.GetResourceBitmap("ChessboardSmaller", assembly);
+    }
 
     public TrackingResultProcessor()
     {
@@ -60,9 +70,12 @@ public class TrackingResultProcessor
         TrackingInProgress = false;
     }
 
-    public void Initialize(GameData game)
+    public void InitializeGame(GameData game)
     { 
         Game = game;
+        UpdateRecordState(game.Moves, game.RecordOfGame);
+        UpdateBoardState(GameRenderer.RenderGameState(game));
+        UpdateWhosPlaying(game.PlayerOnMove);
     }
 
     public void Reset()
@@ -156,18 +169,19 @@ public class TrackingResultProcessor
     {
         trackingState = new TrackingState(trackingState.Figures);
 
-        var bm = (Bitmap)ChessboardBitmap.Clone();
         SolidBrush blackBrush = new SolidBrush(Color.Black);
         SolidBrush whiteBrush = new SolidBrush(Color.White);
         SolidBrush redBrush = new SolidBrush(Color.Red);
 
         Font font = new Font(FontFamily.GenericSerif, 4, FontStyle.Bold);
 
-        for (int x = 0; x < 8; x++)
+        var bm = new Bitmap(ChessboardBitmap.Width, ChessboardBitmap.Height, System.Drawing.Imaging.PixelFormat.Format32bppRgb);
+        using (Graphics graphics = Graphics.FromImage(bm))
         {
-            for (int y = 0; y < 8; y++)
+            graphics.DrawImage(ChessboardBitmap, 0, 0, ChessboardBitmap.Width, ChessboardBitmap.Height);
+            for (int x = 0; x < 8; x++)
             {
-                using (Graphics graphics = Graphics.FromImage(bm))
+                for (int y = 0; y < 8; y++)
                 {
                     // invertion of y coordinate due to differences between chess and bitmap coordinates
                     switch (trackingState.Figures[x, 7 - y])
@@ -257,6 +271,14 @@ public class TrackingResultProcessor
     {
         OnGameStarted?.Invoke(this, new GameStartedEventArgs());
     }
+    public void UpdateWhosPlaying(PlayerColor playerOnMove)
+    {
+        OnWhosPlayingUpdated?.Invoke(this, new WhosPlayingUpdatedEventArgs(playerOnMove));
+    }
+    private void UpdateBoardState(Bitmap bitmap)
+    {
+        OnBoardStateUpdated?.Invoke(this, new BoardUpdatedEventArgs(bitmap));
+    }
     public void SceneCalibrationSnapshotChanged(SceneCalibrationSnapshot snapshot)
     {
         OnSceneCalibrationSnapshotChanged?.Invoke(this, new SceneCalibrationSnapshotEventArgs(snapshot));
@@ -268,6 +290,10 @@ public class TrackingResultProcessor
         {
             OnFpsUpdated?.Invoke(this, new FpsUpdatedEventArgs(fps.Value));
         }
+    }
+    private void UpdateRecordState(IList<GameMove> moves, List<string> recordOfGame)
+    {
+        OnRecordStateUpdated?.Invoke(this, new RecordStateUpdatedEventArgs(moves, recordOfGame));
     }
     private void ChangeChessboardState(TrackingState trackingState)
     {

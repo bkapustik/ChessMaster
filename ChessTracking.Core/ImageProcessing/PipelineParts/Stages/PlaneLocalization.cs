@@ -10,6 +10,7 @@ using System.Drawing.Imaging;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using ChessTracking.Core.ImageProcessing.PipelineParts.General;
+using System.Linq.Expressions;
 
 namespace ChessTracking.Core.ImageProcessing.PipelineParts.Stages;
 
@@ -69,86 +70,91 @@ class PlaneLocalization : IPlaneLocalization
 
     private Image<Rgb, byte> ReturnColorImageOfTable(bool[] resultBools, byte[] colorFrameData, DepthSpacePoint[] pointsFromColorToDepth)
     {
-        Image<Rgb, byte> colorImg = new Image<Rgb, byte>(1920, 1080);
-
-        Bitmap bm = new Bitmap(1920, 1080, PixelFormat.Format24bppRgb);
-
-        BitmapData bitmapData = bm.LockBits(new Rectangle(0, 0, bm.Width, bm.Height), ImageLockMode.ReadWrite, PixelFormat.Format24bppRgb);
-        int bitmapSize = bm.Height * bm.Width;
-        int width = bm.Width;
-        int height = bm.Height;
-        unsafe
+        try
         {
-            byte* ptr = (byte*)bitmapData.Scan0;
+            Image<Rgb, byte> colorImg = new Image<Rgb, byte>(1920, 1080);
 
-            for (int y = 0; y < height; y++)
+            Bitmap bm = new Bitmap(1920, 1080, PixelFormat.Format24bppRgb);
+
+            BitmapData bitmapData = bm.LockBits(new Rectangle(0, 0, bm.Width, bm.Height), ImageLockMode.ReadWrite, PixelFormat.Format24bppRgb);
+            int bitmapSize = bm.Height * bm.Width;
+            int width = bm.Width;
+            int height = bm.Height;
+            unsafe
             {
-                for (int x = 0; x < width; x++)
+                byte* ptr = (byte*)bitmapData.Scan0;
+
+                for (int y = 0; y < height; y++)
                 {
-                    int pixelPostion = (y * 1920 + x);
-                    int rgbPositon = pixelPostion * 3;
-
-                    DepthSpacePoint point = pointsFromColorToDepth[pixelPostion];
-
-                    if (float.IsInfinity(point.X) || point.X < 0 || point.Y < 0)
+                    for (int x = 0; x < width; x++)
                     {
-                        *(ptr + rgbPositon + 2) = 255;
-                        *(ptr + rgbPositon + 1) = 255;
-                        *(ptr + rgbPositon + 0) = 255;
-                    }
-                    else
-                    {
-                        int colorX = (int)point.X;
-                        int colorY = (int)point.Y;
+                        int pixelPostion = (y * 1920 + x);
+                        int rgbPositon = pixelPostion * 3;
 
-                        if (colorY < 424 && colorX < 512)
+                        DepthSpacePoint point = pointsFromColorToDepth[pixelPostion];
+
+                        if (float.IsInfinity(point.X) || point.X < 0 || point.Y < 0)
                         {
-                            int colorImageIndex = ((512 * colorY) + colorX);
-
-                            if (resultBools[colorImageIndex])
-                            {
-                                *(ptr + rgbPositon + 2) = (byte)((colorFrameData[pixelPostion * 4]));
-                                *(ptr + rgbPositon + 1) = (byte)((colorFrameData[pixelPostion * 4 + 1]));
-                                *(ptr + rgbPositon + 0) = (byte)((colorFrameData[pixelPostion * 4 + 2]));
-                            }
-                            else
-                            {
-                                *(ptr + rgbPositon + 2) = 255;
-                                *(ptr + rgbPositon + 1) = 255;
-                                *(ptr + rgbPositon + 0) = 255;
-                            }
+                            *(ptr + rgbPositon + 2) = 255;
+                            *(ptr + rgbPositon + 1) = 255;
+                            *(ptr + rgbPositon + 0) = 255;
                         }
+                        else
+                        {
+                            int colorX = (int)point.X;
+                            int colorY = (int)point.Y;
 
+                            if (colorY < 424 && colorX < 512)
+                            {
+                                int colorImageIndex = ((512 * colorY) + colorX);
+
+                                if (resultBools[colorImageIndex])
+                                {
+                                    *(ptr + rgbPositon + 2) = (byte)((colorFrameData[pixelPostion * 4]));
+                                    *(ptr + rgbPositon + 1) = (byte)((colorFrameData[pixelPostion * 4 + 1]));
+                                    *(ptr + rgbPositon + 0) = (byte)((colorFrameData[pixelPostion * 4 + 2]));
+                                }
+                                else
+                                {
+                                    *(ptr + rgbPositon + 2) = 255;
+                                    *(ptr + rgbPositon + 1) = 255;
+                                    *(ptr + rgbPositon + 0) = 255;
+                                }
+                            }
+
+                        }
                     }
                 }
             }
+            bm.UnlockBits(bitmapData);
+
+
+
+            /////////////////////////////////////////////////////////
+
+            BitmapData bmpdata = null;
+
+            try
+            {
+                bmpdata = bm.LockBits(new Rectangle(0, 0, bm.Width, bm.Height), ImageLockMode.ReadOnly, bm.PixelFormat);
+                int numbytes = bmpdata.Stride * bm.Height;
+                byte[] bytedata = new byte[numbytes];
+                IntPtr ptr = bmpdata.Scan0;
+
+                Marshal.Copy(ptr, bytedata, 0, numbytes);
+
+                colorImg.Bytes = bytedata;
+            }
+            finally
+            {
+                if (bmpdata != null)
+                    bm.UnlockBits(bmpdata);
+            }
+
+            return colorImg;
         }
-        bm.UnlockBits(bitmapData);
-
-
-
-        /////////////////////////////////////////////////////////
-
-        BitmapData bmpdata = null;
-
-        try
-        {
-            bmpdata = bm.LockBits(new Rectangle(0, 0, bm.Width, bm.Height), ImageLockMode.ReadOnly, bm.PixelFormat);
-            int numbytes = bmpdata.Stride * bm.Height;
-            byte[] bytedata = new byte[numbytes];
-            IntPtr ptr = bmpdata.Scan0;
-
-            Marshal.Copy(ptr, bytedata, 0, numbytes);
-
-            colorImg.Bytes = bytedata;
-        }
-        finally
-        {
-            if (bmpdata != null)
-                bm.UnlockBits(bmpdata);
-        }
-
-        return colorImg;
+        catch (Exception ex) { return null; }
+        
     }
 
     private Bitmap ReturnColorBitmap(byte[] colorFrameData)

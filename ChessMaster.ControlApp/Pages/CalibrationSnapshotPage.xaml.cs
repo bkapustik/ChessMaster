@@ -3,6 +3,7 @@ using ChessMaster.ControlApp.Windows;
 using ChessTracking.Core.ImageProcessing.PipelineParts.Events;
 using ChessTracking.Core.Services;
 using ChessTracking.Core.Tracking.State;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
@@ -11,13 +12,13 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace ChessMaster.ControlApp.Pages;
 
 public sealed partial class CalibrationSnapshotPage : Page
 {
-    private KinectWindow KinectWindow { get; set; }
     private UIKinectService KinectService { get; set; }
     private GameController GameController { get; set; }
     private List<Tuple<string, Bitmap>> Data { get; set; }
@@ -25,21 +26,18 @@ public sealed partial class CalibrationSnapshotPage : Page
     public CalibrationSnapshotPage()
     {
         this.InitializeComponent();
-
-        KinectService = UIKinectService.Instance;
-        GameController = KinectService.GameController;
     }
 
     protected override void OnNavigatedTo(NavigationEventArgs e)
     {
+        KinectService = App.Services.GetRequiredService<UIKinectService>();
+        GameController = KinectService.GameController;
+
+        var kinectWindow = (KinectWindow)e.Parameter;
+
         GameController.TrackingProcessor.OnSceneCalibrationSnapshotChanged += Update;
 
-        KinectWindow = (KinectWindow)e.Parameter;
-
-        KinectWindow.Closed += (object o, WindowEventArgs e) =>
-        {
-            GameController.TrackingProcessor.OnSceneCalibrationSnapshotChanged -= Update;
-        };
+        kinectWindow.Closed += (object o, WindowEventArgs eventArgs) => { GameController.TrackingProcessor.OnSceneCalibrationSnapshotChanged -= Update; };
     }
 
     private void GenerateListFromSnapshot(SceneCalibrationSnapshot snapshot)
@@ -58,15 +56,19 @@ public sealed partial class CalibrationSnapshotPage : Page
         if (e == null)
         {
             NameLabel.Text = "No data arrived";
-            LeftButton.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
-            RightButton.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
+            LeftButton.Visibility = Visibility.Collapsed;
+            RightButton.Visibility = Visibility.Collapsed;
             return;
         }
 
         var snapshot = e.Snapshot;
 
-        LeftButton.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
-        RightButton.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            LeftButton.Visibility = Visibility.Visible;
+            RightButton.Visibility = Visibility.Visible;
+        });
+        
         GenerateListFromSnapshot(snapshot);
         CurrentPosition = 0;
         UpdatePicturebox();
@@ -86,6 +88,10 @@ public sealed partial class CalibrationSnapshotPage : Page
 
     private void UpdatePicturebox()
     {
+        if (Data == null)
+        {
+            return;
+        }
         if (CurrentPosition >= Data.Count)
             CurrentPosition = 0;
         if (CurrentPosition < 0)
@@ -93,27 +99,29 @@ public sealed partial class CalibrationSnapshotPage : Page
 
         if (Data[CurrentPosition].Item2 != null)
         {
-
-            Task.Run(async () =>
+            Task.Run(() =>
             {
-                await DisplayBitmapInWinUI(Data[CurrentPosition].Item2, VizualizationImage);
+                DisplayBitmapInWinUI(Data[CurrentPosition].Item2, VizualizationImage);
             });
+
             NameLabel.Text = Data[CurrentPosition].Item1;
         }
     }
 
-    private async Task DisplayBitmapInWinUI(Bitmap bitmap, Microsoft.UI.Xaml.Controls.Image imageControl)
+    private void DisplayBitmapInWinUI(Bitmap bitmap, Microsoft.UI.Xaml.Controls.Image imageControl)
     {
-        using (var memoryStream = new MemoryStream())
+        DispatcherQueue.TryEnqueue(() =>
         {
-            bitmap.Save(memoryStream, System.Drawing.Imaging.ImageFormat.Png);
+            using (var memoryStream = new MemoryStream())
+            {
+                bitmap.Save(memoryStream, System.Drawing.Imaging.ImageFormat.Png);
+                memoryStream.Position = 0;
 
-            memoryStream.Position = 0;
+                var bitmapImage = new BitmapImage();
+                bitmapImage.SetSource(memoryStream.AsRandomAccessStream());
 
-            var bitmapImage = new BitmapImage();
-            await bitmapImage.SetSourceAsync(memoryStream.AsRandomAccessStream());
-
-            imageControl.Source = bitmapImage;
-        }
+                imageControl.Source = bitmapImage;
+            }
+        });
     }
 }

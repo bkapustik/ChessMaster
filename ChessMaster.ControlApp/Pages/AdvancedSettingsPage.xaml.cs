@@ -1,5 +1,7 @@
 using ChessMaster.ControlApp.Services;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Navigation;
 using System.ComponentModel;
 
 namespace ChessMaster.ControlApp.Pages;
@@ -90,14 +92,21 @@ public sealed partial class AdvancedSettingsPage : Page, INotifyPropertyChanged
         }
     }
 
+    private bool Initialized { get; set; }
+
     public AdvancedSettingsPage()
     {
         this.InitializeComponent();
-        KinectService = UIKinectService.Instance;
-        PrepareComponentsValues();
+        this.DataContext = this;
     }
 
     public event PropertyChangedEventHandler PropertyChanged;
+
+    protected override void OnNavigatedTo(NavigationEventArgs e)
+    {
+        KinectService = App.Services.GetRequiredService<UIKinectService>();
+        PrepareComponentsValues();
+    }
 
     private void OnPropertyChanged(string name)
     {
@@ -142,20 +151,32 @@ public sealed partial class AdvancedSettingsPage : Page, INotifyPropertyChanged
 
         DisruptionDetectionThresholdTrackBar.Value = parameters.DisruptionDetectionThreshold;
         DisruptionDetectionThreshold = parameters.DisruptionDetectionThreshold.ToString();
+
+        Initialized = true;
     }
 
 
     private void MilimetersClippedTrackBar_ValueChanged(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
     {
-        MilimetersClippedFromFigure = MilisecondsTasksTrackBar.Value.ToString();
-        KinectService.UserDefinedParameters.ChangePrototype(x => x.MinimalTimeBetweenTrackingTasksInMiliseconds = (int)MilisecondsTasksTrackBar.Value);
+        if (!Initialized)
+        {
+            return;
+        }
+
+        MilimetersClippedFromFigure = MilimetersClippedTrackBar.Value.ToString();
+        KinectService.UserDefinedParameters.ChangePrototype(x => x.MilimetersClippedFromFigure = (int)MilimetersClippedTrackBar.Value);
     }
     private void PointsIndicatingFigureTrackBar_ValueChanged(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
     {
+        if (!Initialized)
+        {
+            return;
+        }
+
         PointsIndicatingFigure = PointsIndicatingFigureTrackBar.Value.ToString();
         KinectService.UserDefinedParameters.ChangePrototype(x => x.NumberOfPointsIndicatingFigure = (int)PointsIndicatingFigureTrackBar.Value);
 
-        if (InfluencePresenceTrackBar.Value >= PointsIndicatingFigureTrackBar.Value)
+        if (InfluencePresenceTrackBar?.Value >= PointsIndicatingFigureTrackBar.Value)
             InfluencePresenceTrackBar.Value = PointsIndicatingFigureTrackBar.Value - 1;
 
         InfluencePresenceTrackBar.Maximum = PointsIndicatingFigureTrackBar.Value - 1;
@@ -163,16 +184,31 @@ public sealed partial class AdvancedSettingsPage : Page, INotifyPropertyChanged
     }
     private void MilisecondsTasksTrackBar_ValueChanged(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
     {
+        if (!Initialized)
+        {
+            return;
+        }
+
         MilisecondsTasks = MilisecondsTasksTrackBar.Value.ToString();
         KinectService.UserDefinedParameters.ChangePrototype(x => x.MinimalTimeBetweenTrackingTasksInMiliseconds = (int)MilisecondsTasksTrackBar.Value);
     }
     private void BinarizationThresholdTrackbar_ValueChanged(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
     {
+        if (!Initialized)
+        {
+            return;
+        }
+
         BinarizationThreshold = BinarizationThresholdTrackbar.Value.ToString();
         KinectService.UserDefinedParameters.ChangePrototype(x => x.BinarizationThreshold = (int)BinarizationThresholdTrackbar.Value);
     }
     private void OtzuToggleButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
+        if (!Initialized)
+        {
+            return;
+        }
+
         if ((string)OtzuToggleButton.Content == DISABLE_OTZU)
         {
             OtzuToggleButton.Content = ENABLE_OTZU;
@@ -186,16 +222,31 @@ public sealed partial class AdvancedSettingsPage : Page, INotifyPropertyChanged
     }
     private void InfraredFilterThresholdTtrackBar_ValueChanged(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
     {
+        if (!Initialized)
+        {
+            return;
+        }
+
         InfraredFilterThreshold = InfraredFilterThresholdTtrackBar.Value.ToString();
         KinectService.UserDefinedParameters.ChangePrototype(x => x.InfraredPointFilterThreshold = (int)InfraredFilterThresholdTtrackBar.Value);
     }
     private void DisruptionDetectionThresholdTrackBar_ValueChanged(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
     {
+        if (!Initialized)
+        {
+            return;
+        }
+
         DisruptionDetectionThreshold = DisruptionDetectionThresholdTrackBar.Value.ToString();
         KinectService.UserDefinedParameters.ChangePrototype(x => x.DisruptionDetectionThreshold = (int)DisruptionDetectionThresholdTrackBar.Value);
     }
     private void FiguresColorMetricButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
+        if (!Initialized)
+        {
+            return;
+        }
+
         if ((string)FiguresColorMetricButton.Content == SET_DEFAULT_METRIC)
         {
             FiguresColorMetricButton.Content = SET_QUADRATIC_METRIC;
@@ -209,11 +260,21 @@ public sealed partial class AdvancedSettingsPage : Page, INotifyPropertyChanged
     }
     private void DistanceMetricFittingChessboardTrackBar_ValueChanged(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
     {
+        if (!Initialized)
+        {
+            return;
+        }
+
         DistanceMetricFittingChessboard = DistanceMetricFittingChessboardTrackBar.Value.ToString();
         KinectService.UserDefinedParameters.ChangePrototype(x => x.ClippedDistanecInChessboardFittingMetric = (int)DistanceMetricFittingChessboardTrackBar.Value);
     }
     private void DistanceMetricFittingChessboardButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
+        if (!Initialized)
+        {
+            return;
+        }
+
         if ((string)DistanceMetricFittingChessboardButton.Content == SET_DEFAULT_METRIC)
         {
             DistanceMetricFittingChessboardButton.Content = SET_QUADRATIC_METRIC;
@@ -227,10 +288,20 @@ public sealed partial class AdvancedSettingsPage : Page, INotifyPropertyChanged
     }
     private void InfluenceColorTrackbar_ValueChanged(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
     {
+        if (!Initialized)
+        {
+            return;
+        }
+
         KinectService.UserDefinedParameters.ChangePrototype(x => x.GameStateInfluenceOnPresence = (int)InfluencePresenceTrackBar.Value);
     }
     private void InfluencePresenceTrackBar_ValueChanged(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
     {
+        if (!Initialized)
+        {
+            return;
+        }
+
         KinectService.UserDefinedParameters.ChangePrototype(x => x.GameStateInfluenceOnPresence = (int)InfluencePresenceTrackBar.Value);
     }
 }

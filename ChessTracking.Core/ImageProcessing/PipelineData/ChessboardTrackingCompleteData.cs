@@ -1,5 +1,4 @@
-﻿using ChessTracking.Common;
-using ChessTracking.Core.Tracking.State;
+﻿using ChessTracking.Core.Tracking.State;
 
 namespace ChessTracking.Core.ImageProcessing.PipelineData;
 
@@ -8,7 +7,7 @@ namespace ChessTracking.Core.ImageProcessing.PipelineData;
 /// </summary>
 public class ChessboardTrackingCompleteData
 {
-    public KinectData KinectData { get; set; }
+    public KinectDataClass KinectData { get; set; }
     public TrackingResultData ResultData { get; set; }
     public PlaneTrackingData PlaneData { get; set; }
     public ChessboardTrackingData ChessboardData { get; set; }

@@ -1,6 +1,7 @@
 ﻿using MemoryMappedCollections;
 using ChessTracking.Common;
 using System.Threading;
+using System;
 
 namespace ChessTracking.Kinect
 {
@@ -16,9 +17,9 @@ namespace ChessTracking.Kinect
         public TrackingManager()
         {
             Buffer = new SharedMemoryQueue<KinectData>(
-                CommonMemoryConstants.BufferSize,
                 CommonMemoryConstants.BufferMemoryFileName,
-                CommonMemoryConstants.BufferMemoryMutexName);
+                CommonMemoryConstants.BufferMemoryMutexName,
+                200000000, true);
 
             KinectInputQueue = new SharedMemoryQueue<KinectInputMessage>(
                 CommonMemoryConstants.KinectInputMessageMemorySize,
@@ -32,20 +33,26 @@ namespace ChessTracking.Kinect
             {
                 if (KinectInputQueue.GetCount() > 0)
                 {
-                    KinectInputQueue.TryDequeue(out var inputData);
 
-                    if (inputData.MessageType == KinectInputMessageType.Start)
+                    try
                     {
-                        StartTracking();
-                    }
+                        KinectInputQueue.TryDequeue(out var inputData);
 
-                    if (inputData.MessageType == KinectInputMessageType.Stop)
-                    {
-                        StopTracking();
+                        if (inputData.MessageType == KinectInputMessageType.Start)
+                        {
+                            StartTracking();
+                        }
+
+                        if (inputData.MessageType == KinectInputMessageType.Stop)
+                        {
+                            StopTracking();
+                        }
                     }
+                    catch (Exception ex)
+                    { return; }
                 }
 
-                Thread.Sleep(50);
+                Thread.Sleep(20);
             }
         }
 

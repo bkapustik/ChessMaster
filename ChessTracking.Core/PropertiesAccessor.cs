@@ -7,7 +7,7 @@ public static class PropertiesAccessor
 {
     public static Bitmap GetResourceBitmap(string resourceName, Assembly assembly)
     {
-        const string prefix = "ChessTracking.Core.Game.Images.";
+        const string prefix = "ChessTracking.Core.Images.";
         const string sufix = ".png";
 
         resourceName = prefix + resourceName + sufix;

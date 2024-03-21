@@ -15,6 +15,8 @@ using ChessMaster.ChessDriver.Events;
 using ChessMaster.ControlApp.Windows;
 using Windows.Graphics;
 using ChessMaster.ControlApp.Services;
+using ChessTracking.Core.Services.Events;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ChessMaster.ControlApp;
 
@@ -36,9 +38,9 @@ public sealed partial class MainWindow : Window
     {
         InitializeComponent();
 
-        chessRunner = ChessRunner.Instance;
-        robotService = UIRobotService.Instance;
-        configurationService = ConfigurationService.Instance;
+        chessRunner = App.Services.GetRequiredService<ChessRunner>();
+        robotService = App.Services.GetRequiredService<UIRobotService>();
+        configurationService = App.Services.GetRequiredService<ConfigurationService>();
         ExtendsContentIntoTitleBar = true;
         
         Resize(windowWidth, windowHeight);
@@ -182,10 +184,6 @@ public sealed partial class MainWindow : Window
         {
             KinectWindow kinectWindow = new(typeof(MainKinectPage));
             kinectWindow.Activate();
-
-            this.Closed += (object? o, WindowEventArgs e) => {
-                kinectWindow.Close();
-            };
         }
 
         if (!selectedStrategy.NeedsFileConfiguration)

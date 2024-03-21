@@ -1,5 +1,6 @@
 using ChessMaster.ControlApp.Helpers;
 using ChessMaster.ControlApp.Services;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
@@ -19,7 +20,7 @@ public sealed partial class FilePickerPage : Page
     public FilePickerPage()
     {
         this.InitializeComponent();
-        configurationService = ConfigurationService.Instance;
+        configurationService = App.Services.GetRequiredService<ConfigurationService>();
     }
 
     protected override void OnNavigatedTo(NavigationEventArgs e)

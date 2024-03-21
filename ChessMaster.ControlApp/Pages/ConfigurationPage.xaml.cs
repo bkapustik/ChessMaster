@@ -11,6 +11,7 @@ using System.ComponentModel;
 using ChessMaster.RobotDriver.Events;
 using ChessMaster.ChessDriver;
 using ChessMaster.ControlApp.Services;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ChessMaster.ControlApp.Pages;
 
@@ -69,9 +70,9 @@ public sealed partial class ConfigurationPage : Page, INotifyPropertyChanged
         base.OnNavigatedTo(e);
 
         mainWindow = App.MainWindow;
-        chessRunner = ChessRunner.Instance;
-        robotService = UIRobotService.Instance;
-        configurationService = ConfigurationService.Instance;
+        chessRunner = App.Services.GetRequiredService<ChessRunner>();
+        robotService = App.Services.GetRequiredService<UIRobotService>();
+        configurationService = App.Services.GetRequiredService<ConfigurationService>();
 
         timer = new DispatcherTimer
         {

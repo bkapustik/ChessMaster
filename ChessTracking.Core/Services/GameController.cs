@@ -1,4 +1,5 @@
 ﻿using ChessTracking.Core.Game;
+using ChessTracking.Core.ImageProcessing.PipelineData;
 using ChessTracking.Core.Services.Events;
 
 namespace ChessTracking.Core.Services;
@@ -7,17 +8,24 @@ public class GameController
 {
     public bool IsGameValid { get; set; }
     public GameData Game { get; private set; }
-    public ProgramStateEvent OnProgramStateChanged { get; set; }
+    public ProgramStateEvent? OnProgramStateChanged { get; set; }
     public TrackingResultProcessor TrackingProcessor { get; set; }
+    public TrackingController TrackingController { get; set; }
 
     public GameController()
     {
         TrackingProcessor = new TrackingResultProcessor();
     }
 
+    public void InitializeTracker(UserDefinedParametersPrototypeFactory parameters)
+    {
+        TrackingController = new TrackingController(parameters, TrackingProcessor);
+    }
+
     public void NewGame()
     {
         Game = GameFactory.NewGame();
+        TrackingProcessor.InitializeGame(Game);
     }
 
     public void SaveGame(StreamWriter stream)

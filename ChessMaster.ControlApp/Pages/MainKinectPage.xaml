@@ -10,7 +10,7 @@
         <Grid Grid.Row="0" ColumnDefinitions="1*, 1*, 1*">
             <Grid Grid.Column="0" RowDefinitions="40, *" Margin="5,0,0,0">
                 <TextBlock Grid.Row="0" x:Name="materialLabel1" Text="Immediate tracking state + figure pts" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                <Image Grid.Row="1" x:Name="GameStatePictureBox" Stretch="Fill"/>
+                <Image Grid.Row="1" x:Name="ImmediateBoardStatePictureBox" Stretch="Fill" />
             </Grid>
             <Grid Grid.Column="1" RowDefinitions="40, *" Margin="5,0,0,0">
                 <TextBlock Grid.Row="0" x:Name="materialLabel2" Text="Averaged tracking state" VerticalAlignment="Center" HorizontalAlignment="Center"/>
@@ -18,29 +18,30 @@
             </Grid>
             <Grid Grid.Column="2" RowDefinitions="40, *" Margin="5,0,0,0">
                 <TextBlock Grid.Row="0" x:Name="materialLabel3" Text="Game state" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                <Image Grid.Row="1" x:Name="ImmediateBoardStatePictureBox" Stretch="Fill" />
+                <Image Grid.Row="1" x:Name="GameStatePictureBox" Stretch="Fill"/>
             </Grid>
         </Grid>
 
         <Grid Grid.Row="1" ColumnDefinitions="190,*,*,200" Margin="10">
             <StackPanel Orientation="Vertical" Grid.Column="0">
                 <StackPanel.Resources>
-                    <Style x:Key="LeftButtonStyle" TargetType="Button" BasedOn="{StaticResource AccentButtonStyle}">
+                    <Style x:Key="LeftButtonStyle" TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
                         <Setter Property="Margin" Value="0,5,0,0"/>
                         <Setter Property="HorizontalAlignment" Value="Center" />
                         <Setter Property="Width" Value="170"/>
                     </Style>
                 </StackPanel.Resources>
-                <Button x:Name="NewGameBtn" Content="New Game" HorizontalAlignment="Center" Width="170"/>
+
+                <Button x:Name="NewGameBtn" Content="New Game" Click="NewGameBtn_Click" HorizontalAlignment="Center" Width="170" Style="{StaticResource DefaultButtonStyle}"/>
                 <Button x:Name="LoadGameBtn" Content="Load Game" Style="{StaticResource LeftButtonStyle}"/>
                 <Button x:Name="SaveGameBtn" Content="Save Game" Style="{StaticResource LeftButtonStyle}"/>
                 <Button x:Name="EndGameBtn" Content="End Game" Style="{StaticResource LeftButtonStyle}"/>
-                <Button x:Name="StartTrackingBtn" Content="Start Tracking" Style="{StaticResource LeftButtonStyle}"/>
-                <Button x:Name="Recalibrate" Content="Recalibrate" Style="{StaticResource LeftButtonStyle}"/>
-                <Button x:Name="StopTrackingBtn" Content="Stop Tracking" Style="{StaticResource LeftButtonStyle}"/>
+                <Button x:Name="StartTrackingBtn" Content="Start Tracking" Style="{StaticResource LeftButtonStyle}" Click="StartTrackingBtn_Click"/>
+                <Button x:Name="Recalibrate" Click="Recalibrate_Click" Content="Recalibrate" Style="{StaticResource LeftButtonStyle}"/>
+                <Button x:Name="StopTrackingBtn" Click="StopTrackingBtn_Click" Content="Stop Tracking" Style="{StaticResource LeftButtonStyle}"/>
                 <Button x:Name="CalibrationSnapshotsButton" Content="Calibration Snapshots" Style="{StaticResource LeftButtonStyle}" Click="CalibrationSnapshotsButtonClick"/>
                 <Button x:Name="AdvancedSettingsBtn" Content="Advanced Settings" Style="{StaticResource LeftButtonStyle}" Click="AdvancedSettingsButtonClick"/>
-
+                <Button x:Name="DisplayVizualization" Content="Vizualization" Style="{StaticResource LeftButtonStyle}" Click="DisplayVizualization_Click"></Button>
             </StackPanel>
 
             <ListView x:Name="GameHistoryListBox" Grid.Column="1">

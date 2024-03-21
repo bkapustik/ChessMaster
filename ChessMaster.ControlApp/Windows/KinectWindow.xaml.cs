@@ -23,16 +23,6 @@ public sealed partial class KinectWindow : Window
         ContentFrame.Navigate(page, this);
     }
 
-    public void CreateNewWindow(Type pageToOpen)
-    {
-        var newWindow = new KinectWindow(pageToOpen);
-        newWindow.Activate();
-
-        this.Closed += (object o, WindowEventArgs e) => {
-            newWindow.Close();
-        };
-    }
-
     public void Resize(int windowWidth, int windowHeight)
     {
         var windowHandle = WindowNative.GetWindowHandle(this);

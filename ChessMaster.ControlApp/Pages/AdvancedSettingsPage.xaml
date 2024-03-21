@@ -10,38 +10,38 @@
         <StackPanel Grid.Column="0" Orientation="Vertical">
             <StackPanel Orientation="Horizontal">
                 <TextBlock Text="Milimeters clipped from figure"/>
-                <TextBlock Text="{Binding MilimetersClippedFromFigure, Mode=OneWay}"/>
+                <TextBlock Text="{Binding MilimetersClippedFromFigure, Mode=OneWay}" Margin="10, 0, 0, 0"/>
             </StackPanel>
             <Slider x:Name="MilimetersClippedTrackBar" Value="10" Maximum="40" ValueChanged="MilimetersClippedTrackBar_ValueChanged"></Slider>
 
             <StackPanel Orientation="Horizontal">
                 <TextBlock Text="Number of points indicating figure"/>
-                <TextBlock Text="{Binding PointsIndicatingFigure, Mode=OneWay}"/>
+                <TextBlock Text="{Binding PointsIndicatingFigure, Mode=OneWay}" Margin="10, 0, 0, 0"/>
             </StackPanel>
             <Slider x:Name="PointsIndicatingFigureTrackBar" Minimum="1" Maximum="30" Value="5" ValueChanged="PointsIndicatingFigureTrackBar_ValueChanged"></Slider>
 
             <StackPanel Orientation="Horizontal">
                 <TextBlock Text="Minimum ms between tracking tasks"/>
-                <TextBlock Text="{Binding MilisecondsTasks, Mode=OneWay}"/>
+                <TextBlock Text="{Binding MilisecondsTasks, Mode=OneWay}" Margin="10, 0, 0, 0"/>
             </StackPanel>
             <Slider x:Name="MilisecondsTasksTrackBar" Value="220" SmallChange="5" LargeChange="25" Maximum="1000" ValueChanged="MilisecondsTasksTrackBar_ValueChanged"></Slider>
 
             <StackPanel Orientation="Horizontal">
                 <TextBlock Text="Binarization threshold"/>
-                <TextBlock Text="{Binding BinarizationThreshold, Mode=OneWay}"/>
+                <TextBlock Text="{Binding BinarizationThreshold, Mode=OneWay}" Margin="10, 0, 0, 0"/>
             </StackPanel>
             <Slider x:Name="BinarizationThresholdTrackbar" LargeChange="10" Maximum="255" Value="25" ValueChanged="BinarizationThresholdTrackbar_ValueChanged"></Slider>
 
             <Button Content="DISABLE OTSU THRESHOLDING" x:Name="OtzuToggleButton" Click="OtzuToggleButton_Click"/>
             <StackPanel Orientation="Horizontal">
                 <TextBlock Text="Infrared filter threshold"/>
-                <TextBlock Text="{Binding InfraredFilterThreshold, Mode=OneWay}"/>
+                <TextBlock Text="{Binding InfraredFilterThreshold, Mode=OneWay}" Margin="10, 0, 0, 0"/>
             </StackPanel>
             <Slider x:Name="InfraredFilterThresholdTtrackBar" LargeChange="100" Maximum="10000" Minimum="1" SmallChange="10" Value="1000" ValueChanged="InfraredFilterThresholdTtrackBar_ValueChanged"></Slider>
             
             <StackPanel Orientation="Horizontal">
                 <TextBlock Text="Disruption detection threshold"/>
-                <TextBlock Text="{Binding DisruptionDetectionThreshold, Mode=OneWay}"/>
+                <TextBlock Text="{Binding DisruptionDetectionThreshold, Mode=OneWay}" Margin="10, 0, 0, 0"/>
             </StackPanel>
             <Slider x:Name="DisruptionDetectionThresholdTrackBar" ValueChanged="DisruptionDetectionThresholdTrackBar_ValueChanged" LargeChange="10" Maximum="500" Value="20"></Slider>
         </StackPanel>

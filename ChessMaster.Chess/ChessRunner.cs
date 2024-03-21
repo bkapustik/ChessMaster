@@ -10,13 +10,8 @@ using System.Numerics;
 
 namespace ChessMaster.ChessDriver;
 
-public sealed class ChessRunner
+public sealed class ChessRunner : IChessRunner
 {
-    /// <summary>
-    /// Ensures the class is a singleton.
-    /// </summary>
-    public static ChessRunner Instance { get { return Nested.instance; } }
-
     private ChessRobot? ChessRobot { get; set; }
     private IChessStrategy? chessStrategy;
     private SemaphoreSlim semaphore;
@@ -136,11 +131,6 @@ public sealed class ChessRunner
 
         ChessRobot!.ReconfigureChessBoard(a1, h8);
     }
-    /// <summary>
-    /// Picks and initializes a strategy
-    /// </summary>
-    /// <param name="strategy"></param>
-    /// <returns>False if strategy has already been picked. Use <see cref="TryChangeStrategyWithContext"/>instead.</returns>
     public bool TryPickStrategy(IChessStrategy strategy)
     {
         if (chessStrategy != null)
@@ -149,14 +139,9 @@ public sealed class ChessRunner
         }
 
         InitializeStrategy(strategy);
+        isPaused = false;
         return true;
     }
-    /// <summary>
-    /// Changes strategy to new strategy.
-    /// </summary>
-    /// <param name="strategy">New strategy</param>
-    /// <param name="continueWithOldContext">Decides whether new strategy should continue with new context</param>
-    /// <returns>False if game is not paused or had not started yet or if robot is not initialized or new strategy can not accept old context.</returns>
     public bool TryChangeStrategyWithContext(IChessStrategy strategy, bool continueWithOldContext)
     {
         if (!isPaused || !GameHadBeenStarted || !RobotIsInitialized)
@@ -212,10 +197,6 @@ public sealed class ChessRunner
 
         ChessRobot!.Home();
     }
-    /// <summary>
-    /// Picks up a figure if game is paused.
-    /// </summary>
-    /// <returns> True if game is paused and robot's state is <see cref="RobotResponse.Initialized"/> or <see cref="RobotResponse.Ok"/>. Otherwise false</returns>
     public bool TryPickFigure(FigureType figure)
     {
         if (!RobotIsInitialized)
@@ -240,10 +221,6 @@ public sealed class ChessRunner
         var state = ChessRobot!.GetState();
         return isPaused && (state.RobotResponse == RobotResponse.Ok || state.RobotResponse == RobotResponse.Initialized);
     }
-    /// <summary>
-    /// Releases a figure if game is paused.
-    /// </summary>
-    /// <returns> True if game is paused and robot's state is <see cref="RobotResponse.Initialized"/> or <see cref="RobotResponse.Ok"/>. Otherwise false</returns>
     public bool TryReleaseFigure(FigureType figure)
     {
         if (!RobotIsInitialized)
@@ -319,8 +296,19 @@ public sealed class ChessRunner
         return ChessRobot!.IsAtDesired(desiredPosition);
     }
 
+    private void SubscribeToStrategyMoveComputed(object? o, StrategyEventArgs e)
+    {
+        currentMove = e.Move;
+        isMoveComputed = true;
+    }
+
     private void InitializeStrategy(IChessStrategy chessStrategy)
     {
+        if (this.chessStrategy != null)
+        {
+            this.chessStrategy!.MoveComputed -= SubscribeToStrategyMoveComputed;
+        }
+
         this.chessStrategy = chessStrategy;
         var initializationResult = this.chessStrategy.Initialize();
 
@@ -331,13 +319,9 @@ public sealed class ChessRunner
 
         isMoveDone = true;
 
-        chessStrategy!.MoveComputed += (object? o, StrategyEventArgs e) =>
-        {
-            currentMove = e.Move;
-            isMoveComputed = true;
-        };
+        chessStrategy!.MoveComputed += SubscribeToStrategyMoveComputed;
 
-        isPaused = false;
+        currentMove = new StartGameMove("Waiting for moves");
     }
     private void SwapStrategy(IChessStrategy chessStrategy, bool continueWithOldContext)
     {
@@ -345,6 +329,7 @@ public sealed class ChessRunner
         {
             InitializeChessBoard(LastA1, LastH8);
             InitializeStrategy(chessStrategy);
+            
             chessStrategy!.ComputeNextMove();
         }
         else
@@ -402,15 +387,5 @@ public sealed class ChessRunner
             }
         }
         ChangeGameState(GameState.NotInProgress);
-    }
-    private class Nested
-    {
-        // Explicit static constructor to tell C# compiler
-        // not to mark type as beforefieldinit
-        static Nested()
-        {
-        }
-
-        internal static readonly ChessRunner instance = new ChessRunner();
     }
 }

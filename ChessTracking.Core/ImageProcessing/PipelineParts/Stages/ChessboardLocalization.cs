@@ -1,6 +1,5 @@
 ﻿using ChessTracking.Core.ImageProcessing.ChessboardAlgorithms;
 using ChessTracking.Core.ImageProcessing.PipelineData;
-using ChessTracking.Core.ImageProcessing.PipelineParts.Events;
 using ChessTracking.Core.ImageProcessing.PipelineParts.StagesInterfaces;
 using ChessTracking.Core.Tracking.State;
 using ChessTracking.Core.Utils;

@@ -1,5 +1,4 @@
 ﻿using ChessTracking.Common;
-using ChessTracking.Core.Game;
 using ChessTracking.Core.ImageProcessing.PipelineData;
 using ChessTracking.Core.ImageProcessing.PipelineParts.General;
 using ChessTracking.Core.Tracking.State;
@@ -20,6 +19,7 @@ public class TrackingController : IDisposable
     public SharedMemoryQueue<KinectData> Buffer { get; }
 
     private readonly Pipeline pipeline;
+    public bool CanTakeAnother { get; set; } = true;
 
     public TrackingController(UserDefinedParametersPrototypeFactory userParameters, TrackingResultProcessor trackingProcessor)
     {
@@ -29,9 +29,9 @@ public class TrackingController : IDisposable
             CommonMemoryConstants.KinectInputMessageMemoryMutexName);
 
         Buffer = new SharedMemoryQueue<KinectData>(
-            CommonMemoryConstants.KinectInputMessageMemorySize,
-            CommonMemoryConstants.KinectInputMessageMemoryFileName,
-            CommonMemoryConstants.KinectInputMessageMemoryMutexName);
+            CommonMemoryConstants.BufferMemoryFileName,
+            CommonMemoryConstants.BufferMemoryMutexName,
+            100000000, true);
 
         TrackingProcessor = trackingProcessor;
 
@@ -52,13 +52,22 @@ public class TrackingController : IDisposable
             {
                 Buffer.TryDequeue(out KinectData kinectData);
 
+                var kinectDataClass = new KinectDataClass(kinectData);
+
                 if (!Calibrated)
                 {
-                    RecalibrateInternal(kinectData);
+                    RecalibrateInternal(kinectDataClass);
                 }
                 else
                 {
-                    ProcessKinectData(kinectData);
+
+                    //TODO change maybe
+                    ProcessKinectData(kinectDataClass);
+                    //if (CanTakeAnother)
+                    //{
+                    //    ProcessKinectData(kinectDataClass);
+                    //    CanTakeAnother = false;
+                    //}
                 }
             }
 
@@ -66,7 +75,7 @@ public class TrackingController : IDisposable
         }
     }
 
-    private void ProcessKinectData(KinectData kinectData)
+    private void ProcessKinectData(KinectDataClass kinectData)
     {
         pipeline.Process(kinectData);
     }
@@ -89,20 +98,12 @@ public class TrackingController : IDisposable
         TrackingProcessor.Reset();
     }
 
-    public bool Recalibrate()
+    public void Recalibrate()
     {
-        if (Buffer.GetCount() == 0)
-        {
-            return false;
-        }
-
-        Buffer.TryDequeue(out var kinectData);
-
-        RecalibrateInternal(kinectData);
-        return true;
+        Calibrated = false;
     }
 
-    private void RecalibrateInternal(KinectData kinectData)
+    private void RecalibrateInternal(KinectDataClass kinectData)
     {
         Calibrated = false;
         pipeline.Reset();

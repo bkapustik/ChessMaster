@@ -2,6 +2,7 @@ using ChessMaster.ChessDriver;
 using ChessMaster.ControlApp.Helpers;
 using ChessMaster.ControlApp.Services;
 using ChessMaster.RobotDriver.Events;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
@@ -29,8 +30,8 @@ public sealed partial class GamePage : Page, INotifyPropertyChanged
         get 
         {
             if (robotService == null)
-            { 
-                robotService = UIRobotService.Instance;
+            {
+                robotService = App.Services.GetRequiredService<UIRobotService>();
             }
             return robotService.GameMessages; 
         }

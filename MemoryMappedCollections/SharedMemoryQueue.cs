@@ -1,7 +1,9 @@
 ﻿using System;
+using System.IO;
 using System.IO.MemoryMappedFiles;
 using System.Runtime.InteropServices;
 using System.Threading;
+using ProtoBuf;
 
 namespace MemoryMappedCollections
 {
@@ -10,9 +12,11 @@ namespace MemoryMappedCollections
         private string FileName;
         private string MutexName;
 
+        private bool UseSerializer = false;
+        
         public int Size { get; private set; }
 
-        private int FrontLocation, RearLocation, CountLocation, RecordSize, MetaDataSize, MemorySize;
+        private int FrontLocation, RearLocation, CountLocation, RecordSize, MetaDataSize, ArraySizeLocation, MemorySize;
 
         private Mutex FileMutex;
         private MemoryMappedFile SharedFile;
@@ -41,12 +45,45 @@ namespace MemoryMappedCollections
             SharedFile = MemoryMappedFile.CreateOrOpen(FileName, MemorySize);
         }
 
+        /// <summary>
+        /// Size is capped at 1
+        /// </summary>
+        /// <param name="fileName"></param>
+        /// <param name="mutexName"></param>
+        /// <param name="memorySize"></param>
+        /// <param name="useSerializer"></param>
+        public SharedMemoryQueue(string fileName, string mutexName, int memorySize, bool useSerializer)
+        {
+            Size = 1;
+            FrontLocation = 0;
+            RearLocation = sizeof(Int32);
+            CountLocation = sizeof(Int32) * 2;
+            ArraySizeLocation = sizeof(Int32) * 3;
+            MetaDataSize = sizeof(Int32) * 4 + sizeof(long);
+            MemorySize = MetaDataSize + memorySize;
+            FileName = fileName;
+            MutexName = mutexName;
+
+            if (!Mutex.TryOpenExisting(MutexName, out var fileMutex))
+            {
+                FileMutex = new Mutex(false, MutexName);
+            }
+            else
+            {
+                FileMutex = fileMutex;
+            }
+
+            SharedFile = MemoryMappedFile.CreateOrOpen(FileName, MemorySize);
+
+            UseSerializer = useSerializer;
+        }
+
         public int GetCount()
         {
             int count;
-            using (var accessor = SharedFile.CreateViewAccessor(CountLocation, sizeof(Int32)))
+            using (var accessor = SharedFile.CreateViewAccessor(0, MemorySize))
             {
-                count = accessor.ReadInt32(0);
+                count = accessor.ReadInt32(CountLocation);
             }
             return count;
         }
@@ -66,8 +103,7 @@ namespace MemoryMappedCollections
                 rear = accessor.ReadInt32(RearLocation);
                 currentCount = accessor.ReadInt32(CountLocation);
 
-                if ((front == 0 && rear == Size - 1) ||
-                 (rear == (front - 1) % (Size - 1)))
+                if (currentCount == Size)
                 {
                     FileMutex.ReleaseMutex();
                     return false;
@@ -94,7 +130,28 @@ namespace MemoryMappedCollections
                 }
 
                 accessor.Write(RearLocation, rear);
-                accessor.Write(MetaDataSize + (RecordSize * newRecordLocation), ref value);
+
+                if (UseSerializer)
+                {
+                    try
+                    {
+                        byte[] serializedData;
+                        using (var ms = new MemoryStream())
+                        {
+                            Serializer.Serialize(ms, value);
+                            serializedData = ms.ToArray();
+                        }
+                        accessor.WriteArray(MetaDataSize, serializedData, 0, serializedData.Length);
+
+                        accessor.Write(ArraySizeLocation, serializedData.Length);
+                    }
+                    catch (Exception ex) { return false; }
+                }
+                else
+                {
+                    accessor.Write(MetaDataSize + (RecordSize * newRecordLocation), ref value);
+                }
+                
                 accessor.Write(CountLocation, currentCount + 1);
             }
             FileMutex.ReleaseMutex();
@@ -118,7 +175,21 @@ namespace MemoryMappedCollections
                     return false;
                 }
 
-                accessor.Read(MetaDataSize + (front * RecordSize), out value);
+                if (UseSerializer)
+                {
+                    accessor.Read(ArraySizeLocation, out int arraySize);
+                    byte[] serializedData = new byte[arraySize];
+                    accessor.ReadArray<byte>(MetaDataSize, serializedData, 0, arraySize);
+
+                    using (var ms = new MemoryStream(serializedData))
+                    {
+                        value = Serializer.Deserialize<T>(ms);
+                    }
+                }
+                else
+                {
+                    accessor.Read(MetaDataSize + (front * RecordSize), out value);
+                }
 
                 if (front == rear)
                 {

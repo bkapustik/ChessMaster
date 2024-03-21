@@ -47,7 +47,7 @@ class Pipeline
         TrackingProcessor.Reset();
     }
 
-    public bool TryCalibrate(KinectData kinectData)
+    public bool TryCalibrate(KinectDataClass kinectData)
     {
         try
         {
@@ -70,7 +70,7 @@ class Pipeline
         }
     }
 
-    public void Process(KinectData kinectData)
+    public void Process(KinectDataClass kinectData)
     {
         PipelineSlowdown();
 
@@ -78,24 +78,21 @@ class Pipeline
 
         LastReleasedTrackingTask = DateTime.Now;
 
-        Task.Run(() =>
+        try
         {
-            try
-            {
-                ProcessInternal(kinectData);
-            }
-            catch (Exception)
-            {
-                // ignored
-            }
-            finally
-            {
-                Semaphore.Release();
-            }
-        });
+            ProcessInternal(kinectData);
+        }
+        catch (Exception)
+        {
+            // ignored
+        }
+        finally
+        {
+            Semaphore.Release();
+        }
     }
 
-    private void ProcessInternal(KinectData kinectData)
+    private void ProcessInternal(KinectDataClass kinectData)
     {
         var gameTrackingState = TrackingProcessor.Game.Chessboard.GetTrackingStates();
         gameTrackingState.RotateClockWise(4 - TrackingProcessor.NumberOfCwRotations);
