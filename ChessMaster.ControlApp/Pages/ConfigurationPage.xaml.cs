@@ -19,9 +19,9 @@ public sealed partial class ConfigurationPage : Page, INotifyPropertyChanged
 {
     private MainWindow mainWindow;
 
-    private ChessRunner chessRunner;
-    private UIRobotService robotService;
-    private ConfigurationService configurationService;
+    private IChessRunner chessRunner;
+    private IUIRobotService robotService;
+    private IConfigurationService configurationService;
     private DispatcherTimer timer;
 
     public List<Button> AllButtons { get; set; }
@@ -70,9 +70,9 @@ public sealed partial class ConfigurationPage : Page, INotifyPropertyChanged
         base.OnNavigatedTo(e);
 
         mainWindow = App.MainWindow;
-        chessRunner = App.Services.GetRequiredService<ChessRunner>();
-        robotService = App.Services.GetRequiredService<UIRobotService>();
-        configurationService = App.Services.GetRequiredService<ConfigurationService>();
+        chessRunner = App.Services.GetRequiredService<IChessRunner>();
+        robotService = App.Services.GetRequiredService<IUIRobotService>();
+        configurationService = App.Services.GetRequiredService<IConfigurationService>();
 
         timer = new DispatcherTimer
         {

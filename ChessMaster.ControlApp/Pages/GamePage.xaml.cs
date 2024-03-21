@@ -20,8 +20,8 @@ public sealed partial class GamePage : Page, INotifyPropertyChanged
     private Button finishMoveButton;
     private Button changeStrategyButton;
     private Button reconfigureButton;
-    private ChessRunner chessRunner;
-    private UIRobotService robotService;
+    private IChessRunner chessRunner;
+    private IUIRobotService robotService;
 
     public event PropertyChangedEventHandler PropertyChanged;
 
@@ -31,7 +31,7 @@ public sealed partial class GamePage : Page, INotifyPropertyChanged
         {
             if (robotService == null)
             {
-                robotService = App.Services.GetRequiredService<UIRobotService>();
+                robotService = App.Services.GetRequiredService<IUIRobotService>();
             }
             return robotService.GameMessages; 
         }
@@ -53,8 +53,8 @@ public sealed partial class GamePage : Page, INotifyPropertyChanged
 
         mainWindow = App.MainWindow;
         MessagesList.ItemsSource = Messages;
-        robotService = UIRobotService.Instance;
-        chessRunner = ChessRunner.Instance;
+        robotService = App.Services.GetRequiredService<IUIRobotService>();
+        chessRunner = App.Services.GetRequiredService<IChessRunner>();
 
 
         if (!robotService.MessagesInitialized)

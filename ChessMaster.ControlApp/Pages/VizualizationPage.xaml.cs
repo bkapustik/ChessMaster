@@ -8,12 +8,13 @@ using Microsoft.UI.Xaml.Navigation;
 using ChessTracking.Core.Services.Events;
 using ChessMaster.ControlApp.Windows;
 using Microsoft.UI.Xaml;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ChessMaster.ControlApp.Pages;
 
 public sealed partial class VizualizationPage : Page
 {
-    private UIKinectService KinectService { get; set; }
+    private IUIKinectService KinectService { get; set; }
     public VizualizationPage()
     {
         this.InitializeComponent();
@@ -21,7 +22,7 @@ public sealed partial class VizualizationPage : Page
 
     protected override void OnNavigatedTo(NavigationEventArgs e)
     {
-        KinectService = UIKinectService.Instance;
+        KinectService = App.Services.GetRequiredService<IUIKinectService>();
 
         KinectService.GameController.TrackingProcessor.OnVizualizationUpdated += DisplayVizulization;
 

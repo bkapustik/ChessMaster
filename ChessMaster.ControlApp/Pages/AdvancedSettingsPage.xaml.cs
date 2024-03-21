@@ -13,7 +13,7 @@ public sealed partial class AdvancedSettingsPage : Page, INotifyPropertyChanged
     private const string SET_DEFAULT_METRIC = "Set default metric";
     private const string SET_QUADRATIC_METRIC = "Set quadratic metric";
 
-    private UIKinectService KinectService;
+    private IUIKinectService KinectService;
 
     private string milimetersClippedFromFigure;
     public string MilimetersClippedFromFigure
@@ -104,7 +104,7 @@ public sealed partial class AdvancedSettingsPage : Page, INotifyPropertyChanged
 
     protected override void OnNavigatedTo(NavigationEventArgs e)
     {
-        KinectService = App.Services.GetRequiredService<UIKinectService>();
+        KinectService = App.Services.GetRequiredService<IUIKinectService>();
         PrepareComponentsValues();
     }
 

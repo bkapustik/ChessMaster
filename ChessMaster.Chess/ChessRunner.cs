@@ -57,7 +57,11 @@ public sealed class ChessRunner : IChessRunner
     public MessageLoggedEvent? OnMessageLogged { get; set; }
     public GameStateEvent? OnGameStateChanged { get; set; }
 
-    private ChessRunner() => semaphore = new SemaphoreSlim(1);
+    public ChessRunner()
+    {
+        semaphore = new SemaphoreSlim(1);
+    }
+
     public void SelectPort(IRobot robot)
     {
         ChessRobot = new ChessRobot(robot);

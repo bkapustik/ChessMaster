@@ -9,12 +9,9 @@ using System.Collections.ObjectModel;
 
 namespace ChessMaster.ControlApp.Services;
 
-/// <summary>
-/// Singleton game state service
-/// </summary>
 public class UIRobotService : IUIRobotService
 {
-    private readonly ChessRunner chessRunner;
+    private readonly IChessRunner chessRunner;
 
     public UIGameState UIGameState { get; set; }
 
@@ -28,7 +25,7 @@ public class UIRobotService : IUIRobotService
         GameMessages = new ObservableCollection<string>();
         Timer = new DispatcherTimer();
 
-        chessRunner = App.Services.GetRequiredService<ChessRunner>();
+        chessRunner = App.Services.GetRequiredService<IChessRunner>();
     }
 
     public bool CanMove()

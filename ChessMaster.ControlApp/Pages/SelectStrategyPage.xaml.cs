@@ -2,6 +2,7 @@ using ChessMaster.ChessDriver;
 using ChessMaster.ChessDriver.ChessStrategy;
 using ChessMaster.ControlApp.Helpers;
 using ChessMaster.ControlApp.Services;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
@@ -14,8 +15,8 @@ public sealed partial class SelectStrategyPage : Page
     private MainWindow mainWindow;
     private List<ChessStrategyFacade> Strategies = new();
 
-    private ChessRunner chessRunner;
-    private UIRobotService robotService;
+    private IChessRunner chessRunner;
+    private IUIRobotService robotService;
 
     public SelectStrategyPage()
     {
@@ -27,8 +28,8 @@ public sealed partial class SelectStrategyPage : Page
         base.OnNavigatedTo(e);
 
         mainWindow = App.MainWindow;
-        chessRunner = ChessRunner.Instance;
-        robotService = UIRobotService.Instance;
+        chessRunner = App.Services.GetRequiredService<IChessRunner>();
+        robotService = App.Services.GetRequiredService<IUIRobotService>();
 
         var strategies = chessRunner.GetStrategies();
         Strategies.AddRange(strategies);

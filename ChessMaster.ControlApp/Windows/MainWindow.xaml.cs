@@ -15,7 +15,6 @@ using ChessMaster.ChessDriver.Events;
 using ChessMaster.ControlApp.Windows;
 using Windows.Graphics;
 using ChessMaster.ControlApp.Services;
-using ChessTracking.Core.Services.Events;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ChessMaster.ControlApp;
@@ -30,17 +29,17 @@ public sealed partial class MainWindow : Window
     private ChessStrategyFacade selectedStrategy;
     private Style TextBlockInGridStyle;
 
-    private readonly ChessRunner chessRunner;
-    private readonly UIRobotService robotService;
-    private readonly ConfigurationService configurationService;
+    private readonly IChessRunner chessRunner;
+    private readonly IUIRobotService robotService;
+    private readonly IConfigurationService configurationService;
 
     public MainWindow()
     {
         InitializeComponent();
 
-        chessRunner = App.Services.GetRequiredService<ChessRunner>();
-        robotService = App.Services.GetRequiredService<UIRobotService>();
-        configurationService = App.Services.GetRequiredService<ConfigurationService>();
+        chessRunner = App.Services.GetRequiredService<IChessRunner>();
+        robotService = App.Services.GetRequiredService<IUIRobotService>();
+        configurationService = App.Services.GetRequiredService<IConfigurationService>();
         ExtendsContentIntoTitleBar = true;
         
         Resize(windowWidth, windowHeight);
@@ -69,7 +68,7 @@ public sealed partial class MainWindow : Window
         }
         else
         {
-            Task.Run((() =>
+            Task.Run(() =>
             {
                 if (this.chessRunner.GameHadBeenStarted)
                 {
@@ -91,7 +90,7 @@ public sealed partial class MainWindow : Window
                     chessRunner.TryPickStrategy(strategy);
                     chessRunner.Start();
                 }
-            }));
+            });
         }
     }
 

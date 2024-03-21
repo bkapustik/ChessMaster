@@ -14,6 +14,7 @@ public interface IChessRunner
     bool RobotIsInitialized { get; }
     bool GameHadBeenStarted { get; }
     bool ChessBoardInitialized { get; }
+    RobotStateEvents? RobotStateEvents { get; }
     float GetConfigurationHeight();
     MessageLoggedEvent? OnMessageLogged { get; set; }
     GameStateEvent? OnGameStateChanged { get; set; }

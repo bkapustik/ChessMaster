@@ -1,5 +1,6 @@
 ﻿using ChessMaster.ChessDriver;
 using ChessMaster.Space.Coordinations;
+using Microsoft.Extensions.DependencyInjection;
 using System.Numerics;
 using System.Threading.Tasks;
 
@@ -7,11 +8,11 @@ namespace ChessMaster.ControlApp.Models;
 
 public class CornerPosition
 {
-    private readonly ChessRunner chessRunner;
+    private readonly IChessRunner chessRunner;
     public bool Locked { get; set; } = false;
     public Vector2 Position { get; set; }
 
-    public CornerPosition() => chessRunner = ChessRunner.Instance;
+    public CornerPosition() => chessRunner = App.Services.GetRequiredService<IChessRunner>();
 
     public string GetPositionString() => $"{Position.X}, {Position.Y}";
 

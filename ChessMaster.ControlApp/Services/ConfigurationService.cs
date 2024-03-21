@@ -9,14 +9,14 @@ using Windows.System;
 namespace ChessMaster.ControlApp.Services;
 public class ConfigurationService : IConfigurationService
 {
-    private readonly ChessRunner chessRunner;
+    private readonly IChessRunner chessRunner;
 
     public ConfigurationService()
     {
         A1Corner = new();
         H8Corner = new();
 
-        chessRunner = App.Services.GetRequiredService<ChessRunner>();
+        chessRunner = App.Services.GetRequiredService<IChessRunner>();
     }
 
     public bool IsRobotAtDesiredPosition() => chessRunner.IsRobotAtDesiredPosition(RobotDesiredPosition);

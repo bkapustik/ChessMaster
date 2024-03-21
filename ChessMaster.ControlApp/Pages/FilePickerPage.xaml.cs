@@ -15,12 +15,12 @@ namespace ChessMaster.ControlApp.Pages;
 public sealed partial class FilePickerPage : Page
 {
     private MainWindow mainWindow;
-    private readonly ConfigurationService configurationService;
+    private readonly IConfigurationService configurationService;
     private List<string> AcceptedFileTypes;
     public FilePickerPage()
     {
         this.InitializeComponent();
-        configurationService = App.Services.GetRequiredService<ConfigurationService>();
+        configurationService = App.Services.GetRequiredService<IConfigurationService>();
     }
 
     protected override void OnNavigatedTo(NavigationEventArgs e)

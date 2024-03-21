@@ -19,7 +19,7 @@ namespace ChessMaster.ControlApp.Pages;
 
 public sealed partial class CalibrationSnapshotPage : Page
 {
-    private UIKinectService KinectService { get; set; }
+    private IUIKinectService KinectService { get; set; }
     private GameController GameController { get; set; }
     private List<Tuple<string, Bitmap>> Data { get; set; }
     private int CurrentPosition { get; set; } = 0;
@@ -30,7 +30,7 @@ public sealed partial class CalibrationSnapshotPage : Page
 
     protected override void OnNavigatedTo(NavigationEventArgs e)
     {
-        KinectService = App.Services.GetRequiredService<UIKinectService>();
+        KinectService = App.Services.GetRequiredService<IUIKinectService>();
         GameController = KinectService.GameController;
 
         var kinectWindow = (KinectWindow)e.Parameter;

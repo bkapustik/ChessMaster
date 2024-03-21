@@ -6,6 +6,7 @@ using Windows.System;
 using ChessMaster.ControlApp.Helpers;
 using ChessMaster.ChessDriver.Models;
 using ChessMaster.ControlApp.Services;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ChessMaster.ControlApp;
 
@@ -94,13 +95,13 @@ public class HoldableMoveKey : HoldableKey
 {
     private bool hasBeenPressed;
 
-    private readonly UIRobotService robotService;
-    private readonly ConfigurationService configurationService;
+    private readonly IUIRobotService robotService;
+    private readonly IConfigurationService configurationService;
 
     public HoldableMoveKey(UIElement element, VirtualKey key) : base(element, key)
     { 
-        this.robotService = UIRobotService.Instance;
-        this.configurationService = ConfigurationService.Instance;
+        this.robotService = App.Services.GetRequiredService<IUIRobotService>();
+        this.configurationService = App.Services.GetRequiredService<IConfigurationService>();
     }
 
     protected override void ElementKeyDown(object sender, KeyRoutedEventArgs e)
@@ -141,14 +142,14 @@ public class HoldableMoveKey : HoldableKey
 public class HoldableMoveButton : HoldableControl
 {
 
-    private readonly UIRobotService robotService;
-    private readonly ConfigurationService configurationService;
+    private readonly IUIRobotService robotService;
+    private readonly IConfigurationService configurationService;
 
     public HoldableMoveButton(Button button) :
         base(button)
     {
-        robotService = UIRobotService.Instance;
-        this.configurationService = ConfigurationService.Instance;
+        robotService = App.Services.GetRequiredService<IUIRobotService>();
+        this.configurationService = App.Services.GetRequiredService<IConfigurationService>();
     }
 
     protected override void ReleasedMoveButton(object sender, PointerRoutedEventArgs e)

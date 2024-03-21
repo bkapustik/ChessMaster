@@ -19,7 +19,7 @@ namespace ChessMaster.ControlApp.Pages;
 public sealed partial class MainKinectPage : Page
 {
     private SceneCalibrationSnapshot Snapshot { get; set; }
-    private UIKinectService KinectService { get; set; }
+    private IUIKinectService KinectService { get; set; }
 
     public MainKinectPage()
     {
@@ -28,7 +28,7 @@ public sealed partial class MainKinectPage : Page
 
     protected override void OnNavigatedTo(NavigationEventArgs e)
     {
-        KinectService = App.Services.GetRequiredService<UIKinectService>();
+        KinectService = App.Services.GetRequiredService<IUIKinectService>();
 
         KinectService.InitializeTracker();
 

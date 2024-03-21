@@ -1,6 +1,7 @@
 using ChessMaster.ChessDriver;
 using ChessMaster.ControlApp.Helpers;
 using ChessMaster.ControlApp.Services;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
@@ -13,9 +14,9 @@ public sealed partial class PortSelectionPage : Page
     private MainWindow mainWindow;
 
     private RobotPicker robotPicker = new();
-    private ChessRunner chessRunner;
-    private UIRobotService robotService;
-    private ConfigurationService configurationService;
+    private IChessRunner chessRunner;
+    private IUIRobotService robotService;
+    private IConfigurationService configurationService;
 
     public PortSelectionPage()
     {
@@ -27,9 +28,9 @@ public sealed partial class PortSelectionPage : Page
         base.OnNavigatedTo(e);
 
         mainWindow = App.MainWindow;
-        chessRunner = ChessRunner.Instance;
-        robotService = UIRobotService.Instance;
-        configurationService = ConfigurationService.Instance;
+        chessRunner = App.Services.GetRequiredService<IChessRunner>();
+        robotService = App.Services.GetRequiredService<IUIRobotService>();
+        configurationService = App.Services.GetRequiredService<IConfigurationService>();
 
         PortComboBox.SelectedIndex = 0;
         var ports = SerialPort.GetPortNames();
