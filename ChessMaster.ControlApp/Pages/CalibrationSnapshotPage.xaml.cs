@@ -1,4 +1,4 @@
-using ChessMaster.ControlApp.Services.AbstractServices;
+using ChessMaster.ChessDriver.Services;
 using ChessMaster.ControlApp.Windows;
 using ChessTracking.Core.ImageProcessing.PipelineParts.Events;
 using ChessTracking.Core.Services;

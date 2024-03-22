@@ -1,4 +1,4 @@
-using ChessMaster.ControlApp.Services.AbstractServices;
+using ChessMaster.ChessDriver.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;

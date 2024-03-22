@@ -1,4 +1,6 @@
-﻿namespace ChessTracking.Kinect
+﻿using System;
+
+namespace ChessTracking.Kinect
 {
     public class Program
     {

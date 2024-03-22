@@ -19,7 +19,7 @@ namespace ChessTracking.Kinect
             Buffer = new SharedMemoryQueue<KinectData>(
                 CommonMemoryConstants.BufferMemoryFileName,
                 CommonMemoryConstants.BufferMemoryMutexName,
-                200000000, true);
+                CommonMemoryConstants.BufferMemorySize, true);
 
             KinectInputQueue = new SharedMemoryQueue<KinectInputMessage>(
                 CommonMemoryConstants.KinectInputMessageMemorySize,
@@ -33,23 +33,17 @@ namespace ChessTracking.Kinect
             {
                 if (KinectInputQueue.GetCount() > 0)
                 {
+                    KinectInputQueue.TryDequeue(out var inputData);
 
-                    try
+                    if (inputData.MessageType == KinectInputMessageType.Start)
                     {
-                        KinectInputQueue.TryDequeue(out var inputData);
-
-                        if (inputData.MessageType == KinectInputMessageType.Start)
-                        {
-                            StartTracking();
-                        }
-
-                        if (inputData.MessageType == KinectInputMessageType.Stop)
-                        {
-                            StopTracking();
-                        }
+                        StartTracking();
                     }
-                    catch (Exception ex)
-                    { return; }
+
+                    if (inputData.MessageType == KinectInputMessageType.Stop)
+                    {
+                        StopTracking();
+                    }
                 }
 
                 Thread.Sleep(20);

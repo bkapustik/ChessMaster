@@ -2,6 +2,7 @@
 using ChessTracking.Kinect.Mapping;
 using MemoryMappedCollections;
 using Microsoft.Kinect;
+using System;
 
 namespace ChessTracking.Kinect
 {
@@ -127,16 +128,15 @@ namespace ChessTracking.Kinect
                     )
                 {
                     var kinectData = new KinectData(
-                            colorFrameData,
-                            depthData,
-                            infraredData,
-                            cameraSpacePointsFromDepthData.ToCommon(),
-                            pointsFromColorToDepth.ToCommon(),
-                            pointsFromDepthToColor.ToCommon());
-                 
+                           colorFrameData,
+                           depthData,
+                           infraredData,
+                           cameraSpacePointsFromDepthData.ToCommon(),
+                           pointsFromColorToDepth.ToCommon(),
+                           pointsFromDepthToColor.ToCommon());
+                    
                     Buffer.TryEnqueue(ref kinectData);
                 }
-
             }
         }
 

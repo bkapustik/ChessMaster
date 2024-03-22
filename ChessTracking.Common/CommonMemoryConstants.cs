@@ -14,8 +14,10 @@ namespace ChessTracking.Common
         public const string KinectInputMessageMemoryFileName = nameof(KinectInputMessageMemoryFileName);
         public const string KinectInputMessageMemoryMutexName = nameof(KinectInputMessageMemoryMutexName);
 
-        public const int BufferSize = 1;
+        public const int BufferMaximumRecords = 1;
         public const string BufferMemoryFileName = nameof(BufferMemoryFileName);
         public const string BufferMemoryMutexName = nameof(BufferMemoryMutexName);
+
+        public const int BufferMemorySize = 100000000;
     }
 }

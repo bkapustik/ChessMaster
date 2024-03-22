@@ -11,7 +11,7 @@ public class UserDefinedParameters
     public double ColorCalibrationAdditiveConstant { get; set; } = 0;
     public int MilimetersClippedFromFigure { get; set; } = 10;
     public int NumberOfPointsIndicatingFigure { get; set; } = 5;
-    public int MinimalTimeBetweenTrackingTasksInMiliseconds { get; set; } = 220;
+    public int MinimalTimeBetweenTrackingTasksInMiliseconds { get; set; } = 120;
     public bool OtzuActiveInBinarization { get; set; } = true;
     public int BinarizationThreshold { get; set; } = 120;
     public bool IsFiguresColorMetricExperimental { get; set; } = true;

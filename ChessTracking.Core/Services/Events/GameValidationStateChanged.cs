@@ -10,7 +10,7 @@ public delegate void GameValidationStateChangedEvent(object? o, GameValidationSt
 
 public class GameValidationStateChangedEventArgs : EventArgs
 {
-    public bool IsValid { get; set; }
+    public bool? IsValid { get; set; }
     public GameValidationStateChangedEventArgs(bool isValid)
     {
         IsValid = isValid;

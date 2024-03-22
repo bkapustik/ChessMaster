@@ -3,6 +3,7 @@ using ChessTracking.Core.ImageProcessing.PipelineData;
 using ChessTracking.Core.ImageProcessing.PipelineParts.General;
 using ChessTracking.Core.Tracking.State;
 using MemoryMappedCollections;
+using System.Diagnostics;
 namespace ChessTracking.Core.Services;
 
 public class TrackingController : IDisposable
@@ -14,12 +15,15 @@ public class TrackingController : IDisposable
     private bool TrackingCanceled { get; set; }
     private bool IsPaused { get; set; }
 
+    public string KinectTrackingAppPath { get; set; }
     public TrackingResultProcessor TrackingProcessor { get; private set; }
     public SharedMemoryQueue<KinectInputMessage> KinectInputQueue { get; }
     public SharedMemoryQueue<KinectData> Buffer { get; }
 
     private readonly Pipeline pipeline;
+    private Process? TrackerAppProcess { get; set; } = null;
     public bool CanTakeAnother { get; set; } = true;
+    private bool RunningHadBeenStarted { get; set; } = false;
 
     public TrackingController(UserDefinedParametersPrototypeFactory userParameters, TrackingResultProcessor trackingProcessor)
     {
@@ -31,7 +35,7 @@ public class TrackingController : IDisposable
         Buffer = new SharedMemoryQueue<KinectData>(
             CommonMemoryConstants.BufferMemoryFileName,
             CommonMemoryConstants.BufferMemoryMutexName,
-            100000000, true);
+            CommonMemoryConstants.BufferMemorySize, true);
 
         TrackingProcessor = trackingProcessor;
 
@@ -40,8 +44,20 @@ public class TrackingController : IDisposable
         Calibrated = false;
         TrackingCanceled = false;
         IsPaused = true;
+    }
 
-        Task.Run(Run);
+    public void StartTrackerApp() 
+    {
+        if (TrackerAppProcess == null || TrackerAppProcess.HasExited)
+        {
+            TrackerAppProcess = new Process();
+            TrackerAppProcess.StartInfo.WorkingDirectory = Path.GetDirectoryName(KinectTrackingAppPath);
+            TrackerAppProcess.StartInfo.FileName = KinectTrackingAppPath;
+            TrackerAppProcess.StartInfo.Verb = "runas";
+            TrackerAppProcess.StartInfo.CreateNoWindow = true;
+
+            TrackerAppProcess.Start();
+        }
     }
 
     private void Run()
@@ -71,7 +87,7 @@ public class TrackingController : IDisposable
                 }
             }
 
-            Thread.Sleep(50);
+            Thread.Sleep(30);
         }
     }
 
@@ -87,6 +103,14 @@ public class TrackingController : IDisposable
 
     public void Start()
     {
+        StartTrackerApp();
+
+        if (!RunningHadBeenStarted)
+        {
+            RunningHadBeenStarted = true;
+            Task.Run(Run);
+        }
+
         var message = new KinectInputMessage(KinectInputMessageType.Start);
         KinectInputQueue.TryEnqueue(ref message);
     }
@@ -113,5 +137,7 @@ public class TrackingController : IDisposable
     public void Dispose()
     {
         TrackingCanceled = true;
+        TrackerAppProcess?.Kill();
+        TrackerAppProcess?.Dispose();
     }
 }

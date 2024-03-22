@@ -45,6 +45,13 @@ public partial class App : Application
         MainWindow.NavigateTo(typeof(PortSelectionPage));
 
         m_window = MainWindow;
+
+        MainWindow.Closed += (object o, WindowEventArgs e) =>
+        {
+            var kinectService = serviceProvider.GetRequiredService<IKinectService>();
+            kinectService.GameController.TrackingController.Dispose();
+        };
+
         m_window.Activate();
     }
 

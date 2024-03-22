@@ -11,4 +11,17 @@ public class WhosPlayingUpdatedEventArgs : EventArgs
     {
         PlayerColor = playerColor;
     }
+
+    public override string ToString()
+    { 
+        switch (PlayerColor) 
+        {
+            case PlayerColor.White:
+                return "White";
+            case PlayerColor.Black:
+                return "Black";
+            default:
+                return "";
+        }
+    }
 }

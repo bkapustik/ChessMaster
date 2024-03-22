@@ -79,7 +79,7 @@ public class StockFishKinectStrategyFacade : ChessStrategyFacade
     public override IChessStrategy CreateStrategy() => new StockfishKinectChessTrackingStrategy(KinectService!, File!);
     public override bool NeedsFileConfiguration => true;
     public override bool NeedsKinectConfiguration => true;
-    public override List<string> AcceptedFileTypes => base.AcceptedFileTypes;
+    public override List<string> AcceptedFileTypes => new List<string> { ".exe" };
     public override void Configure(string configuration)
     {
         File = configuration;

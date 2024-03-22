@@ -16,12 +16,32 @@ public class GameController
     {
         TrackingProcessor = new TrackingResultProcessor();
         TrackingController = new TrackingController(parameters, TrackingProcessor);
+
+        TrackingProcessor.OnProgramStateChanged += (object? o, ProgramStateEventArgs e) =>
+        {
+            if (e.ProgramState == ProgramState.GameFinished)
+            {
+                TrackingController.Stop();
+            }
+
+            OnProgramStateChanged?.Invoke(o, e);
+        };
     }
 
     public void NewGame()
     {
-        Game = GameFactory.NewGame();
-        TrackingProcessor.InitializeGame(Game);
+        try
+        {
+            TrackingController.KinectTrackingAppPath = "C:/Users/asus/Desktop/Bakalarka/ChessMaster/ChessTracking.Kinect/bin/Release/ChessTracking.Kinect.exe";
+            TrackingController.StartTrackerApp();
+
+            Game = GameFactory.NewGame();
+            TrackingProcessor.InitializeGame(Game);
+        }
+        catch
+        (Exception ex)
+        { return; }
+        
     }
 
     public void SaveGame(StreamWriter stream)
@@ -43,7 +63,6 @@ public class GameController
             Game = loadingResult.Game;
 
             if (Game.EndState == GameState.StillPlaying)
-
                 ChangeProgramState(ProgramState.GameLoaded);
             else
                 ChangeProgramState(ProgramState.GameFinished);

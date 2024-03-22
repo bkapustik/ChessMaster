@@ -13,7 +13,7 @@ namespace MemoryMappedCollections
         private string MutexName;
 
         private bool UseSerializer = false;
-        
+
         public int Size { get; private set; }
 
         private int FrontLocation, RearLocation, CountLocation, RecordSize, MetaDataSize, ArraySizeLocation, MemorySize;
@@ -133,25 +133,21 @@ namespace MemoryMappedCollections
 
                 if (UseSerializer)
                 {
-                    try
+                    byte[] serializedData;
+                    using (var ms = new MemoryStream())
                     {
-                        byte[] serializedData;
-                        using (var ms = new MemoryStream())
-                        {
-                            Serializer.Serialize(ms, value);
-                            serializedData = ms.ToArray();
-                        }
-                        accessor.WriteArray(MetaDataSize, serializedData, 0, serializedData.Length);
-
-                        accessor.Write(ArraySizeLocation, serializedData.Length);
+                        Serializer.Serialize(ms, value);
+                        serializedData = ms.ToArray();
                     }
-                    catch (Exception ex) { return false; }
+                    accessor.WriteArray(MetaDataSize, serializedData, 0, serializedData.Length);
+
+                    accessor.Write(ArraySizeLocation, serializedData.Length);
                 }
                 else
                 {
                     accessor.Write(MetaDataSize + (RecordSize * newRecordLocation), ref value);
                 }
-                
+
                 accessor.Write(CountLocation, currentCount + 1);
             }
             FileMutex.ReleaseMutex();

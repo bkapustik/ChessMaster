@@ -55,6 +55,7 @@ public class TrackingResultProcessor
     public RecordStateUpdatedEvent? OnRecordStateUpdated { get; set; }
     public BoardUpdatedEvent? OnBoardStateUpdated { get; set; }
     public WhosPlayingUpdated? OnWhosPlayingUpdated { get; set; }
+    public ProgramStateEvent? OnProgramStateChanged { get; set; }
 
     static TrackingResultProcessor()
     {
@@ -297,7 +298,41 @@ public class TrackingResultProcessor
     }
     private void ChangeChessboardState(TrackingState trackingState)
     {
+        if (Game.EndState == GameState.StillPlaying)
+        {
+            var validationResult = GameValidator.ValidateAndPerform(Game.DeepClone(), trackingState);
+
+            if (validationResult.IsValid)
+            { 
+                Game = validationResult.NewGameState;
+            }
+
+            if (trackingState.IsEquivalentTo(Game.Chessboard.GetTrackingStates()))
+            {
+                ChangeGameValidationState(true);
+            }
+            else
+            {
+                ChangeGameValidationState(validationResult.IsValid);
+            }
+
+            if (Game.EndState != GameState.StillPlaying)
+            {
+                ChangeProgramState(ProgramState.GameFinished);
+
+                ChangeProgramState(ProgramState.GameEnded, Game.EndState);
+            }
+
+            UpdateWhosPlaying(Game.PlayerOnMove);
+            UpdateBoardState(GameRenderer.RenderGameState(Game));
+            UpdateRecordState(Game.Moves, Game.RecordOfGame);
+        }
+
         OnChessboardStateChanged?.Invoke(this, new ChessboardStateChangedEventArgs(trackingState));
+    }
+    private void ChangeProgramState(ProgramState programState, GameState? gameState = null)
+    {
+        OnProgramStateChanged?.Invoke(this, new ProgramStateEventArgs(programState, gameState));
     }
     private void ChangeGameValidationState(bool isValid)
     {

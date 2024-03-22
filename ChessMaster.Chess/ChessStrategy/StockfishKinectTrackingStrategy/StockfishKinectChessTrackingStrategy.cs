@@ -30,6 +30,12 @@ public class StockfishKinectChessTrackingStrategy : IChessStrategy
         if (!IsRobotMove)
         {
             var newMoveUci = e.RecordOfGame.Last();
+
+            if (newMoveUci == UciMoves.Last())
+            {
+                return;
+            }
+
             UciMoves.Add(newMoveUci);
 
             var chessMove = StockfishStrategyHelper.CreateMoveFromUci(newMoveUci, ChessBoard);

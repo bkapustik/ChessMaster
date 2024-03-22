@@ -8,7 +8,7 @@ using ChessTracking.Core.Services.Events;
 using ChessMaster.ControlApp.Windows;
 using Microsoft.UI.Xaml;
 using Microsoft.Extensions.DependencyInjection;
-using ChessMaster.ControlApp.Services.AbstractServices;
+using ChessMaster.ChessDriver.Services;
 
 namespace ChessMaster.ControlApp.Pages;
 

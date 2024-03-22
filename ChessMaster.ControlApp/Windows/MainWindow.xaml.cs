@@ -17,6 +17,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml.Input;
 using ChessMaster.ChessDriver.Services;
 using ChessMaster.ControlApp.Services;
+using System.Reflection;
 
 namespace ChessMaster.ControlApp;
 
@@ -186,10 +187,13 @@ public sealed partial class MainWindow : Window
 
         if (selectedStrategy.NeedsKinectConfiguration)
         {
-            KinectWindow kinectWindow = new(typeof(MainKinectPage));
-            kinectWindow.Activate();
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                KinectWindow kinectWindow = new(typeof(MainKinectPage));
+                kinectWindow.Activate();
 
-            selectedStrategy.Configure(App.Services.GetRequiredService<IKinectService>());
+                selectedStrategy.Configure(App.Services.GetRequiredService<IKinectService>());
+            });
         }
 
         if (!selectedStrategy.NeedsFileConfiguration)

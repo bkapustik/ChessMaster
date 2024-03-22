@@ -6,5 +6,5 @@ namespace ChessMaster.ChessDriver.Services;
 public interface IKinectService
 {
     GameController GameController { get; }
-    UserDefinedParametersPrototypeFactory UserDefinedParameters { get; set; }
+    UserDefinedParametersPrototypeFactory UserDefinedParameters { get; }
 }

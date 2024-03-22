@@ -1,13 +1,17 @@
-﻿namespace ChessTracking.Core.Services.Events;
+﻿using ChessTracking.Core.Game;
+
+namespace ChessTracking.Core.Services.Events;
 
 public delegate void ProgramStateEvent(object? o, ProgramStateEventArgs e);
 
 public class ProgramStateEventArgs : EventArgs
 {
     public ProgramState ProgramState { get; set; }
-    public ProgramStateEventArgs(ProgramState programState)
+    public GameState? GameState { get; set; }
+    public ProgramStateEventArgs(ProgramState programState, GameState? gameState = null)
     {
         ProgramState = programState;
+        GameState = gameState;
     }
 }
 

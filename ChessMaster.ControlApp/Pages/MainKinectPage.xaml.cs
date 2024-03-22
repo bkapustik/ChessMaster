@@ -1,7 +1,5 @@
-using ChessMaster.ChessDriver.Events;
-using ChessMaster.ControlApp.Services.AbstractServices;
+using ChessMaster.ChessDriver.Services;
 using ChessMaster.ControlApp.Windows;
-using ChessTracking.Core.Services;
 using ChessTracking.Core.Services.Events;
 using ChessTracking.Core.Tracking.State;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,7 +7,6 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Navigation;
-using System;
 using System.Drawing;
 using System.IO;
 using System.Threading.Tasks;
@@ -29,8 +26,6 @@ public sealed partial class MainKinectPage : Page
     protected override void OnNavigatedTo(NavigationEventArgs e)
     {
         KinectService = App.Services.GetRequiredService<IKinectService>();
-
-        KinectService.InitializeTracker();
 
         KinectService.GameController.TrackingProcessor.OnImmediateBoardUpdated += (object o, BoardUpdatedEventArgs e) =>
         {
@@ -56,6 +51,39 @@ public sealed partial class MainKinectPage : Page
             });
         };
 
+        KinectService.GameController.TrackingProcessor.OnRecordStateUpdated += (object o, RecordStateUpdatedEventArgs e) =>
+        {
+            GameHistoryListBox.Items.Clear();
+            e.RecordOfGame.ForEach(x => GameHistoryListBox.Items.Add(x));
+        };
+
+        KinectService.GameController.TrackingProcessor.OnWhosPlayingUpdated += (object o, WhosPlayingUpdatedEventArgs e) =>
+        {
+            WhosPlayingLabel.Text = e.ToString();
+        };
+
+        KinectService.GameController.OnProgramStateChanged += (object o, ProgramStateEventArgs e) =>
+        {
+
+        };
+
+        KinectService.GameController.TrackingProcessor.OnGameValidationStateChanged += (object o, GameValidationStateChangedEventArgs e) =>
+        {
+            if (!e.IsValid.HasValue)
+            {
+                ValidationStateBtn.Text = "Validation State";
+            }
+            else if (e.IsValid.Value)
+            {
+                ValidationStateBtn.Text = "Valid State";
+            }
+            else
+            {
+                ValidationStateBtn.Text = "Invalid State";
+            }
+        };
+
+
         EndGameBtn.IsEnabled = false;
         SaveGameBtn.IsEnabled = false;
         StartTrackingBtn.IsEnabled = false;
@@ -63,7 +91,7 @@ public sealed partial class MainKinectPage : Page
         StopTrackingBtn.IsEnabled = false;
     }
 
-    private void AdvancedSettingsButtonClick(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    private void AdvancedSettingsButtonClick(object sender, RoutedEventArgs e)
     {
         KinectWindow kinectWindow = new(typeof(AdvancedSettingsPage));
         kinectWindow.Activate();
@@ -73,7 +101,7 @@ public sealed partial class MainKinectPage : Page
         kinectWindow.Closed += (object o, WindowEventArgs e) => { AdvancedSettingsBtn.IsEnabled = true; };
     }
 
-    private void CalibrationSnapshotsButtonClick(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    private void CalibrationSnapshotsButtonClick(object sender, RoutedEventArgs e)
     {
         KinectWindow kinectWindow = new(typeof(CalibrationSnapshotPage));
         kinectWindow.Activate();
@@ -100,7 +128,7 @@ public sealed partial class MainKinectPage : Page
         });
     }
 
-    private void DisplayVizualization_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    private void DisplayVizualization_Click(object sender, RoutedEventArgs e)
     {
         KinectWindow kinectWindow = new(typeof(VizualizationPage));
         kinectWindow.Activate();

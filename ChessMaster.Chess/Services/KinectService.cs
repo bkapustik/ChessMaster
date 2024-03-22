@@ -6,7 +6,7 @@ namespace ChessMaster.ChessDriver.Services;
 public class KinectService : IKinectService
 {
     public GameController GameController { get; private set; }
-    public UserDefinedParametersPrototypeFactory UserDefinedParameters { get; set; }
+    public UserDefinedParametersPrototypeFactory UserDefinedParameters { get; private set; }
 
     public KinectService()
     {
