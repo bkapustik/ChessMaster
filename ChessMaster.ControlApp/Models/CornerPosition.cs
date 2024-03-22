@@ -1,4 +1,4 @@
-﻿using ChessMaster.ChessDriver;
+﻿using ChessMaster.ChessDriver.Services;
 using ChessMaster.Space.Coordinations;
 using Microsoft.Extensions.DependencyInjection;
 using System.Numerics;

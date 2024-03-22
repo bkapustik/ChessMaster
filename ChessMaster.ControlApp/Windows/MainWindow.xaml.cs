@@ -1,7 +1,6 @@
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using System;
-using ChessMaster.ChessDriver;
 using ChessMaster.RobotDriver.Robotic;
 using System.Threading.Tasks;
 using System.Numerics;
@@ -14,8 +13,10 @@ using ChessMaster.RobotDriver.Events;
 using ChessMaster.ChessDriver.Events;
 using ChessMaster.ControlApp.Windows;
 using Windows.Graphics;
-using ChessMaster.ControlApp.Services;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.UI.Xaml.Input;
+using ChessMaster.ChessDriver.Services;
+using ChessMaster.ControlApp.Services;
 
 namespace ChessMaster.ControlApp;
 
@@ -143,7 +144,11 @@ public sealed partial class MainWindow : Window
         ContentFrame.Navigate(page);
     }
 
-    public void RegisterKeyboardControl(VirtualKey key)
+    public void RegisterKeyboardControl(KeyEventHandler handler)
+    {
+        MainPage.KeyDown += handler;
+    }
+    public void RegisterHoldableKeyboardControl(VirtualKey key)
     {
         var holdableKey = new HoldableMoveKey(MainPage, key);
     }
@@ -183,6 +188,8 @@ public sealed partial class MainWindow : Window
         {
             KinectWindow kinectWindow = new(typeof(MainKinectPage));
             kinectWindow.Activate();
+
+            selectedStrategy.Configure(App.Services.GetRequiredService<IKinectService>());
         }
 
         if (!selectedStrategy.NeedsFileConfiguration)

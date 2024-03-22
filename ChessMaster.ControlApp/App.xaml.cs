@@ -1,4 +1,4 @@
-﻿using ChessMaster.ChessDriver;
+﻿using ChessMaster.ChessDriver.Services;
 using ChessMaster.ControlApp.Pages;
 using ChessMaster.ControlApp.Services;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,7 +28,7 @@ public partial class App : Application
 
     private static IServiceProvider ConfigureServices() =>
         new ServiceCollection()
-            .AddSingleton<IUIKinectService, UIKinectService>()
+            .AddSingleton<IKinectService, KinectService>()
             .AddSingleton<IUIRobotService, UIRobotService>()
             .AddSingleton<IChessRunner, ChessRunner>()
             .AddSingleton<IConfigurationService, ConfigurationService>()

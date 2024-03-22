@@ -3,7 +3,7 @@ using ChessMaster.ChessDriver.Models;
 
 namespace ChessMaster.ChessDriver.Strategy;
 
-public interface IChessStrategy
+public interface IChessStrategy : IDisposable
 {
     MoveComputedEvent? MoveComputed { get; set; }
     ChessMove InitializeFromOldGame(ChessBoardGeneral chessBoard);

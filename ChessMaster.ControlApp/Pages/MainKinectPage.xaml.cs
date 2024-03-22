@@ -1,5 +1,5 @@
 using ChessMaster.ChessDriver.Events;
-using ChessMaster.ControlApp.Services;
+using ChessMaster.ControlApp.Services.AbstractServices;
 using ChessMaster.ControlApp.Windows;
 using ChessTracking.Core.Services;
 using ChessTracking.Core.Services.Events;
@@ -19,7 +19,7 @@ namespace ChessMaster.ControlApp.Pages;
 public sealed partial class MainKinectPage : Page
 {
     private SceneCalibrationSnapshot Snapshot { get; set; }
-    private IUIKinectService KinectService { get; set; }
+    private IKinectService KinectService { get; set; }
 
     public MainKinectPage()
     {
@@ -28,7 +28,7 @@ public sealed partial class MainKinectPage : Page
 
     protected override void OnNavigatedTo(NavigationEventArgs e)
     {
-        KinectService = App.Services.GetRequiredService<IUIKinectService>();
+        KinectService = App.Services.GetRequiredService<IKinectService>();
 
         KinectService.InitializeTracker();
 

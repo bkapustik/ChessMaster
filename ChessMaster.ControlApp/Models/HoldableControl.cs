@@ -3,10 +3,8 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml;
 using System;
 using Windows.System;
-using ChessMaster.ControlApp.Helpers;
-using ChessMaster.ChessDriver.Models;
-using ChessMaster.ControlApp.Services;
 using Microsoft.Extensions.DependencyInjection;
+using ChessMaster.ControlApp.Services;
 
 namespace ChessMaster.ControlApp;
 
@@ -22,53 +20,56 @@ public class HoldableControlEventArgs : EventArgs
     }
 }
 
-public class Holdable
+public abstract class Holdable
 {
     protected readonly DispatcherTimer timer;
-    public long Counter { get; set; }
+    protected bool isTimerRunning = false;
 
     public Holdable()
     {
         timer = new DispatcherTimer();
-        timer.Interval = new TimeSpan(0, 0, 0, 0, 100);
-        timer.Tick += IncreaseTimer;
+        timer.Interval = new TimeSpan(0, 0, 0, 0, (int)IConfigurationService.TICK_SPEED);
+        timer.Tick += (sender, args) =>
+        {
+            if (!isTimerRunning)
+            {
+                return;
+            }
+            DoWork(sender, args);
+        };
     }
 
-    protected void IncreaseTimer(object sender, object args)
-    {
-        Counter++;
-    }
+    protected abstract void DoWork(object sender, object args);
 }
 
-public class HoldableKey : Holdable
+public abstract class HoldableKey : Holdable
 {
     protected readonly VirtualKey key;
 
     public HoldableKey(UIElement element, VirtualKey key) : base()
     { 
-        this.key = key; 
+        this.key = key;
 
-        element.KeyDown += ElementKeyDown;
-        element.KeyUp += ElementKeyUp;
-    }
-    protected virtual void ElementKeyDown(object sender, KeyRoutedEventArgs e)
-    {
-        if (e.Key == key)
+        element.KeyDown += (sender, e) =>
         {
-            Counter = 0;
-            timer.Start();
-        }
-    }
-    protected virtual void ElementKeyUp(object sender, KeyRoutedEventArgs e)
-    {
-        if (e.Key == key)
+            if (e.Key == key && !isTimerRunning)
+            {
+                isTimerRunning = true;
+                timer.Start();
+            }
+        };
+        element.KeyUp += (sender, e) =>
         {
-            timer.Stop();
-        }
+            if (e.Key == key)
+            {
+                isTimerRunning = false;
+                timer.Stop();
+            }
+        };
     }
 }
 
-public class HoldableControl : Holdable
+public abstract class HoldableControl : Holdable
 {
     protected Button button;
 
@@ -82,19 +83,21 @@ public class HoldableControl : Holdable
 
     protected virtual void PressedMoveButton(object sender, PointerRoutedEventArgs e)
     {
-        Counter = 0;
-        timer.Start();
+        if (!isTimerRunning)
+        {
+            isTimerRunning = true;
+            timer.Start();
+        }
     }
     protected virtual void ReleasedMoveButton(object sender, PointerRoutedEventArgs e)
     {
+        isTimerRunning = false;
         timer.Stop();
     }
 }
 
 public class HoldableMoveKey : HoldableKey
 {
-    private bool hasBeenPressed;
-
     private readonly IUIRobotService robotService;
     private readonly IConfigurationService configurationService;
 
@@ -104,38 +107,9 @@ public class HoldableMoveKey : HoldableKey
         this.configurationService = App.Services.GetRequiredService<IConfigurationService>();
     }
 
-    protected override void ElementKeyDown(object sender, KeyRoutedEventArgs e)
+    protected override void DoWork(object sender, object args)
     {
-        if (e.Key == key)
-        {
-            if (!hasBeenPressed)
-            {
-                hasBeenPressed = true;
-                Counter = 0;
-                timer.Start();
-            }
-        }
-    }
-
-    protected override void ElementKeyUp(object sender, KeyRoutedEventArgs e)
-    {
-        if (e.Key == key)
-        {
-            hasBeenPressed = false;
-            timer.Stop();
-
-            if (!robotService.CanMove())
-            {
-                return;
-            }
-
-            if (Counter <= 10)
-            {
-                Counter = 10;
-            }
-
-            configurationService.RobotDesiredPosition = configurationService.ControlDesiredPosition(key, Counter);
-        }
+        configurationService.RobotDesiredPosition = configurationService.ControlDesiredPosition(key);
     }
 }
 
@@ -152,20 +126,8 @@ public class HoldableMoveButton : HoldableControl
         this.configurationService = App.Services.GetRequiredService<IConfigurationService>();
     }
 
-    protected override void ReleasedMoveButton(object sender, PointerRoutedEventArgs e)
+    protected override void DoWork(object sender, object args)
     {
-        timer.Stop();
-
-        if (!robotService.CanMove())
-        {
-            return;
-        }
-
-        if (Counter <= 10)
-        {
-            Counter = 10;
-        }
-
-       configurationService.RobotDesiredPosition = configurationService.ControlDesiredPosition(button.Name, Counter);
+        configurationService.RobotDesiredPosition = configurationService.ControlDesiredPosition(button.Name);
     }
 }

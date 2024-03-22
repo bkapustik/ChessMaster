@@ -38,7 +38,7 @@
             <Button x:Name="Down" Grid.Row="6" Grid.Column="2" Content="Down" VerticalAlignment="Center" HorizontalAlignment="Center" Width="80" Height="40"/>
             <Button x:Name="Left" Grid.Row="4" Grid.Column="0" Content="Left" VerticalAlignment="Center" HorizontalAlignment="Center" Width="80" Height="40"/>
             <Button x:Name="Right" Grid.Row="4" Grid.Column="4" Content="Right" VerticalAlignment="Center" HorizontalAlignment="Center" Width="80" Height="40"/>
-            <Button x:Name="Speed" Grid.Row="4" Grid.Column="2" Content="SpeedUp (Shift)" VerticalAlignment="Center" HorizontalAlignment="Center" Click="SpeedUpButton" Width="150" Height="40"/>
+            <Button x:Name="Speed" Grid.Row="4" Grid.Column="2" Content="SpeedUp (Shift)" VerticalAlignment="Center" HorizontalAlignment="Center" Click="SpeedUpButtonClick" Width="150" Height="40"/>
 
             <Button x:Name="LockA1Button" Grid.Row="2" Grid.Column="8" Content="Lock A1" VerticalAlignment="Top" HorizontalAlignment="Right" Click="LockA1Click" Width="120" Height="40"/>
             <Button x:Name="LockH8Button" Grid.Row="4" Grid.Column="8" Content="Lock H8" VerticalAlignment="Top" HorizontalAlignment="Right" Click="LockH8Click" Width="120" Height="40"/>

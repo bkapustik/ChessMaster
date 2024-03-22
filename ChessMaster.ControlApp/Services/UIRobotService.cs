@@ -1,10 +1,9 @@
-﻿using ChessMaster.ChessDriver;
-using ChessMaster.ChessDriver.Models;
+﻿using ChessMaster.ChessDriver.Models;
+using ChessMaster.ChessDriver.Services;
 using ChessMaster.RobotDriver.Robotic;
 using ChessMaster.RobotDriver.State;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
-using System;
 using System.Collections.ObjectModel;
 
 namespace ChessMaster.ControlApp.Services;

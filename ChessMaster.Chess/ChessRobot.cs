@@ -38,10 +38,28 @@ public class ChessRobot : RobotSpace
     /// </summary>
     /// <param name="figurePosition"></param>
     /// <param name="targetPosition"></param>
-    public void MoveFigureTo(SpacePosition figurePosition, SpacePosition targetPosition)
+    public void MoveFigureTo(SpacePosition figurePosition, SpacePosition targetPosition, bool boardUpdateOnly = false)
     {
+        if (boardUpdateOnly)
+        {
+            UpdateBoard(figurePosition, targetPosition);
+
+            return;
+        }
+
         MoveEntityFromSourceToTarget(chessBoard.GetRealSpacePosition(figurePosition),
             chessBoard.GetRealSpacePosition(targetPosition));
+    }
+
+    public void UpdateBoard(SpacePosition source, SpacePosition target)
+    {
+        var realSource = chessBoard.GetRealSpacePosition(source);
+        var realTarget = chessBoard.GetRealSpacePosition(target);
+        
+        var entity = space!.SubSpaces[realSource.Row, realSource.Column].Entity;
+
+        space!.SubSpaces[realSource.Row, realSource.Column].Entity = null;
+        space!.SubSpaces[realTarget.Row, realTarget.Column].Entity = entity;
     }
 
     /// <summary>
@@ -53,20 +71,35 @@ public class ChessRobot : RobotSpace
         Driver!.ScheduleCommands(new Queue<RobotCommand>());
     }
 
-    public void CaptureFigure(SpacePosition sourcePosition, SpacePosition targetPosition)
+    public void CaptureFigure(SpacePosition sourcePosition, SpacePosition targetPosition, bool boardUpdateOnly = false)
     {
+        if (boardUpdateOnly)
+        {
+            UpdateBoard(sourcePosition, targetPosition);
+
+            return;
+        }
+
         var freeSpace = chessBoard.GetNextFreeSpace();
         MoveEntityFromSourceToTarget(chessBoard.GetRealSpacePosition(targetPosition), freeSpace);
         MoveEntityFromSourceToTarget(chessBoard.GetRealSpacePosition(sourcePosition), chessBoard.GetRealSpacePosition(targetPosition));
     }
 
-    public void PromotePawn(SpacePosition source, SpacePosition target, FigureType promotion)
+    public void PromotePawn(SpacePosition source, SpacePosition target, FigureType promotion, bool boardUpdateOnly = false)
     {
         
     }
 
-    public void ExecuteCastling(Castling castling)
+    public void ExecuteCastling(Castling castling, bool boardUpdateOnly = false)
     {
+        if (boardUpdateOnly)
+        {
+            UpdateBoard(castling.KingSource, castling.KingTarget);
+            UpdateBoard(castling.RookSource, castling.RookTarget);
+
+            return;
+        }
+
         MoveEntityFromSourceToTarget(chessBoard.GetRealSpacePosition(castling.KingSource), chessBoard.GetRealSpacePosition(castling.KingTarget));
         MoveEntityFromSourceToTarget(chessBoard.GetRealSpacePosition(castling.RookSource), chessBoard.GetRealSpacePosition(castling.RookTarget));
     }

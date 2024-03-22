@@ -288,4 +288,6 @@ public class MockMatchReplayChessStrategy : IChessStrategy
     {
         Task.Run(() => { OnMoveComputed(new StrategyEventArgs(success, move)); });
     }
+
+    public void Dispose() { }
 }

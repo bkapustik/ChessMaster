@@ -279,4 +279,6 @@ public class MatchReplayChessStrategy : IChessStrategy
     {
         Task.Run(() => { OnMoveComputed(new StrategyEventArgs(success, move)); });
     }
+
+    public void Dispose() { }
 }

@@ -1,23 +1,20 @@
 ﻿using ChessMaster.ControlApp.Models;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 using Windows.System;
 
 namespace ChessMaster.ControlApp.Services;
-
 public interface IConfigurationService
 {
+    const float TICK_SPEED = 100;
     List<string> AcceptedFileTypes { get; set; }
-    bool IsSpedUp { get; set; }
+    void IncrementSpeed();
     CornerPosition A1Corner { get; set; }
     CornerPosition H8Corner { get; set; }
     Vector3 RobotDesiredPosition { get; set; }
-    Vector3 ControlDesiredPosition(string buttonName, long ticksHeld);
-    Vector3 ControlDesiredPosition(VirtualKey key, long ticksHeld);
+    Vector3 ControlDesiredPosition(string buttonName);
+    Vector3 ControlDesiredPosition(VirtualKey key);
     void GoToA1();
     void GoToH8();
     void GoToDesiredPosition();

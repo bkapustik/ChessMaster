@@ -15,7 +15,7 @@ public class PawnPromotionMove : ChessMove
 
     public override void Execute(ChessRobot robot)
     {
-        robot.PromotePawn(source, target, figureType);
+        robot.PromotePawn(source, target, figureType, StateUpdateOnly);
     }
 
     public override string ToUci()

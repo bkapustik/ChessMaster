@@ -9,9 +9,10 @@ using System.Threading.Tasks;
 using ChessMaster.ControlApp.Helpers;
 using System.ComponentModel;
 using ChessMaster.RobotDriver.Events;
-using ChessMaster.ChessDriver;
-using ChessMaster.ControlApp.Services;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.UI.Xaml.Input;
+using ChessMaster.ChessDriver.Services;
+using ChessMaster.ControlApp.Services;
 
 namespace ChessMaster.ControlApp.Pages;
 
@@ -176,10 +177,20 @@ public sealed partial class ConfigurationPage : Page, INotifyPropertyChanged
         var holdableLeftButton = new HoldableMoveButton(Left);
         var holdableRightButton = new HoldableMoveButton(Right);
 
-        mainWindow.RegisterKeyboardControl(VirtualKey.Up);
-        mainWindow.RegisterKeyboardControl(VirtualKey.Down);
-        mainWindow.RegisterKeyboardControl(VirtualKey.Left);
-        mainWindow.RegisterKeyboardControl(VirtualKey.Right);
+        mainWindow.RegisterHoldableKeyboardControl(VirtualKey.Up);
+        mainWindow.RegisterHoldableKeyboardControl(VirtualKey.Down);
+        mainWindow.RegisterHoldableKeyboardControl(VirtualKey.Left);
+        mainWindow.RegisterHoldableKeyboardControl(VirtualKey.Right);
+
+        mainWindow.RegisterKeyboardControl(SpeedUpKeyClick);
+    }
+
+    private void SpeedUpKeyClick(object o, KeyRoutedEventArgs e)
+    {
+        if (e.Key == VirtualKey.Shift)
+        {
+            configurationService.IncrementSpeed();
+        }
     }
 
     private void SaveButtonsWhichLockOnHomingRequired()
@@ -216,9 +227,9 @@ public sealed partial class ConfigurationPage : Page, INotifyPropertyChanged
     private void StopMovementControl() => timer.Tick -= MovementControl;
     private void StartMovementControl() => timer.Tick += MovementControl;
 
-    private void SpeedUpButton(object sender, RoutedEventArgs e)
+    private void SpeedUpButtonClick(object sender, RoutedEventArgs e)
     {
-        configurationService.IsSpedUp = !configurationService.IsSpedUp;
+        configurationService.IncrementSpeed();
     }
 
     private void LockA1Click(object sender, RoutedEventArgs e)

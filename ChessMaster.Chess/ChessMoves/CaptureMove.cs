@@ -13,6 +13,6 @@ public class CaptureMove : ChessMove
 
     public override void Execute(ChessRobot robot)
     {
-        robot.CaptureFigure(source, target);
+        robot.CaptureFigure(source, target, StateUpdateOnly);
     }
 }

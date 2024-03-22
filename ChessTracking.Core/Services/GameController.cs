@@ -12,13 +12,9 @@ public class GameController
     public TrackingResultProcessor TrackingProcessor { get; set; }
     public TrackingController TrackingController { get; set; }
 
-    public GameController()
+    public GameController(UserDefinedParametersPrototypeFactory parameters)
     {
         TrackingProcessor = new TrackingResultProcessor();
-    }
-
-    public void InitializeTracker(UserDefinedParametersPrototypeFactory parameters)
-    {
         TrackingController = new TrackingController(parameters, TrackingProcessor);
     }
 
@@ -38,7 +34,7 @@ public class GameController
         OnProgramStateChanged?.Invoke(this, new ProgramStateEventArgs(newState));
     }
 
-    public void LoadGame(StreamReader stream)
+    public bool TryLoadGame(StreamReader stream)
     {
         var loadingResult = GameFactory.LoadGame(stream);
 
@@ -51,7 +47,13 @@ public class GameController
                 ChangeProgramState(ProgramState.GameLoaded);
             else
                 ChangeProgramState(ProgramState.GameFinished);
+
+            TrackingProcessor.InitializeGame(Game);
+
+            return true;
         }
+
+        return false;
     }
 
     public void EndGame()

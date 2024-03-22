@@ -14,6 +14,7 @@
     <ProjectReference Include="..\ChessMaster.Driver\ChessMaster.RobotDriver.csproj" />
     <ProjectReference Include="..\ChessMaster.Space\ChessMaster.Space.csproj" />
     <ProjectReference Include="..\ChessStrategy\ChessMaster.Chess.csproj" />
+    <ProjectReference Include="..\ChessTracking.Core\ChessTracking.Core.csproj" />
     <ProjectReference Include="..\RobotSpace\RobotSpaceDriver.csproj" />
   </ItemGroup>
 

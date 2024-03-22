@@ -1,4 +1,4 @@
-using ChessMaster.ChessDriver;
+using ChessMaster.ChessDriver.Services;
 using ChessMaster.ControlApp.Helpers;
 using ChessMaster.ControlApp.Services;
 using ChessMaster.RobotDriver.Events;

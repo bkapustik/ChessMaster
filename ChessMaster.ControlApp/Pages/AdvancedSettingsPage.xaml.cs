@@ -1,4 +1,4 @@
-using ChessMaster.ControlApp.Services;
+using ChessMaster.ControlApp.Services.AbstractServices;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
@@ -13,7 +13,7 @@ public sealed partial class AdvancedSettingsPage : Page, INotifyPropertyChanged
     private const string SET_DEFAULT_METRIC = "Set default metric";
     private const string SET_QUADRATIC_METRIC = "Set quadratic metric";
 
-    private IUIKinectService KinectService;
+    private IKinectService KinectService;
 
     private string milimetersClippedFromFigure;
     public string MilimetersClippedFromFigure
@@ -104,7 +104,7 @@ public sealed partial class AdvancedSettingsPage : Page, INotifyPropertyChanged
 
     protected override void OnNavigatedTo(NavigationEventArgs e)
     {
-        KinectService = App.Services.GetRequiredService<IUIKinectService>();
+        KinectService = App.Services.GetRequiredService<IKinectService>();
         PrepareComponentsValues();
     }
 

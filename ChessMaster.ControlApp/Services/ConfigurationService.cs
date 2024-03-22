@@ -1,4 +1,4 @@
-﻿using ChessMaster.ChessDriver;
+﻿using ChessMaster.ChessDriver.Services;
 using ChessMaster.ControlApp.Models;
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Generic;
@@ -11,6 +11,12 @@ public class ConfigurationService : IConfigurationService
 {
     private readonly IChessRunner chessRunner;
 
+    private float Speed { get; set; } = DEFAULT_SPEED;
+
+    private const float SLOW_SPEED = 1f;
+    private const float DEFAULT_SPEED = 10f;
+    private const float FAST_SPEED = 100f;
+
     public ConfigurationService()
     {
         A1Corner = new();
@@ -22,34 +28,26 @@ public class ConfigurationService : IConfigurationService
     public bool IsRobotAtDesiredPosition() => chessRunner.IsRobotAtDesiredPosition(RobotDesiredPosition);
 
     public List<string> AcceptedFileTypes { get; set; } = new List<string>();
-  
-   
-    public Vector3 ControlDesiredPosition(string buttonName, long ticksHeld)
+    public void IncrementSpeed()
     {
-        ticksHeld /= 10;
-
+        Speed = Speed == DEFAULT_SPEED ? FAST_SPEED : Speed == FAST_SPEED ? SLOW_SPEED : DEFAULT_SPEED;
+    }
+   
+    public Vector3 ControlDesiredPosition(string buttonName)
+    {
         var direction = IConfigurationService.GetDirectionVector(buttonName);
-        if (IsSpedUp)
-        {
-            direction = direction * 10 * ticksHeld;
-        }
 
-        return new Vector3(RobotDesiredPosition.X + direction.X * ticksHeld,
-            RobotDesiredPosition.Y + direction.Y * ticksHeld,
+        return new Vector3(RobotDesiredPosition.X + direction.X * Speed,
+            RobotDesiredPosition.Y + direction.Y * Speed,
             RobotDesiredPosition.Z);
     }
-    public Vector3 ControlDesiredPosition(VirtualKey key, long ticksHeld)
+
+    public Vector3 ControlDesiredPosition(VirtualKey key)
     {
-        ticksHeld /= 10;
-
         var direction = IConfigurationService.GetDirectionVector(key);
-        if (IsSpedUp)
-        {
-            direction = direction * 10 * ticksHeld;
-        }
 
-        return new Vector3(RobotDesiredPosition.X + direction.X * ticksHeld,
-            RobotDesiredPosition.Y + direction.Y * ticksHeld,
+        return new Vector3(RobotDesiredPosition.X + direction.X * Speed,
+            RobotDesiredPosition.Y + direction.Y * Speed,
             RobotDesiredPosition.Z);
     }
 
@@ -64,7 +62,6 @@ public class ConfigurationService : IConfigurationService
         }
     }
 
-    public bool IsSpedUp { get; set; }
     public CornerPosition A1Corner { get; set; }
     public CornerPosition H8Corner { get; set; }
 

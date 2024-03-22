@@ -1,5 +1,4 @@
-﻿using ChessMaster.Chess;
-using ChessMaster.Space.Coordinations;
+﻿using ChessMaster.Space.Coordinations;
 
 namespace ChessMaster.ChessDriver.ChessMoves;
 
@@ -8,6 +7,7 @@ public class ChessMove
     protected readonly SpacePosition source;
     protected readonly SpacePosition target;
     public bool IsEndOfGame { get; set; }
+    public bool StateUpdateOnly { get; set; } = false;
     public string? Message { get; set; }
 
     public ChessMove(bool isEndOfGame, string? message = null)
@@ -26,7 +26,7 @@ public class ChessMove
 
     public virtual void Execute(ChessRobot robot)
     {
-        robot.MoveFigureTo(source, target);
+        robot.MoveFigureTo(source, target, StateUpdateOnly);
     }
 
     public virtual string ToUci()

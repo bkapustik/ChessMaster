@@ -20,7 +20,7 @@ public class CastlingMove : ChessMove
 
     public override void Execute(ChessRobot robot)
     {
-        robot.ExecuteCastling(castling);
+        robot.ExecuteCastling(castling, StateUpdateOnly);
     }
 
     public override string ToUci()
