@@ -60,6 +60,8 @@ public class ChessRobot : RobotSpace
 
         space!.SubSpaces[realSource.Row, realSource.Column].Entity = null;
         space!.SubSpaces[realTarget.Row, realTarget.Column].Entity = entity;
+
+        Events!.CommandsSucceeded?.Invoke(this, new RobotDriver.Events.RobotEventArgs(true, Driver!.GetState()));
     }
 
     /// <summary>

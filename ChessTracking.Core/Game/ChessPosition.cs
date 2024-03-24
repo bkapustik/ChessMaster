@@ -15,7 +15,11 @@ public class ChessPosition
     /// Row coordinate
     /// </summary>
     public int Y { get; set; }
-
+    public ChessPosition(ChessPosition chessPosition)
+    {
+        X = chessPosition.X;
+        Y = chessPosition.Y;
+    }
     public ChessPosition(int x, int y)
     {
         this.X = x;

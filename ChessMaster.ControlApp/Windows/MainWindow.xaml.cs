@@ -187,13 +187,11 @@ public sealed partial class MainWindow : Window
 
         if (selectedStrategy.NeedsKinectConfiguration)
         {
-            DispatcherQueue.TryEnqueue(() =>
-            {
-                KinectWindow kinectWindow = new(typeof(MainKinectPage));
-                kinectWindow.Activate();
+          
+            KinectWindow kinectWindow = new(typeof(MainKinectPage));
+            kinectWindow.Activate();
 
-                selectedStrategy.Configure(App.Services.GetRequiredService<IKinectService>());
-            });
+            selectedStrategy.Configure(App.Services.GetRequiredService<IKinectService>());
         }
 
         if (!selectedStrategy.NeedsFileConfiguration)

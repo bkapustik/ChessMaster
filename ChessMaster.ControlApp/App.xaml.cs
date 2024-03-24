@@ -4,6 +4,8 @@ using ChessMaster.ControlApp.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using System;
+using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace ChessMaster.ControlApp;
 
@@ -50,6 +52,7 @@ public partial class App : Application
         {
             var kinectService = serviceProvider.GetRequiredService<IKinectService>();
             kinectService.GameController.TrackingController.Dispose();
+            kinectService.Dispose();
         };
 
         m_window.Activate();

@@ -73,7 +73,7 @@ public static class GameFactory
 
                 try
                 {
-                    validationResult = GameValidator.ValidateAndPerform(game.DeepClone(), stream.ReadLine()); // get from validator
+                    validationResult = GameValidator.ValidateAndPerform(new GameData(game), stream.ReadLine()); // get from validator
                 }
                 catch (Exception)
                 {

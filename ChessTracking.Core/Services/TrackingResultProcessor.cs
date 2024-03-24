@@ -46,7 +46,6 @@ public class TrackingResultProcessor
     public VizualizationUpdatedEvent? OnVizualizationUpdated { get; set; }
     public BoardUpdatedEvent? OnImmediateBoardUpdated { get; set; }
     public AveragedBoardUpdatedEvent? OnAveragedBoardUpdated { get; set; }
-    public GameRecognizedEvent? OnGameRecognized { get; set; }
     public ErrorOccuredEvent? OnErrorOccured { get; set; }
     public GameStartedEvent? OnGameStarted { get; set; }
     public FpsUpdatedEvent? OnFpsUpdated { get; set; }
@@ -90,9 +89,9 @@ public class TrackingResultProcessor
 
     public void ProcessResult(TrackingResult result)
     {
-        Task.Run(HandDetected);
-        Task.Run(() => { UpdateVizualization(result.BitmapToDisplay); });
-        Task.Run(UpdateFps);
+        HandDetected();
+        UpdateVizualization(result.BitmapToDisplay);
+        UpdateFps();
 
         if (result.TrackingState == null)
             return;
@@ -157,8 +156,8 @@ public class TrackingResultProcessor
                     NumberOfCwRotations = rotation;
                     TrackingInProgress = true;
 
-                    Task.Run(RaiseGameRecognized);
                     Task.Run(RotateSavedStates);
+                    ChangeProgramState(ProgramState.GameRecognized);
                 }
             }
         }
@@ -269,10 +268,6 @@ public class TrackingResultProcessor
     {
         OnErrorOccured?.Invoke(this, new ErrorOccuredEventArgs(message));
     }
-    public void TrackingStarted()
-    {
-        OnGameStarted?.Invoke(this, new GameStartedEventArgs());
-    }
     public void UpdateWhosPlaying(PlayerColor playerOnMove)
     {
         OnWhosPlayingUpdated?.Invoke(this, new WhosPlayingUpdatedEventArgs(playerOnMove));
@@ -301,7 +296,7 @@ public class TrackingResultProcessor
     {
         if (Game.EndState == GameState.StillPlaying)
         {
-            var validationResult = GameValidator.ValidateAndPerform(Game.DeepClone(), trackingState);
+            var validationResult = GameValidator.ValidateAndPerform(new GameData(Game), trackingState);
 
             if (validationResult.IsValid)
             { 
@@ -331,17 +326,13 @@ public class TrackingResultProcessor
 
         OnChessboardStateChanged?.Invoke(this, new ChessboardStateChangedEventArgs(trackingState));
     }
-    private void ChangeProgramState(ProgramState programState, GameState? gameState = null)
+    public void ChangeProgramState(ProgramState programState, GameState? gameState = null)
     {
         OnProgramStateChanged?.Invoke(this, new ProgramStateEventArgs(programState, gameState));
     }
     private void ChangeGameValidationState(bool isValid)
     {
         OnGameValidationStateChanged?.Invoke(this, new GameValidationStateChangedEventArgs(isValid));
-    }
-    private void RaiseGameRecognized()
-    {
-        OnGameRecognized?.Invoke(this, new GameRecognizedEventArgs());
     }
     private void HandDetected()
     {

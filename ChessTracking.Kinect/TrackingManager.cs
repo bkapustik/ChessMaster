@@ -26,7 +26,8 @@ namespace ChessTracking.Kinect
             KinectInputQueue = new SharedMemoryQueue<KinectInputMessage>(
                 CommonMemoryConstants.KinectInputMessageMemorySize,
                 CommonMemoryConstants.KinectInputMessageMemoryFileName,
-                CommonMemoryConstants.KinectInputMessageMemoryMutexName);
+                CommonMemoryConstants.KinectInputMessageMemoryMutexName,
+                useSerializer: true);
         }
 
         public void Run()
@@ -59,8 +60,11 @@ namespace ChessTracking.Kinect
 
         private void StopTracking(bool gameFinished = false)
         {
-            Kinect.Dispose();
-            Kinect = null;
+            if (Kinect != null)
+            {
+                Kinect.Dispose();
+                Kinect = null;
+            }
         }
     }
 }

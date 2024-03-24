@@ -59,7 +59,7 @@ class Pipeline
             var chessboardData = ChessboardLocalization.Calibrate(planeData, out var snapshot);
             TrackingProcessor.SceneCalibrationSnapshotChanged(snapshot);
             var figuresData = FiguresLocalization.Calibrate(chessboardData);
-            TrackingProcessor.TrackingStarted();
+            TrackingProcessor.ChangeProgramState(Services.Events.ProgramState.StartedTracking);
 
             return true;
         }

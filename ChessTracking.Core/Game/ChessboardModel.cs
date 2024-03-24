@@ -14,6 +14,21 @@ public class ChessboardModel
     /// </summary>
     public Figure[,] Figures { get; set; }
 
+    public ChessboardModel(ChessboardModel chessboardModel)
+    {
+        Figures = new Figure[8, 8];
+        for (int i = 0; i < 8; i++)
+        {
+            for (int j = 0; j < 8; j++)
+            {
+                if (chessboardModel.Figures[i, j] != null)
+                {
+                    Figures[i, j] = new Figure(chessboardModel.Figures[i, j]);
+                }
+            }
+        }
+    }
+
     public ChessboardModel(Figure[,] figures)
     {
         this.Figures = figures;

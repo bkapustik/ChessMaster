@@ -2,6 +2,7 @@ using ChessMaster.ChessDriver.Services;
 using ChessMaster.ControlApp.Windows;
 using ChessTracking.Core.Services.Events;
 using ChessTracking.Core.Tracking.State;
+using ChessTracking.Core.Utils;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -10,6 +11,7 @@ using Microsoft.UI.Xaml.Navigation;
 using System.Drawing;
 using System.IO;
 using System.Threading.Tasks;
+using ChessMaster.ChessDriver.Events;
 
 namespace ChessMaster.ControlApp.Pages;
 
@@ -51,36 +53,56 @@ public sealed partial class MainKinectPage : Page
             });
         };
 
-        KinectService.GameController.TrackingProcessor.OnRecordStateUpdated += (object o, RecordStateUpdatedEventArgs e) =>
+        KinectService.OnKinectMoveDetected += (object o, KinectMoveDetectedEventArgs e) =>
         {
-            GameHistoryListBox.Items.Clear();
-            e.RecordOfGame.ForEach(x => GameHistoryListBox.Items.Add(x));
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                GameHistoryListBox.Items.Add(e.UciMoveString);
+            });
         };
 
         KinectService.GameController.TrackingProcessor.OnWhosPlayingUpdated += (object o, WhosPlayingUpdatedEventArgs e) =>
         {
-            WhosPlayingLabel.Text = e.ToString();
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                WhosPlayingLabel.Text = e.ToString();
+            });
+
         };
 
         KinectService.GameController.OnProgramStateChanged += (object o, ProgramStateEventArgs e) =>
         {
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                if (e.GameState.HasValue)
+                {
+                    if (e.GameState != ChessTracking.Core.Game.GameState.StillPlaying)
+                    {
+                        TrackingLogsListBox.Items.Add(e.GameState.Value.GetString());
+                    }
+                }
 
+                TrackingLogsListBox.Items.Add(e.ProgramState.GetString());
+            });
         };
 
         KinectService.GameController.TrackingProcessor.OnGameValidationStateChanged += (object o, GameValidationStateChangedEventArgs e) =>
         {
-            if (!e.IsValid.HasValue)
+            DispatcherQueue.TryEnqueue(() =>
             {
-                ValidationStateBtn.Text = "Validation State";
-            }
-            else if (e.IsValid.Value)
-            {
-                ValidationStateBtn.Text = "Valid State";
-            }
-            else
-            {
-                ValidationStateBtn.Text = "Invalid State";
-            }
+                if (!e.IsValid.HasValue)
+                {
+                    ValidationStateBtn.Text = "Validation State";
+                }
+                else if (e.IsValid.Value)
+                {
+                    ValidationStateBtn.Text = "Valid State";
+                }
+                else
+                {
+                    ValidationStateBtn.Text = "Invalid State";
+                }
+            });
         };
 
 
@@ -158,8 +180,7 @@ public sealed partial class MainKinectPage : Page
 
         Recalibrate.IsEnabled = true;
         StopTrackingBtn.IsEnabled = true;
-
-        KinectService.GameController.TrackingController.Start();
+        Task.Run(() => KinectService.GameController.TrackingController.Start());
     }
 
     private void Recalibrate_Click(object sender, RoutedEventArgs e)
@@ -171,5 +192,7 @@ public sealed partial class MainKinectPage : Page
     {
         KinectService.GameController.TrackingController.Stop();
         StartTrackingBtn.IsEnabled = true;
+        NewGameBtn.IsEnabled = true;
+        LoadGameBtn.IsEnabled = true;
     }
 }

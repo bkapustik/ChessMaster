@@ -12,6 +12,7 @@ public class TrackingController : IDisposable
     /// Indicated whether figures are located
     /// </summary>
     private bool Calibrated { get; set; }
+    private bool Calibrating { get; set; }
     private bool TrackingCanceled { get; set; }
     private bool IsPaused { get; set; }
 
@@ -30,7 +31,8 @@ public class TrackingController : IDisposable
         KinectInputQueue = new SharedMemoryQueue<KinectInputMessage>(
             CommonMemoryConstants.KinectInputMessageMemorySize,
             CommonMemoryConstants.KinectInputMessageMemoryFileName,
-            CommonMemoryConstants.KinectInputMessageMemoryMutexName);
+            CommonMemoryConstants.KinectInputMessageMemoryMutexName,
+            useSerializer: true);
 
         Buffer = new SharedMemorySerializedMultiBuffer<KinectData>(
                  CommonMemoryConstants.BufferMemoryFileName,
@@ -44,50 +46,56 @@ public class TrackingController : IDisposable
         pipeline = new Pipeline(userParameters, TrackingProcessor);
 
         Calibrated = false;
+        Calibrating = false;
         TrackingCanceled = false;
         IsPaused = true;
     }
 
+    //TODO return this back
     public void StartTrackerApp() 
     {
-        //if (TrackerAppProcess == null || TrackerAppProcess.HasExited)
-        //{
-        //    TrackerAppProcess = new Process();
-        //    TrackerAppProcess.StartInfo.WorkingDirectory = Path.GetDirectoryName(KinectTrackingAppPath);
-        //    TrackerAppProcess.StartInfo.FileName = KinectTrackingAppPath;
-        //    TrackerAppProcess.StartInfo.Verb = "runas";
-        //    TrackerAppProcess.StartInfo.CreateNoWindow = true;
+        if (TrackerAppProcess == null || TrackerAppProcess.HasExited)
+        {
+            TrackerAppProcess = new Process();
+            TrackerAppProcess.StartInfo.WorkingDirectory = Path.GetDirectoryName(KinectTrackingAppPath);
+            TrackerAppProcess.StartInfo.FileName = KinectTrackingAppPath;
+            TrackerAppProcess.StartInfo.Verb = "runas";
+            TrackerAppProcess.StartInfo.CreateNoWindow = true;
 
-        //    TrackerAppProcess.Start();
-        //}
+            TrackerAppProcess.Start();
+        }
     }
 
     private void Run()
     {
         while (!TrackingCanceled)
         {
-            Buffer.TakeOne(out KinectData kinectData);
-
-            Task.Run(() =>
+            if (!Calibrating)
             {
-                var kinectDataClass = new KinectDataClass(kinectData);
+                Buffer.TakeOne(out KinectData kinectData);
 
-                if (!Calibrated)
+                Task.Run(() =>
                 {
-                    RecalibrateInternal(kinectDataClass);
-                }
-                else
-                {
+                    var kinectDataClass = new KinectDataClass(kinectData);
 
-                    //TODO change maybe
-                    ProcessKinectData(kinectDataClass);
-                    //if (CanTakeAnother)
-                    //{
-                    //    ProcessKinectData(kinectDataClass);
-                    //    CanTakeAnother = false;
-                    //}
-                }
-            });
+                    if (!Calibrated)
+                    {
+                        Calibrating = true;
+                        RecalibrateInternal(kinectDataClass);
+                    }
+                    else
+                    {
+
+                        //TODO change maybe
+                        ProcessKinectData(kinectDataClass);
+                        //if (CanTakeAnother)
+                        //{
+                        //    ProcessKinectData(kinectDataClass);
+                        //    CanTakeAnother = false;
+                        //}
+                    }
+                });
+            }
 
             Thread.Sleep(30);
         }
@@ -122,11 +130,15 @@ public class TrackingController : IDisposable
         var message = new KinectInputMessage(KinectInputMessageType.Stop);
         KinectInputQueue.TryEnqueue(ref message);
         TrackingProcessor.Reset();
+
+        TrackingProcessor.ChangeProgramState(Events.ProgramState.StoppedTracking);
     }
 
     public void Recalibrate()
     {
         Calibrated = false;
+
+        TrackingProcessor.ChangeProgramState(Events.ProgramState.Recalibrating);
     }
 
     private void RecalibrateInternal(KinectDataClass kinectData)
@@ -134,6 +146,7 @@ public class TrackingController : IDisposable
         Calibrated = false;
         pipeline.Reset();
         Calibrated = pipeline.TryCalibrate(kinectData);
+        Calibrating = false;
     }
 
     public void Dispose()

@@ -10,6 +10,12 @@ public class Figure
     public PlayerColor Color { get; set; }
     public bool Moved;
 
+    public Figure(Figure figure)
+    {
+        Type = figure.Type;
+        Color = figure.Color;
+        Moved = figure.Moved;
+    }
     public Figure(FigureType type, PlayerColor color, bool moved = false)
     {
         Type = type;

@@ -21,7 +21,7 @@ namespace MemoryMappedCollections
         private Mutex FileMutex;
         private MemoryMappedFile SharedFile;
 
-        public SharedMemoryQueue(int size, string fileName, string mutexName)
+        public SharedMemoryQueue(int size, string fileName, string mutexName, bool useSerializer = false)
         {
             Size = size;
             FrontLocation = 0;
@@ -32,6 +32,7 @@ namespace MemoryMappedCollections
             MemorySize = MetaDataSize + (Size * RecordSize);
             FileName = fileName;
             MutexName = mutexName;
+            UseSerializer = useSerializer;
 
             if (!Mutex.TryOpenExisting(MutexName, out var fileMutex))
             {

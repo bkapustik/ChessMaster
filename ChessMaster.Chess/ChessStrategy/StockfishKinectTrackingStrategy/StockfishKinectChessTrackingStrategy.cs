@@ -1,8 +1,8 @@
 ﻿using ChessMaster.ChessDriver.ChessMoves;
+using ChessMaster.ChessDriver.Events;
 using ChessMaster.ChessDriver.Models;
 using ChessMaster.ChessDriver.Services;
 using ChessMaster.ChessDriver.Strategy;
-using ChessTracking.Core.Services.Events;
 using Stockfish.NET;
 
 namespace ChessMaster.ChessDriver.ChessStrategy.StockFishKinectTrackingStrategy;
@@ -12,7 +12,10 @@ public class StockfishKinectChessTrackingStrategy : IChessStrategy
     private readonly IKinectService kinectService;
     private readonly IStockfish stockfish;
     private bool IsRobotMove = false;
+    private bool RobotMoveCompleted = true;
+
     private List<string> UciMoves = new List<string>();
+    private string? LastExpectedMove = null;
 
     private ChessBoardGeneral ChessBoard = new ChessBoardGeneral();
     public MoveComputedEvent? MoveComputed { get; set; }
@@ -22,28 +25,31 @@ public class StockfishKinectChessTrackingStrategy : IChessStrategy
         this.kinectService = kinectService;
         stockfish = new Stockfish.NET.Stockfish(stockFishFilePath);
 
-        kinectService.GameController.TrackingProcessor.OnRecordStateUpdated += UpdateRecordStateFromKinectInput;
+        kinectService.OnKinectMoveDetected += UpdateRecordStateFromKinectInput;
     }
 
-    public void UpdateRecordStateFromKinectInput(object o, RecordStateUpdatedEventArgs e)
-    { 
+    public void UpdateRecordStateFromKinectInput(object o, KinectMoveDetectedEventArgs e)
+    {
         if (!IsRobotMove)
         {
-            var newMoveUci = e.RecordOfGame.Last();
-
-            if (newMoveUci == UciMoves.Last())
-            {
-                return;
-            }
+            var newMoveUci = e.UciMoveString;
 
             UciMoves.Add(newMoveUci);
 
             var chessMove = StockfishStrategyHelper.CreateMoveFromUci(newMoveUci, ChessBoard);
             chessMove.StateUpdateOnly = true;
 
-            HandleMoveComputed(true, chessMove);
-
             IsRobotMove = true;
+            HandleMoveComputed(true, chessMove);
+        }
+        else
+        {
+            if (LastExpectedMove == e.UciMoveString)
+            {
+                UciMoves.Add(e.UciMoveString);
+                IsRobotMove = false;
+                RobotMoveCompleted = true;
+            }
         }
     }
 
@@ -61,7 +67,7 @@ public class StockfishKinectChessTrackingStrategy : IChessStrategy
     public bool CanAcceptOldContext { get; }
     public void ComputeNextMove()
     {
-        if (IsRobotMove)
+        if (IsRobotMove && RobotMoveCompleted)
         {
             stockfish.SetPosition(UciMoves.ToArray());
 
@@ -73,9 +79,10 @@ public class StockfishKinectChessTrackingStrategy : IChessStrategy
                 return;
             }
 
-            UciMoves.Add(uciString);
+            RobotMoveCompleted = false;
 
             var chessMove = StockfishStrategyHelper.CreateMoveFromUci(uciString, ChessBoard);
+            LastExpectedMove = uciString;
 
             HandleMoveComputed(true, chessMove);
         }
@@ -88,13 +95,11 @@ public class StockfishKinectChessTrackingStrategy : IChessStrategy
 
     private void HandleMoveComputed(bool success, ChessMove move)
     {
-        Task.Run(() => { OnMoveComputed(new StrategyEventArgs(success, move)); });
-
-        IsRobotMove = false;
+        OnMoveComputed(new StrategyEventArgs(success, move));
     }
 
     public void Dispose()
     {
-        kinectService.GameController.TrackingProcessor.OnRecordStateUpdated -= UpdateRecordStateFromKinectInput;
+        kinectService.OnKinectMoveDetected -= UpdateRecordStateFromKinectInput;
     }
 }
