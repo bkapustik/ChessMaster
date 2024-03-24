@@ -1,29 +1,26 @@
-﻿using ProtoBuf;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using ZeroFormatter;
 
 namespace ChessTracking.Common
 {
-    [ProtoContract]
+    [ZeroFormattable]
     public struct KinectData
     {
-        [ProtoMember(1)]
+        [Index(0)]
         public byte[] ColorFrameData { get; set; }
 
-        [ProtoMember(2)]
+        [Index(1)]
         public ushort[] DepthData { get; set; }
         
-        [ProtoMember(3)]
+        [Index(2)]
         public ushort[] InfraredData { get; set; }
         
-        [ProtoMember(4)]
+        [Index(3)]
         public CameraSpacePoint[] CameraSpacePointsFromDepthData { get; set; }
         
-        [ProtoMember(5)]
+        [Index(4)]
         public DepthSpacePoint[] PointsFromColorToDepth { get; set; }
         
-        [ProtoMember(6)]
+        [Index(5)]
         public ColorSpacePoint[] PointsFromDepthToColor { get; set; }
 
         public KinectData(

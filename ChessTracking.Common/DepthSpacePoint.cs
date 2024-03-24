@@ -1,17 +1,20 @@
-﻿using ProtoBuf;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using ZeroFormatter;
 
 namespace ChessTracking.Common
 {
-    [ProtoContract]
+    [ZeroFormattable]
     public struct DepthSpacePoint
     {
-        [ProtoMember(1)]
+        [Index(0)]
         public float X;
 
-        [ProtoMember(2)]
+        [Index(1)]
         public float Y;
+
+        public DepthSpacePoint(float x, float y)
+        {
+            X = x;
+            Y = y;
+        }
     }
 }

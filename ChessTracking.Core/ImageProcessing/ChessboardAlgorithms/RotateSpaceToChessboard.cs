@@ -7,7 +7,7 @@ namespace ChessTracking.Core.ImageProcessing.ChessboardAlgorithms;
 
 public class RotateSpaceToChessboard : IRotateSpaceToChessboard
 {
-    public void Rotate(Chessboard3DReprezentation boardRepresentation, CameraSpacePoint[] csp)
+    public bool TryRotate(Chessboard3DReprezentation boardRepresentation, CameraSpacePoint[] csp)
     {
         var firstVector = boardRepresentation.FieldVector1;
         var secondVector = boardRepresentation.FieldVector2;
@@ -73,5 +73,7 @@ public class RotateSpaceToChessboard : IRotateSpaceToChessboard
             csp[i].Y = (float)(inverseArray[1, 0] * nx + inverseArray[1, 1] * ny + inverseArray[1, 2] * nz);
             csp[i].Z = (float)(inverseArray[2, 0] * nx + inverseArray[2, 1] * ny + inverseArray[2, 2] * nz);
         }
+
+        return true;
     }
 }

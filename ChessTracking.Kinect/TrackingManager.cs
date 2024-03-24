@@ -12,14 +12,16 @@ namespace ChessTracking.Kinect
     {
         private Kinect Kinect { get; set; }
         private SharedMemoryQueue<KinectInputMessage> KinectInputQueue { get; }
-        private SharedMemoryQueue<KinectData> Buffer { get; }
+        private SharedMemorySerializedMultiBuffer<KinectData> Buffer { get; }
 
         public TrackingManager()
         {
-            Buffer = new SharedMemoryQueue<KinectData>(
+            Buffer = new SharedMemorySerializedMultiBuffer<KinectData>(
                 CommonMemoryConstants.BufferMemoryFileName,
                 CommonMemoryConstants.BufferMemoryMutexName,
-                CommonMemoryConstants.BufferMemorySize, true);
+                CommonMemoryConstants.BufferMemorySize,
+                CommonMemoryConstants.BufferMaximumRecords,
+                CommonMemoryConstants.NumberOfTasksPerByteArray);
 
             KinectInputQueue = new SharedMemoryQueue<KinectInputMessage>(
                 CommonMemoryConstants.KinectInputMessageMemorySize,
@@ -46,7 +48,7 @@ namespace ChessTracking.Kinect
                     }
                 }
 
-                Thread.Sleep(20);
+                Thread.Sleep(100);
             }
         }
 

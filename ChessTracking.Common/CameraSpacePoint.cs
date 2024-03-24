@@ -1,20 +1,24 @@
-﻿using ProtoBuf;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using ZeroFormatter;
 
 namespace ChessTracking.Common
 {
-    [ProtoContract]
+    [ZeroFormattable]
     public struct CameraSpacePoint
     {
-        [ProtoMember(1)]
+        [Index(0)]
         public float X;
 
-        [ProtoMember(2)]
+        [Index(1)]
         public float Y;
 
-        [ProtoMember(3)]
+        [Index(2)]
         public float Z;
+
+        public CameraSpacePoint(float x, float y, float z)
+        {
+            X = x;
+            Y = y;
+            Z = z;
+        }
     }
 }

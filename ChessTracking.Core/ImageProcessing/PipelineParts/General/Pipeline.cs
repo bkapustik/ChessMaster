@@ -72,24 +72,27 @@ class Pipeline
 
     public void Process(KinectDataClass kinectData)
     {
-        PipelineSlowdown();
+        //PipelineSlowdown();
 
         Semaphore.Wait();
 
         LastReleasedTrackingTask = DateTime.Now;
 
-        try
+        Task.Run(() =>
         {
-            ProcessInternal(kinectData);
-        }
-        catch (Exception)
-        {
-            // ignored
-        }
-        finally
-        {
-            Semaphore.Release();
-        }
+            try
+            {
+                ProcessInternal(kinectData);
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+            finally
+            {
+                Semaphore.Release();
+            }
+        });
     }
 
     private void ProcessInternal(KinectDataClass kinectData)
@@ -112,7 +115,10 @@ class Pipeline
                 figuresData.ResultData.PointCountsOverFields
         );
 
-        TrackingProcessor.ProcessResult(trackingResult);
+        Task.Run(() =>
+        {
+            TrackingProcessor.ProcessResult(trackingResult);
+        });
     }
 
     /// <summary>

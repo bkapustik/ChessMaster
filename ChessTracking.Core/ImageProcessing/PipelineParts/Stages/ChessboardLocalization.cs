@@ -52,7 +52,7 @@ namespace ChessTracking.Core.ImageProcessing.PipelineParts.Stages
 
             (BoardReprezentation, snapshot) = ChessboardAlgorithm.LocateChessboard(chessboardData);
 
-            RotationAlgorithm.Rotate(BoardReprezentation, chessboardData.KinectData.CameraSpacePointsFromDepthData);
+            RotationAlgorithm.TryRotate(BoardReprezentation, chessboardData.KinectData.CameraSpacePointsFromDepthData);
 
             return chessboardData;
         }
@@ -61,7 +61,7 @@ namespace ChessTracking.Core.ImageProcessing.PipelineParts.Stages
         {
             var chessboardData = new ChessboardTrackingCompleteData(planeData);
 
-            RotationAlgorithm.Rotate(BoardReprezentation, chessboardData.KinectData.CameraSpacePointsFromDepthData);
+            RotationAlgorithm.TryRotate(BoardReprezentation, chessboardData.KinectData.CameraSpacePointsFromDepthData);
 
             chessboardData.ChessboardData.FieldSize = BoardReprezentation.FieldVector1.Magnitude();
 

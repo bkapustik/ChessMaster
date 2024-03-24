@@ -16,9 +16,9 @@ namespace ChessTracking.Kinect
         private MultiSourceFrameReader Reader { get; set; }
         private CoordinateMapper CoordinateMapper { get; }
 
-        private SharedMemoryQueue<KinectData> Buffer { get; }
+        private SharedMemorySerializedMultiBuffer<KinectData> Buffer { get; }
 
-        public Kinect(SharedMemoryQueue<KinectData> buffer)
+        public Kinect(SharedMemorySerializedMultiBuffer<KinectData> buffer)
         {
             Buffer = buffer;
 
@@ -135,7 +135,7 @@ namespace ChessTracking.Kinect
                            pointsFromColorToDepth.ToCommon(),
                            pointsFromDepthToColor.ToCommon());
                     
-                    Buffer.TryEnqueue(ref kinectData);
+                    Buffer.AddOne(ref kinectData);
                 }
             }
         }

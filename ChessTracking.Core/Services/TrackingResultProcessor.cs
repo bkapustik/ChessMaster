@@ -90,9 +90,9 @@ public class TrackingResultProcessor
 
     public void ProcessResult(TrackingResult result)
     {
-        HandDetected();
-        UpdateVizualization(result.BitmapToDisplay);
-        UpdateFps();
+        Task.Run(HandDetected);
+        Task.Run(() => { UpdateVizualization(result.BitmapToDisplay); });
+        Task.Run(UpdateFps);
 
         if (result.TrackingState == null)
             return;
@@ -154,10 +154,11 @@ public class TrackingResultProcessor
 
                 if (rotation != -1)
                 {
-                    RaiseGameRecognized();
                     NumberOfCwRotations = rotation;
-                    RotateSavedStates();
                     TrackingInProgress = true;
+
+                    Task.Run(RaiseGameRecognized);
+                    Task.Run(RotateSavedStates);
                 }
             }
         }

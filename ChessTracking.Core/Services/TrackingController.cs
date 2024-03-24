@@ -18,7 +18,7 @@ public class TrackingController : IDisposable
     public string KinectTrackingAppPath { get; set; }
     public TrackingResultProcessor TrackingProcessor { get; private set; }
     public SharedMemoryQueue<KinectInputMessage> KinectInputQueue { get; }
-    public SharedMemoryQueue<KinectData> Buffer { get; }
+    public SharedMemorySerializedMultiBuffer<KinectData> Buffer { get; }
 
     private readonly Pipeline pipeline;
     private Process? TrackerAppProcess { get; set; } = null;
@@ -32,10 +32,12 @@ public class TrackingController : IDisposable
             CommonMemoryConstants.KinectInputMessageMemoryFileName,
             CommonMemoryConstants.KinectInputMessageMemoryMutexName);
 
-        Buffer = new SharedMemoryQueue<KinectData>(
-            CommonMemoryConstants.BufferMemoryFileName,
-            CommonMemoryConstants.BufferMemoryMutexName,
-            CommonMemoryConstants.BufferMemorySize, true);
+        Buffer = new SharedMemorySerializedMultiBuffer<KinectData>(
+                 CommonMemoryConstants.BufferMemoryFileName,
+                 CommonMemoryConstants.BufferMemoryMutexName,
+                 CommonMemoryConstants.BufferMemorySize,
+                 CommonMemoryConstants.BufferMaximumRecords,
+                 CommonMemoryConstants.NumberOfTasksPerByteArray);
 
         TrackingProcessor = trackingProcessor;
 
@@ -48,26 +50,26 @@ public class TrackingController : IDisposable
 
     public void StartTrackerApp() 
     {
-        if (TrackerAppProcess == null || TrackerAppProcess.HasExited)
-        {
-            TrackerAppProcess = new Process();
-            TrackerAppProcess.StartInfo.WorkingDirectory = Path.GetDirectoryName(KinectTrackingAppPath);
-            TrackerAppProcess.StartInfo.FileName = KinectTrackingAppPath;
-            TrackerAppProcess.StartInfo.Verb = "runas";
-            TrackerAppProcess.StartInfo.CreateNoWindow = true;
+        //if (TrackerAppProcess == null || TrackerAppProcess.HasExited)
+        //{
+        //    TrackerAppProcess = new Process();
+        //    TrackerAppProcess.StartInfo.WorkingDirectory = Path.GetDirectoryName(KinectTrackingAppPath);
+        //    TrackerAppProcess.StartInfo.FileName = KinectTrackingAppPath;
+        //    TrackerAppProcess.StartInfo.Verb = "runas";
+        //    TrackerAppProcess.StartInfo.CreateNoWindow = true;
 
-            TrackerAppProcess.Start();
-        }
+        //    TrackerAppProcess.Start();
+        //}
     }
 
     private void Run()
     {
         while (!TrackingCanceled)
         {
-            if (Buffer.GetCount() > 0)
-            {
-                Buffer.TryDequeue(out KinectData kinectData);
+            Buffer.TakeOne(out KinectData kinectData);
 
+            Task.Run(() =>
+            {
                 var kinectDataClass = new KinectDataClass(kinectData);
 
                 if (!Calibrated)
@@ -85,7 +87,7 @@ public class TrackingController : IDisposable
                     //    CanTakeAnother = false;
                     //}
                 }
-            }
+            });
 
             Thread.Sleep(30);
         }
