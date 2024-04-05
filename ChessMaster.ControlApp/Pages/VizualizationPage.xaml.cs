@@ -9,6 +9,7 @@ using ChessMaster.ControlApp.Windows;
 using Microsoft.UI.Xaml;
 using Microsoft.Extensions.DependencyInjection;
 using ChessMaster.ChessDriver.Services;
+using System.Drawing.Imaging;
 
 namespace ChessMaster.ControlApp.Pages;
 
@@ -49,7 +50,7 @@ public sealed partial class VizualizationPage : Page
         {
             using (var memoryStream = new MemoryStream())
             {
-                bitmap.Save(memoryStream, System.Drawing.Imaging.ImageFormat.Png);
+                bitmap.Save(memoryStream, System.Drawing.Imaging.ImageFormat.Bmp);
                 memoryStream.Position = 0;
 
                 var bitmapImage = new BitmapImage();

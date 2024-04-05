@@ -1,6 +1,7 @@
 ﻿using ChessTracking.Common;
 using ChessTracking.Core.ImageProcessing.PipelineData;
 using ChessTracking.Core.ImageProcessing.PipelineParts.General;
+using ChessTracking.Core.ImageProcessing.PipelineParts.Stages;
 using ChessTracking.Core.Tracking.State;
 using MemoryMappedCollections;
 using System.Diagnostics;
@@ -72,7 +73,14 @@ public class TrackingController : IDisposable
         {
             if (!Calibrating)
             {
+
+                GC.Collect();
+                Stopwatch sw = Stopwatch.StartNew();
+
                 Buffer.TakeOne(out KinectData kinectData);
+                sw.Stop();
+                Debug.WriteLine($"Taking one took: {sw.ElapsedMilliseconds} ms");
+             
 
                 Task.Run(() =>
                 {
@@ -96,8 +104,6 @@ public class TrackingController : IDisposable
                     }
                 });
             }
-
-            Thread.Sleep(30);
         }
     }
 

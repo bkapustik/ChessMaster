@@ -6,6 +6,9 @@ using ChessTracking.Core.Services;
 using ChessTracking.Core.Tracking;
 using ChessTracking.Core.Tracking.State;
 using ChessTracking.Core.Utils;
+using System.Diagnostics;
+using System.Drawing;
+using System.IO;
 
 namespace ChessTracking.Core.ImageProcessing.PipelineParts.General;
 
@@ -103,11 +106,9 @@ class Pipeline
 
         UserParameters = UserParametersFactory.GetShallowCopy();
         var inputData = new InputData(kinectData, UserParameters, gameTrackingState);
-
         var planeData = PlaneLocalization.Track(inputData);
         var chessboardData = ChessboardLocalization.Track(planeData);
         var figuresData = FiguresLocalization.Track(chessboardData);
-
         var trackingResult = new TrackingResult(
                 figuresData.ResultData.VisualisationBitmap.HorizontalFlip(),
                 figuresData.ResultData.TrackingState,

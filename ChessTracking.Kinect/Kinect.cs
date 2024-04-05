@@ -3,6 +3,7 @@ using ChessTracking.Kinect.Mapping;
 using MemoryMappedCollections;
 using Microsoft.Kinect;
 using System;
+using System.Diagnostics;
 
 namespace ChessTracking.Kinect
 {
@@ -119,6 +120,8 @@ namespace ChessTracking.Kinect
                 depthFrame?.Dispose();
                 infraredFrame?.Dispose();
 
+                //TODO zistit ci nejde vypnut nejaky stream - napr. detekcia koncatin
+
                 // send data futher
                 if (
                     colorFrameData != null &&
@@ -134,8 +137,11 @@ namespace ChessTracking.Kinect
                            cameraSpacePointsFromDepthData.ToCommon(),
                            pointsFromColorToDepth.ToCommon(),
                            pointsFromDepthToColor.ToCommon());
-                    
+
+                    var sw = Stopwatch.StartNew();
                     Buffer.AddOne(ref kinectData);
+                    sw.Stop();
+                    Debug.WriteLine($"AddOne Took: {sw.ElapsedMilliseconds} ms");
                 }
             }
         }

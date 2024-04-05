@@ -19,6 +19,6 @@ namespace ChessTracking.Common
         public const string BufferMemoryMutexName = nameof(BufferMemoryMutexName);
         public const int BufferMemorySize = 50000000;
         public const int NumberOfBuffers = 1;
-        public const int NumberOfTasksPerByteArray = 4;
+        public const int NumberOfTasksPerByteArray = 6;
     }
 }

@@ -6,6 +6,7 @@ using ChessMaster.ChessDriver.Strategy;
 using ChessMaster.RobotDriver.Events;
 using ChessMaster.RobotDriver.Robotic;
 using ChessMaster.RobotDriver.State;
+
 using System.Numerics;
 
 namespace ChessMaster.ChessDriver.Services;

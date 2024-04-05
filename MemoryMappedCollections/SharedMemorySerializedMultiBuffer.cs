@@ -1,11 +1,8 @@
-﻿using System;
-using System.IO.MemoryMappedFiles;
-using System.IO;
+﻿using System.IO.MemoryMappedFiles;
 using System.Threading;
 using System.Runtime.InteropServices;
 using ZeroFormatter;
 using System.Threading.Tasks;
-using System.Collections.Generic;
 
 namespace MemoryMappedCollections
 {
@@ -31,12 +28,11 @@ namespace MemoryMappedCollections
         private short LastReadLocation;
         private short LastWriteLocation;
 
-        private const int mutexWaitTime = 20;
+        private const int mutexWaitTime = 10;
 
         private int TasksPerReadWrite;
 
         /// <summary>
-        /// Size is capped at 1
         /// </summary>
         /// <param name="fileName"></param>
         /// <param name="mutexName"></param>
@@ -227,10 +223,6 @@ namespace MemoryMappedCollections
                     {
                         Mutexes[LastReadLocation].ReleaseMutex();
                     }
-                }
-                else
-                { 
-                    
                 }
             }
         }

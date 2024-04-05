@@ -148,15 +148,11 @@ public class SerialDriver : ISerialDriver
     }
     private string GetResponse(long timeout)
     {
-        var stopwatch = new Stopwatch();
         while (true)
         {
             while (serialPort.BytesToRead == 0)
             {
-                stopwatch.Restart();
                 Task.Delay(1);
-                stopwatch.Stop();
-                timeout -= stopwatch.ElapsedMilliseconds;
                 if (timeout <= 0)
                 {
                     throw new RobotDriverException("Reading operation timed out.");

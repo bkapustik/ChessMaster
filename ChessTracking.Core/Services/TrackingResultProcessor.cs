@@ -4,6 +4,7 @@ using ChessTracking.Core.Services.Events;
 using ChessTracking.Core.Tracking;
 using ChessTracking.Core.Tracking.State;
 using ChessTracking.Core.Utils;
+using System.Diagnostics;
 using System.Drawing;
 using System.Reflection;
 

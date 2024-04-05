@@ -12,6 +12,9 @@ using System.Drawing;
 using System.IO;
 using System.Threading.Tasks;
 using ChessMaster.ChessDriver.Events;
+using ChessTracking.Common;
+using System.Diagnostics;
+using System;
 
 namespace ChessMaster.ControlApp.Pages;
 
@@ -139,7 +142,7 @@ public sealed partial class MainKinectPage : Page
         {
             using (var memoryStream = new MemoryStream())
             {
-                bitmap.Save(memoryStream, System.Drawing.Imaging.ImageFormat.Png);
+                bitmap.Save(memoryStream, System.Drawing.Imaging.ImageFormat.Bmp);
                 memoryStream.Position = 0;
 
                 var bitmapImage = new BitmapImage();
