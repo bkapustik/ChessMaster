@@ -12,15 +12,11 @@ using System.Drawing;
 using System.IO;
 using System.Threading.Tasks;
 using ChessMaster.ChessDriver.Events;
-using ChessTracking.Common;
-using System.Diagnostics;
-using System;
 
 namespace ChessMaster.ControlApp.Pages;
 
 public sealed partial class MainKinectPage : Page
 {
-    private SceneCalibrationSnapshot Snapshot { get; set; }
     private IKinectService KinectService { get; set; }
 
     public MainKinectPage()

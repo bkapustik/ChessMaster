@@ -12,7 +12,6 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace ChessMaster.ControlApp.Pages;
@@ -104,7 +103,10 @@ public sealed partial class CalibrationSnapshotPage : Page
                 DisplayBitmapInWinUI(Data[CurrentPosition].Item2, VizualizationImage);
             });
 
-            NameLabel.Text = Data[CurrentPosition].Item1;
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                NameLabel.Text = Data[CurrentPosition].Item1;
+            });
         }
     }
 
@@ -114,7 +116,7 @@ public sealed partial class CalibrationSnapshotPage : Page
         {
             using (var memoryStream = new MemoryStream())
             {
-                bitmap.Save(memoryStream, System.Drawing.Imaging.ImageFormat.Png);
+                bitmap.Save(memoryStream, System.Drawing.Imaging.ImageFormat.Bmp);
                 memoryStream.Position = 0;
 
                 var bitmapImage = new BitmapImage();
