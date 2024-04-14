@@ -23,7 +23,7 @@ public class StockfishKinectChessTrackingStrategy : IChessStrategy
     public StockfishKinectChessTrackingStrategy(IKinectService kinectService, string stockFishFilePath)
     {
         this.kinectService = kinectService;
-        stockfish = new Stockfish.NET.Stockfish(stockFishFilePath);
+        stockfish = new Stockfish.NET.Core.Stockfish(stockFishFilePath);
 
         kinectService.OnKinectMoveDetected += UpdateRecordStateFromKinectInput;
     }
@@ -101,5 +101,6 @@ public class StockfishKinectChessTrackingStrategy : IChessStrategy
     public void Dispose()
     {
         kinectService.OnKinectMoveDetected -= UpdateRecordStateFromKinectInput;
+        stockfish.Dispose();
     }
 }

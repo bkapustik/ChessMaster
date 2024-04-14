@@ -187,9 +187,10 @@ public sealed partial class MainWindow : Window
 
         if (selectedStrategy.NeedsKinectConfiguration)
         {
-          
             KinectWindow kinectWindow = new(typeof(MainKinectPage));
             kinectWindow.Activate();
+
+            this.Closed += (object o, WindowEventArgs e) => kinectWindow.Close();
 
             selectedStrategy.Configure(App.Services.GetRequiredService<IKinectService>());
         }

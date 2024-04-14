@@ -116,6 +116,7 @@ public sealed class ChessRunner : IChessRunner
         LastH8 = h8;
 
         ChessRobot!.InitializeChessBoard(a1, h8);
+        ChessBoardInitialized = true;
     }
     public void ReconfigureChessBoard(Vector2 a1, Vector2 h8)
     {
@@ -130,8 +131,11 @@ public sealed class ChessRunner : IChessRunner
         }
 
         if (!isPaused)
+        {
+            throw new InvalidOperationException("ChessBoard can not be reconfigured because the game is not paused.");
+        }
 
-            LastA1 = a1;
+        LastA1 = a1;
         LastH8 = h8;
 
         ChessRobot!.ReconfigureChessBoard(a1, h8);
@@ -193,7 +197,6 @@ public sealed class ChessRunner : IChessRunner
         semaphore.Wait();
         isPaused = false;
         semaphore.Release();
-        ChessRobot!.Resume();
     }
     public void Home()
     {
@@ -255,12 +258,11 @@ public sealed class ChessRunner : IChessRunner
 
         semaphore.Wait();
         bool isPaused = this.isPaused;
-        semaphore.Release();
-
         if (isPaused)
         {
             ChessRobot!.Resume();
         }
+        semaphore.Release();
     }
     public void ConfigurationMove(Vector3 desiredPosition)
     {

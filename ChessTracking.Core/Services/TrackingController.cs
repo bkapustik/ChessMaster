@@ -1,7 +1,6 @@
 ﻿using ChessTracking.Common;
 using ChessTracking.Core.ImageProcessing.PipelineData;
 using ChessTracking.Core.ImageProcessing.PipelineParts.General;
-using ChessTracking.Core.ImageProcessing.PipelineParts.Stages;
 using ChessTracking.Core.Tracking.State;
 using MemoryMappedCollections;
 using System.Diagnostics;

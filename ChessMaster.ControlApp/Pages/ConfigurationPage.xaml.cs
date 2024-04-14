@@ -64,6 +64,7 @@ public sealed partial class ConfigurationPage : Page, INotifyPropertyChanged
     protected override void OnNavigatedFrom(NavigationEventArgs e)
     {
         chessRunner.RobotStateEvents.HomingRequired -= RequireHoming;
+        StopMovementControl();
     }
 
     protected override void OnNavigatedTo(NavigationEventArgs e)

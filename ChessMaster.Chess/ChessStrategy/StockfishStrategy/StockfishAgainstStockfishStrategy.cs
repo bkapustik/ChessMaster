@@ -15,7 +15,7 @@ public class StockfishAgainstStockfishStrategy : IChessStrategy
 
     public StockfishAgainstStockfishStrategy(string stockFishFilePath)
     {
-        stockfish = new Stockfish.NET.Stockfish(stockFishFilePath);
+        stockfish = new Stockfish.NET.Core.Stockfish(stockFishFilePath);
     }
 
     public ChessMove Initialize()
@@ -60,5 +60,8 @@ public class StockfishAgainstStockfishStrategy : IChessStrategy
         Task.Run(() => { OnMoveComputed(new StrategyEventArgs(success, move)); });
     }
 
-    public void Dispose() { }
+    public void Dispose() 
+    {
+        stockfish.Dispose();
+    }
 }

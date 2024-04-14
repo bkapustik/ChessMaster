@@ -42,9 +42,14 @@ public class RobotSpace
     {
         expectedResultingPosition = GetState().Position;
 
-        TakeEntityFromPosition(source);
+        var commands = GetTakeEntityFromPositionCommands(source);
+        var moveEntityCommands = GetMoveEntityToPositionCommands(target);
+        while (moveEntityCommands.Count > 0)
+        { 
+            commands.Enqueue(moveEntityCommands.Dequeue());
+        }
 
-        MoveEntityToPosition(target);
+        Driver!.ScheduleCommands(commands);
     }
 
     /// <summary>
@@ -69,7 +74,7 @@ public class RobotSpace
     /// </summary>
     /// <param name="position"></param>
     /// <exception cref="ArgumentNullException">If <see cref="Space"/> or <see cref="IRobot"/> has not been initialized</exception>
-    private void TakeEntityFromPosition(SpacePosition position)
+    private Queue<RobotCommand> GetTakeEntityFromPositionCommands(SpacePosition position)
     {
         var commands = new Queue<RobotCommand>();
         var entity = space!.SubSpaces[position.Row, position.Column].Entity;
@@ -92,20 +97,20 @@ public class RobotSpace
 
         commands.Enqueue(new CloseCommand());
 
-        var state = GetState();
+        var state =GetState();
 
         if (state.RobotResponse != RobotResponse.Ok && state.RobotResponse != RobotResponse.Initialized)
         {
             throw new InvalidOperationException("Can not schedule commands before previously scheduled commands are executed");
         }
 
-        Driver!.ScheduleCommands(commands);
-
         currentlyHeldEntity = entity;
         space.SubSpaces[position.Row, position.Column].Entity = null;
+
+        return commands;
     }
 
-    private void MoveEntityToPosition(SpacePosition targetPosition)
+    private Queue<RobotCommand> GetMoveEntityToPositionCommands(SpacePosition targetPosition)
     {
         var commands = new Queue<RobotCommand>();
 
@@ -133,7 +138,7 @@ public class RobotSpace
 
         expectedResultingPosition.Z = SafePaddingBetweenFigures + entityHeight;
 
-        Driver!.ScheduleCommands(commands);
+        return commands;
     }
 
     // TODO Delete if not neccessary

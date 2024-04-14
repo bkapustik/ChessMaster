@@ -1,4 +1,3 @@
-using ChessMaster.ControlApp.Pages;
 using Microsoft.UI.Xaml;
 using System;
 using Windows.Graphics;
