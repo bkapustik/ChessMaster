@@ -107,11 +107,6 @@ public sealed class ChessRunner : IChessRunner
             throw new InvalidOperationException("Robot is not initialized");
         }
 
-        if (ChessBoardInitialized)
-        {
-            throw new InvalidOperationException("ChessBoard is already initialized");
-        }
-
         LastA1 = a1;
         LastH8 = h8;
 

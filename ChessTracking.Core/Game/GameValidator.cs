@@ -82,9 +82,9 @@ static class GameValidator
     /// <returns>Textual representation of move</returns>
     private static string SerializeMoveToAlgebraicNotation(GameMove move)
     {
-        char separator = move.ToWhom == null ? '-' : 'x';
+        char separator = move.TargetFigure == null ? '-' : 'x';
         return
-            $"{GetCharacterForFigure(move.Who)}{GetCharacterForPosition(move.From.X)}{move.From.Y + 1}{separator}{GetCharacterForPosition(move.To.X)}{move.To.Y + 1}";
+            $"{GetCharacterForFigure(move.SourceFigure)}{GetCharacterForPosition(move.Source.X)}{move.Source.Y + 1}{separator}{GetCharacterForPosition(move.Target.X)}{move.Target.Y + 1}";
     }
 
     /// <summary>
@@ -160,8 +160,14 @@ static class GameValidator
     /// <param name="move">Move to perform</param>
     private static void PerformMove(GameData game, GameMove move)
     {
-        game.Chessboard.GetFigureOnPosition(move.From).Moved = true;
-        game.Chessboard.MoveTo(move.From, move.To);
+        game.Chessboard.GetFigureOnPosition(move.Source).Moved = true;
+        game.Chessboard.MoveTo(move.Source, move.Target);
+
+        if (move.CastlingRookSource != null && move.CastlingRookTarget != null)
+        { 
+            game.Chessboard.GetFigureOnPosition(move.CastlingRookSource).Moved = true;
+            game.Chessboard.MoveTo(move.CastlingRookSource, move.CastlingRookTarget);
+        }
     }
 
     /// <summary>
@@ -172,8 +178,13 @@ static class GameValidator
     /// <param name="tempSavedTakenFigure">Saved figure in case, that move was capture</param>
     private static void RevertMove(GameData game, GameMove move, Figure tempSavedTakenFigure)
     {
-        game.Chessboard.MoveTo(move.To, move.From);
-        game.Chessboard.AddFigure(tempSavedTakenFigure, move.To);
+        game.Chessboard.MoveTo(move.Target, move.Source);
+        game.Chessboard.AddFigure(tempSavedTakenFigure, move.Target);
+
+        if (move.CastlingRookSource != null && move.CastlingRookTarget != null)
+        {
+            game.Chessboard.MoveTo(move.CastlingRookTarget, move.CastlingRookSource);
+        }
     }
 
     /// <summary>
@@ -188,12 +199,25 @@ static class GameValidator
 
         foreach (var move in possibleMoves)
         {
-            var tempSavedTakenFigure = game.Chessboard.GetFigureOnPosition(move.To);
-            var isFromMoved = game.Chessboard.GetFigureOnPosition(move.From).Moved;
+            var tempSavedTakenFigure = game.Chessboard.GetFigureOnPosition(move.Target);
+            var isFromMoved = game.Chessboard.GetFigureOnPosition(move.Source).Moved;
+
+            bool isCastlingRookFromMoved = false;
+            if (move.CastlingRookSource != null && move.CastlingRookTarget != null)
+            {
+                isCastlingRookFromMoved = game.Chessboard.GetFigureOnPosition(move.CastlingRookSource).Moved;
+            }
+            
             PerformMove(game, move);
             bool isChecked = PlayerIsChecked(game, playerColor);
             RevertMove(game, move, tempSavedTakenFigure);
-            game.Chessboard.GetFigureOnPosition(move.From).Moved = isFromMoved;
+            game.Chessboard.GetFigureOnPosition(move.Source).Moved = isFromMoved;
+
+            if (move.CastlingRookSource != null && move.CastlingRookTarget != null)
+            {
+                game.Chessboard.GetFigureOnPosition(move.CastlingRookSource).Moved = isCastlingRookFromMoved;
+            }
+
             if (!isChecked)
                 return false;
         }
@@ -217,7 +241,7 @@ static class GameValidator
     {
         var myKingPosition = GetKingPosition(game.Chessboard.Figures, color);
         var enemyMoves = GetAllMoves(game.Chessboard, GetOppositeColor(color));
-        return enemyMoves.Any(x => x.To.IsEquivalent(myKingPosition));
+        return enemyMoves.Any(x => x.Target.IsEquivalent(myKingPosition));
     }
 
     /// <summary>
@@ -254,28 +278,60 @@ static class GameValidator
     /// <returns>Move if it's valid, null otherwise</returns>
     private static GameMove DecodeMove(GameData game, string move)
     {
-        var figure = GetFigureForCharacter(move[0]);
-        var from = new ChessPosition(GetPositionForCharacter(move[1]), int.Parse(move[2].ToString()) - 1);
-        var isCapture = move[3] == 'x';
-        var to = new ChessPosition(GetPositionForCharacter(move[4]), int.Parse(move[5].ToString()) - 1);
-
-        var fromFigure = game.Chessboard.GetFigureOnPosition(from);
-        var toFigure = game.Chessboard.GetFigureOnPosition(to);
-
-        if (figure != fromFigure.Type)
-            return null;
-        if (isCapture)
+        if (move == "e1g1" || move == "e1c1" || move == "e8g8" || move == "e8c8")
         {
-            if (game.Chessboard.GetFigureOnPosition(to) == null)
+            var from = new ChessPosition('e' - 'a', move[1] == '1' ? 0 : 7);
+            var to = new ChessPosition((move[2] == 'g' ? 'g' : 'c') - 'a', move[1] == '1' ? 0 : 7);
+            var fromFigure = game.Chessboard.GetFigureOnPosition(from);
+
+            if (fromFigure == null || fromFigure.Type != FigureType.King)
                 return null;
+
+            // Define rook's initial and target positions based on the move notation
+            ChessPosition rookFrom, rookTo;
+            if (move[2] == 'g')  // Kingside castling
+            {
+                rookFrom = new ChessPosition(7, from.Y);
+                rookTo = new ChessPosition(5, from.Y);
+            }
+            else  // Queenside castling
+            {
+                rookFrom = new ChessPosition(0, from.Y);
+                rookTo = new ChessPosition(3, from.Y);
+            }
+
+            return new GameMove(from, to, fromFigure.Type, null)
+            {
+                CastlingRookSource = rookFrom,
+                CastlingRookTarget = rookTo,
+                CastlingFigure = FigureType.Rook
+            };
         }
         else
         {
-            if (game.Chessboard.GetFigureOnPosition(to) != null)
-                return null;
-        }
+            var figure = GetFigureForCharacter(move[0]);
+            var from = new ChessPosition(GetPositionForCharacter(move[1]), int.Parse(move[2].ToString()) - 1);
+            var isCapture = move[3] == 'x';
+            var to = new ChessPosition(GetPositionForCharacter(move[4]), int.Parse(move[5].ToString()) - 1);
 
-        return new GameMove(from, to, fromFigure.Type, toFigure?.Type);
+            var fromFigure = game.Chessboard.GetFigureOnPosition(from);
+            var toFigure = game.Chessboard.GetFigureOnPosition(to);
+
+            if (figure != fromFigure.Type)
+                return null;
+            if (isCapture)
+            {
+                if (game.Chessboard.GetFigureOnPosition(to) == null)
+                    return null;
+            }
+            else
+            {
+                if (game.Chessboard.GetFigureOnPosition(to) != null)
+                    return null;
+            }
+
+            return new GameMove(from, to, fromFigure.Type, toFigure?.Type);
+        }
     }
 
     /// <summary>
@@ -324,6 +380,40 @@ static class GameValidator
         if (game.PlayerOnMove == PlayerColor.White)
         {
             if (
+                whiteToNone.Count == 2 &&
+                noneToWhite.Count == 2 &&
+                blackToNone.Count == 0 &&
+                noneToBlack.Count == 0 &&
+                blackToWhite.Count == 0 &&
+                whiteToBlack.Count == 0
+            )
+            {
+                if (whiteToNone.Exists(p => p.X == 4 && p.Y == 0) && noneToWhite.Exists(p => p.X == 6 && p.Y == 0) &&
+                    whiteToNone.Exists(p => p.X == 7 && p.Y == 0) && noneToWhite.Exists(p => p.X == 5 && p.Y == 0))
+                {
+                    return new GameMove(
+                        new ChessPosition(4, 0), new ChessPosition(6, 0), FigureType.King, null)
+                    {
+                        CastlingRookSource = new ChessPosition(7, 0),
+                        CastlingRookTarget = new ChessPosition(5, 0),
+                        CastlingFigure = FigureType.Rook
+                    };
+                }
+
+                if (whiteToNone.Exists(p => p.X == 4 && p.Y == 0) && noneToWhite.Exists(p => p.X == 2 && p.Y == 0) &&
+                    whiteToNone.Exists(p => p.X == 0 && p.Y == 0) && noneToWhite.Exists(p => p.X == 3 && p.Y == 0))
+                {
+                    return new GameMove(
+                        new ChessPosition(4, 0), new ChessPosition(2, 0), FigureType.King, null)
+                    {
+                        CastlingRookSource = new ChessPosition(0, 0),
+                        CastlingRookTarget = new ChessPosition(3, 0),
+                        CastlingFigure = FigureType.Rook
+                    };
+                }
+            }
+
+            if (
                 whiteToNone.Count == 1 &&
                 noneToWhite.Count == 1 &&
                 blackToNone.Count == 0 &&
@@ -359,6 +449,40 @@ static class GameValidator
         }
         else
         {
+            if (whiteToNone.Count == 0 &&
+                noneToWhite.Count == 0 &&
+                blackToNone.Count == 2 &&
+                noneToBlack.Count == 2 &&
+                blackToWhite.Count == 0 &&
+                whiteToBlack.Count == 0
+            )
+            {
+                // Kingside Castling (e8 to g8, h8 to f8)
+                if (blackToNone.Exists(p => p.X == 4 && p.Y == 7) && noneToBlack.Exists(p => p.X == 6 && p.Y == 7) &&
+                    blackToNone.Exists(p => p.X == 7 && p.Y == 7) && noneToBlack.Exists(p => p.X == 5 && p.Y == 7))
+                {
+                    return new GameMove(
+                        new ChessPosition(4, 7), new ChessPosition(6, 7), FigureType.King, null)
+                    {
+                        CastlingRookSource = new ChessPosition(7, 7),
+                        CastlingRookTarget = new ChessPosition(5, 7),
+                        CastlingFigure = FigureType.Rook
+                    };
+                }
+                // Queenside Castling (e8 to c8, a8 to d8)
+                if (blackToNone.Exists(p => p.X == 4 && p.Y == 7) && noneToBlack.Exists(p => p.X == 2 && p.Y == 7) &&
+                    blackToNone.Exists(p => p.X == 0 && p.Y == 7) && noneToBlack.Exists(p => p.X == 3 && p.Y == 7))
+                {
+                    return new GameMove(
+                        new ChessPosition(4, 7), new ChessPosition(2, 7), FigureType.King, null)
+                    {
+                        CastlingRookSource = new ChessPosition(0, 7),
+                        CastlingRookTarget = new ChessPosition(3, 7),
+                        CastlingFigure = FigureType.Rook
+                    };
+                }
+            }
+
             if (
                 whiteToNone.Count == 0 &&
                 noneToWhite.Count == 0 &&
@@ -409,6 +533,7 @@ static class GameValidator
         acumulator.AddRange(GetMovesForRooks(chessboard, playerColor));
         acumulator.AddRange(GetMovesForBishops(chessboard, playerColor));
         acumulator.AddRange(GetMovesForQueens(chessboard, playerColor));
+        acumulator.AddRange(GetMovesForCastling(chessboard, playerColor));
 
         return acumulator;
     }
@@ -557,7 +682,7 @@ static class GameValidator
                     var moveOnce = CanMove(chessboard, playerColor, position, position.Add(moveVector));
                     acumulator.Add(moveOnce);
                     if (moveOnce != null && !figure.Moved)
-                        acumulator.Add(CanMove(chessboard, playerColor, position, moveOnce.To.Add(moveVector)));
+                        acumulator.Add(CanMove(chessboard, playerColor, position, moveOnce.Target.Add(moveVector)));
                 }
             }
         }
@@ -608,6 +733,64 @@ static class GameValidator
 
         acumulator.RemoveAll(x => x == null);
         return acumulator;
+    }
+
+    private static List<GameMove> GetMovesForCastling(ChessboardModel chessboard, PlayerColor playerColor)
+    {
+        var acumulator = new List<GameMove>();
+
+        // Coordinates for the king's starting position (assumed to be row 0 for White and row 7 for Black)
+        int kingRow = playerColor == PlayerColor.White ? 0 : 7;
+        int kingColumn = 4; // 'e' file
+        var kingPosition = new ChessPosition(kingColumn, kingRow);
+        var king = chessboard.GetFigureOnPosition(kingPosition);
+
+        // Check if the king has already moved or if there is no king at the expected position
+        if (king == null || king.Type != FigureType.King || king.Moved)
+            return acumulator;
+
+        // Check kingside castling (with the h1/h8 rook)
+        int kingsideRookColumn = 7; // 'h' file
+        var kingsideRookPosition = new ChessPosition(kingsideRookColumn, kingRow);
+        var kingsideRook = chessboard.GetFigureOnPosition(kingsideRookPosition);
+
+        if (kingsideRook != null && kingsideRook.Type == FigureType.Rook && !kingsideRook.Moved && IsPathClear(chessboard, kingPosition, kingsideRookPosition))
+        {
+            acumulator.Add(new GameMove(kingPosition, new ChessPosition(kingColumn + 2, kingRow), king.Type, null)
+            {
+                CastlingRookSource = kingsideRookPosition,
+                CastlingRookTarget = new ChessPosition(kingColumn + 1, kingRow),
+                CastlingFigure = FigureType.Rook
+            });
+        }
+
+        // Check queenside castling (with the a1/a8 rook)
+        int queensideRookColumn = 0; // 'a' file
+        var queensideRookPosition = new ChessPosition(queensideRookColumn, kingRow);
+        var queensideRook = chessboard.GetFigureOnPosition(queensideRookPosition);
+
+        if (queensideRook != null && queensideRook.Type == FigureType.Rook && !queensideRook.Moved && IsPathClear(chessboard, kingPosition, queensideRookPosition))
+        {
+            acumulator.Add(new GameMove(kingPosition, new ChessPosition(kingColumn - 2, kingRow), king.Type, null)
+            {
+                CastlingRookSource = queensideRookPosition,
+                CastlingRookTarget = new ChessPosition(kingColumn - 1, kingRow),
+                CastlingFigure = FigureType.Rook
+            });
+        }
+
+        return acumulator;
+    }
+
+    private static bool IsPathClear(ChessboardModel chessboard, ChessPosition from, ChessPosition to)
+    {
+        int step = to.X > from.X ? 1 : -1;
+        for (int x = from.X + step; x != to.X; x += step)
+        {
+            if (chessboard.GetFigureOnPosition(new ChessPosition(x, from.Y)) != null)
+                return false;
+        }
+        return true;
     }
 
     /// <summary>
