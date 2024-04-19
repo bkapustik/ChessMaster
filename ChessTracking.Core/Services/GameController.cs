@@ -32,7 +32,6 @@ public class GameController
     {
         try
         {
-            TrackingController.KinectTrackingAppPath = "C:/Users/asus/Desktop/Bakalarka/ChessMaster/ChessTracking.Kinect/bin/Release/ChessTracking.Kinect.exe";
             TrackingController.StartTrackerApp();
 
             Game = GameFactory.NewGame();

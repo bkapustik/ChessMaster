@@ -4,6 +4,7 @@ using ChessTracking.Core.ImageProcessing.PipelineParts.General;
 using ChessTracking.Core.Tracking.State;
 using MemoryMappedCollections;
 using System.Diagnostics;
+using System.Reflection;
 namespace ChessTracking.Core.Services;
 
 public class TrackingController : IDisposable
@@ -16,7 +17,7 @@ public class TrackingController : IDisposable
     private bool TrackingCanceled { get; set; }
     private bool IsPaused { get; set; }
 
-    public string KinectTrackingAppPath { get; set; }
+    private string KinectTrackingAppPath { get; set; }
     public TrackingResultProcessor TrackingProcessor { get; private set; }
     public SharedMemoryQueue<KinectInputMessage> KinectInputQueue { get; }
     public SharedMemorySerializedMultiBuffer<KinectData> Buffer { get; }
@@ -49,6 +50,14 @@ public class TrackingController : IDisposable
         Calibrating = false;
         TrackingCanceled = false;
         IsPaused = true;
+        
+        string workingDirectory = AppDomain.CurrentDomain.BaseDirectory;
+        string projectDirectory = Directory.GetParent(workingDirectory)!.Parent!.Parent!.Parent!.Parent!.Parent!.Parent!.Parent!.FullName;
+
+        var assemblyConfigurationAttribute = typeof(TrackingController).Assembly.GetCustomAttribute<AssemblyConfigurationAttribute>();
+        var buildConfigurationName = assemblyConfigurationAttribute?.Configuration.ToLower();
+
+        KinectTrackingAppPath = $"{projectDirectory}\\ChessTracking.Kinect\\bin\\{buildConfigurationName}\\ChessTracking.Kinect.exe";
     }
 
     //TODO return this back
