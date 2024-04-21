@@ -17,14 +17,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml.Input;
 using ChessMaster.ChessDriver.Services;
 using ChessMaster.ControlApp.Services;
-using System.Reflection;
 
 namespace ChessMaster.ControlApp;
 
 public sealed partial class MainWindow : Window
 {
-    private int windowWidth = 1000;
-    private int windowHeight = 700;
+    public int windowWidth { get; private set; } = 1000;
+    public int windowHeight { get; private set; } = 700;
     private int timerCounter = 0;
 
     private bool continueInOldGame = false;
@@ -43,14 +42,22 @@ public sealed partial class MainWindow : Window
         robotService = App.Services.GetRequiredService<IUIRobotService>();
         configurationService = App.Services.GetRequiredService<IConfigurationService>();
         ExtendsContentIntoTitleBar = true;
-        
+
+        SizeChanged += MainWindow_SizeChanged;
         Resize(windowWidth, windowHeight);
+
         SetTitleBar(AppTitleBar);
         
         if (Application.Current.Resources.TryGetValue("TextBlockInGridStyle", out var style))
         {
             TextBlockInGridStyle = style as Style;
         }
+    }
+
+    private void MainWindow_SizeChanged(object sender, WindowSizeChangedEventArgs args)
+    {
+        windowWidth = (int)args.Size.Width;
+        windowHeight = (int)args.Size.Height;
     }
 
     public void ContinueGame()
@@ -62,6 +69,7 @@ public sealed partial class MainWindow : Window
     public void Play()
     {
         var strategy = selectedStrategy.CreateStrategy();
+        bool continueWithOldContext = selectedStrategy.ContinueWithOldContext;
 
         if (robotService.UIGameState.GameState == GameState.InProgress && continueInOldGame)
         {
@@ -72,26 +80,30 @@ public sealed partial class MainWindow : Window
         {
             Task.Run(() =>
             {
-                if (this.chessRunner.GameHadBeenStarted)
+                if (chessRunner.GameHadBeenStarted)
                 {
                     if (strategy.CanAcceptOldContext)
                     {
-                        throw new NotImplementedException();
-                        chessRunner.TryChangeStrategyWithContext(strategy, true);
+                        if (continueWithOldContext)
+                        {
+                            chessRunner.TryChangeStrategyWithContext(strategy, true);
+                        }
+                        else
+                        {
+                            chessRunner.TryChangeStrategyWithContext(strategy, false);
+                        }
                     }
                     else
                     {
-                        if (chessRunner.TryChangeStrategyWithContext(strategy, false))
-                        {
-                            chessRunner.Start();
-                        }
+                        chessRunner.TryChangeStrategyWithContext(strategy, false);
                     }
                 }
                 else
                 {
                     chessRunner.TryPickStrategy(strategy);
-                    chessRunner.Start();
                 }
+
+                chessRunner.Start();
             });
         }
     }
@@ -202,6 +214,7 @@ public sealed partial class MainWindow : Window
         else
         {
             configurationService.AcceptedFileTypes = selectedStrategy.AcceptedFileTypes;
+            configurationService.FilePickerTitleText = selectedStrategy.FilePickerText;
 
             NavigateTo(typeof(FilePickerPage));
         }
@@ -226,6 +239,8 @@ public sealed partial class MainWindow : Window
 
     public void Resize(int windowWidth, int windowHeight)
     {
+        this.windowWidth = windowWidth;
+        this.windowHeight = windowHeight;
         var windowHandle = WindowNative.GetWindowHandle(this);
         AppWindow.Resize(new SizeInt32(windowWidth, windowHeight));
         CenterToScreen(windowHandle);

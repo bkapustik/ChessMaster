@@ -160,9 +160,7 @@ public sealed class ChessRunner : IChessRunner
             {
                 if (strategy.CanAcceptOldContext)
                 {
-                    //TODO zmenit
                     SwapStrategy(strategy, true);
-                    SwapStrategy(strategy, false);
                 }
                 return false;
             }
@@ -306,26 +304,43 @@ public sealed class ChessRunner : IChessRunner
         isMoveComputed = true;
     }
 
-    private void InitializeStrategy(IChessStrategy chessStrategy)
+    private void InitializeStrategy(IChessStrategy chessStrategy, bool continueWithOldContext = false)
     {
         if (this.chessStrategy != null)
         {
             this.chessStrategy!.MoveComputed -= SubscribeToStrategyMoveComputed;
         }
 
-        this.chessStrategy = chessStrategy;
-        var initializationResult = this.chessStrategy.Initialize();
-
-        if (initializationResult.IsEndOfGame)
+        if (continueWithOldContext)
         {
-            LogMove(new LogEventArgs(initializationResult.Message ?? ""));
+            Log(new LogEventArgs("Initializing match from old game"));
+
+            var uciMoves = this.chessStrategy!.GetAllExecutedUciMoves();
+            var oldChessboard = this.chessStrategy!.GetCurrentChessBoard();
+
+            if (isMoveComputed)
+            {
+                Log(new LogEventArgs("Executing already scheduled moves from old strategy."));
+                
+                while (!isMoveDone)
+                {
+                    Thread.Sleep(10);
+                }
+
+                currentMove.Execute(ChessRobot!);
+                Log(new LogEventArgs(currentMove.Message ?? ""));
+            }
+
+            chessStrategy.InitializeFromOldGame(oldChessboard, uciMoves);
+        }
+        else
+        {
+            chessStrategy.Initialize();
         }
 
-        isMoveDone = true;
+        this.chessStrategy = chessStrategy;
 
-        chessStrategy!.MoveComputed += SubscribeToStrategyMoveComputed;
-
-        currentMove = new StartGameMove("Waiting for moves");
+        this.chessStrategy!.MoveComputed += SubscribeToStrategyMoveComputed;
     }
     private void SwapStrategy(IChessStrategy chessStrategy, bool continueWithOldContext)
     {
@@ -338,12 +353,14 @@ public sealed class ChessRunner : IChessRunner
         }
         else
         {
-            throw new NotImplementedException();
+            InitializeStrategy(chessStrategy, continueWithOldContext);
+
+            chessStrategy!.ComputeNextMove();
         }
 
         isPaused = false;
     }
-    private void LogMove(LogEventArgs e)
+    private void Log(LogEventArgs e)
     {
         OnMessageLogged?.Invoke(this, e);
     }
@@ -377,7 +394,7 @@ public sealed class ChessRunner : IChessRunner
 
                     currentMove.Execute(ChessRobot);
 
-                    LogMove(new LogEventArgs(currentMove.Message ?? ""));
+                    Log(new LogEventArgs(currentMove.Message ?? ""));
                     chessStrategy!.ComputeNextMove();
                 }
                 else

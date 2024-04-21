@@ -10,6 +10,8 @@ public class MatchReplayChessStrategy : IChessStrategy
 {
     private readonly string filePath;
     private readonly PgnChessBoard chessBoard = new PgnChessBoard();
+    private readonly List<ChessMove> executedMoves = new List<ChessMove>();
+    private ChessMove? StartGameMove = null;
 
     private ChessParsingResult ChessParsingResult { get; set; }
     private ChessColor ColorOnMove = ChessColor.White;
@@ -27,7 +29,7 @@ public class MatchReplayChessStrategy : IChessStrategy
         get { return false; }
     }
 
-    public ChessMove Initialize()
+    public void Initialize()
     {
         ChessParsingResult = ChessFileParser.GetMoves(filePath);
 
@@ -35,18 +37,26 @@ public class MatchReplayChessStrategy : IChessStrategy
 
         if (ChessParsingResult.Moves.Count <= 0)
         {
-            return new ChessMove(true, "Invalid Game");
+            StartGameMove = new ChessMove(true, "Invalid Game");
         }
 
-        return new ChessMove(false);
+        StartGameMove = new StartGameMove("Game started");
     }
-    public ChessMove InitializeFromOldGame(ChessBoardGeneral chessBoard)
+    public void InitializeFromOldGame(ChessBoardGeneral chessBoard, List<string> uciMoves)
     {
         throw new NotImplementedException();
     }
 
     public void ComputeNextMove()
     {
+        if (StartGameMove != null)
+        {
+            var startGameMove = StartGameMove;
+            StartGameMove = null;
+            Task.Run(() => { OnMoveComputed(new StrategyEventArgs(true, startGameMove)); });
+            return;
+        }
+
         if (ChessParsingResult.Moves.Count == 0)
         {
             HandleMoveComputed(true, new ChessMove(true, $"End of the game. Result: {ChessParsingResult.MatchResultMessage}"));
@@ -219,6 +229,8 @@ public class MatchReplayChessStrategy : IChessStrategy
         throw new InvalidOperationException("Wrong move");
     }
 
+    public List<string> GetAllExecutedUciMoves() => executedMoves.Select(x => x.ToUci()).ToList();
+
     private bool CanFigureMoveToTarget(int row, int column, PgnMove move)
     {
         if (chessBoard.Grid[row, column].Figure != null &&
@@ -277,6 +289,7 @@ public class MatchReplayChessStrategy : IChessStrategy
 
     private void HandleMoveComputed(bool success, ChessMove move)
     {
+        executedMoves.Add(move);
         Task.Run(() => { OnMoveComputed(new StrategyEventArgs(success, move)); });
     }
 

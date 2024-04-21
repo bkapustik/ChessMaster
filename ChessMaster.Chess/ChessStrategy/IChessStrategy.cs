@@ -6,9 +6,10 @@ namespace ChessMaster.ChessDriver.Strategy;
 public interface IChessStrategy : IDisposable
 {
     MoveComputedEvent? MoveComputed { get; set; }
-    ChessMove InitializeFromOldGame(ChessBoardGeneral chessBoard);
+    void InitializeFromOldGame(ChessBoardGeneral chessBoard, List<string> uciMoves);
     ChessBoardGeneral GetCurrentChessBoard();
-    ChessMove Initialize();
+    List<string> GetAllExecutedUciMoves();
+    void Initialize();
     bool CanAcceptOldContext { get; }
     void ComputeNextMove();
 }

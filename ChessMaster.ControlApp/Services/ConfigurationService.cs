@@ -24,6 +24,7 @@ public class ConfigurationService : IConfigurationService
 
         chessRunner = App.Services.GetRequiredService<IChessRunner>();
     }
+    public string FilePickerTitleText { get; set; }
 
     public bool IsRobotAtDesiredPosition() => chessRunner.IsRobotAtDesiredPosition(RobotDesiredPosition);
 

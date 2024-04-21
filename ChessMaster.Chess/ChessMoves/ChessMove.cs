@@ -1,4 +1,5 @@
 ﻿using ChessMaster.Space.Coordinations;
+using Emgu.CV.Dnn;
 
 namespace ChessMaster.ChessDriver.ChessMoves;
 

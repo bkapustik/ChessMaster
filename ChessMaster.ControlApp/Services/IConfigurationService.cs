@@ -9,6 +9,7 @@ public interface IConfigurationService
 {
     const float TICK_SPEED = 100;
     List<string> AcceptedFileTypes { get; set; }
+    string FilePickerTitleText { get; set; }
     void IncrementSpeed();
     CornerPosition A1Corner { get; set; }
     CornerPosition H8Corner { get; set; }

@@ -47,6 +47,11 @@ public sealed partial class GamePage : Page, INotifyPropertyChanged
         this.InitializeComponent();
     }
 
+    protected override void OnNavigatedFrom(NavigationEventArgs e)
+    {
+        mainWindow.SizeChanged -= MainWindow_SizeChanged;
+    }
+
     protected override void OnNavigatedTo(NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
@@ -80,6 +85,11 @@ public sealed partial class GamePage : Page, INotifyPropertyChanged
 
         mainWindow.Play();
 
+        MessagesList.Width = mainWindow.windowWidth - 200;
+        MessagesList.Height = mainWindow.windowHeight - 150;
+
+        mainWindow.SizeChanged += MainWindow_SizeChanged;
+
         pauseButton = ControlFactory.CreateMenuButton("Pause");
         pauseButton.Click += PauseClick;
 
@@ -87,6 +97,12 @@ public sealed partial class GamePage : Page, INotifyPropertyChanged
         finishMoveButton.Click += FinishMoveClick;
 
         mainWindow.AddMenuButton(pauseButton);
+    }
+
+    private void MainWindow_SizeChanged(object sender, WindowSizeChangedEventArgs args)
+    {
+        MessagesList.Width = args.Size.Width - 200;
+        MessagesList.Height = args.Size.Height - 150;
     }
 
     private void FinishMoveClick(object o, RoutedEventArgs e)

@@ -34,6 +34,8 @@ public sealed partial class FilePickerPage : Page
         mainWindow.AddMenuButton(controlFactory.CreateChangeStrategyButton());
 
         AcceptedFileTypes = configurationService.AcceptedFileTypes;
+
+        FilePickerTitle.Text = configurationService.FilePickerTitleText;
     }
 
     private void SelectFileButtonClicked(object sender, RoutedEventArgs e)

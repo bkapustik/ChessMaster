@@ -11,10 +11,11 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
         </Grid.RowDefinitions>
 
         <ComboBox Grid.Row="0" x:Name="StrategyComboBox" ItemsSource="{x:Bind Strategies}" DisplayMemberPath="Name"
-            VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,10,0,0">
+            VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,10,0,0" SelectionChanged="StrategyComboBox_SelectionChanged">
             <ComboBox.HeaderTemplate>
                 <DataTemplate>
                     <TextBlock Style="{StaticResource TitleTextBlockStyle}" VerticalAlignment="Center" Text="Select match type"></TextBlock>
@@ -23,5 +24,11 @@
         </ComboBox>
 
         <Button Grid.Row="1" x:Name="SelectStrategyButton" Content="Select" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,10,0,0" Click="StrategySelectedButton"/>
+        <TextBlock Grid.Row="1" HorizontalAlignment="Center" x:Name="SwapStrategyTextBlock" Visibility="Collapsed">Do you want to change strategy and keep playing the same game ?</TextBlock>
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center">
+            <Button x:Name="CancelButton" Visibility="Collapsed" Content="Cancel" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,10,0,0" Click="CancelButton_Click"/>
+            <Button x:Name="ContinueButton" Visibility="Collapsed" Content="Continue" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="10,10,0,0" Click="ContinueButton_Click"/>
+            <Button x:Name="NewGameButton" Visibility="Collapsed" Content="New Game" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="10,10,0,0" Click="NewGameButton_Click"/>
+        </StackPanel>
     </Grid>
 </Page>

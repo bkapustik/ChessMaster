@@ -18,6 +18,7 @@ public class StockfishKinectChessTrackingStrategy : IChessStrategy
     private string? LastExpectedMove = null;
 
     private ChessBoardGeneral ChessBoard = new ChessBoardGeneral();
+    private StartGameMove? StartGameMove = null;
     public MoveComputedEvent? MoveComputed { get; set; }
 
     public StockfishKinectChessTrackingStrategy(IKinectService kinectService, string stockFishFilePath)
@@ -53,20 +54,31 @@ public class StockfishKinectChessTrackingStrategy : IChessStrategy
         }
     }
 
-    public ChessMove Initialize()
+    public List<string> GetAllExecutedUciMoves() => UciMoves;
+
+    public void Initialize()
     {
         ChessBoard.Initialize();
-        return new StartGameMove("Game started");
+        StartGameMove = new StartGameMove("Game started");
     }
-    public ChessMove InitializeFromOldGame(ChessBoardGeneral chessBoard)
+    public void InitializeFromOldGame(ChessBoardGeneral chessBoard, List<string> uciMoves)
     {
+        UciMoves = uciMoves;
         ChessBoard = chessBoard;
-        return new StartGameMove("Game started");
+        StartGameMove = new StartGameMove("Game initialized from previous game");
     }
     public ChessBoardGeneral GetCurrentChessBoard() => ChessBoard;
-    public bool CanAcceptOldContext { get; }
+    public bool CanAcceptOldContext { get { return true; } }
     public void ComputeNextMove()
     {
+        if (StartGameMove != null)
+        {
+            var startGameMove = StartGameMove;
+            StartGameMove = null;
+            HandleMoveComputed(true, startGameMove);
+            return;
+        }
+
         if (IsRobotMove && RobotMoveCompleted)
         {
             stockfish.SetPosition(UciMoves.ToArray());

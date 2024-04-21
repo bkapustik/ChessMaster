@@ -8,8 +8,9 @@ namespace ChessMaster.ChessDriver.ChessStrategy.StockFishKinectTrackingStrategy;
 public class StockfishAgainstStockfishStrategy : IChessStrategy
 {
     private readonly IStockfish stockfish;
-    private List<ChessMove> Moves = new List<ChessMove>();
+    private List<string> Moves = new List<string>();
     private ChessBoardGeneral ChessBoard = new ChessBoardGeneral();
+    private StartGameMove? StartGameMove = null;
 
     public MoveComputedEvent? MoveComputed { get; set; }
 
@@ -18,23 +19,34 @@ public class StockfishAgainstStockfishStrategy : IChessStrategy
         stockfish = new Stockfish.NET.Core.Stockfish(stockFishFilePath);
     }
 
-    public ChessMove Initialize()
+    public void Initialize()
     {
         ChessBoard.Initialize();
-        return new StartGameMove("Game started");
+        StartGameMove = new StartGameMove("Game started");
     }
-    public ChessMove InitializeFromOldGame(ChessBoardGeneral chessBoard)
+    public void InitializeFromOldGame(ChessBoardGeneral chessBoard, List<string> uciMoves)
     {
+        Moves = uciMoves;
         ChessBoard = chessBoard;
-        return new StartGameMove("Game started");
+        StartGameMove = new StartGameMove("Game initialized from previous game");
     }
     public ChessBoardGeneral GetCurrentChessBoard() => ChessBoard;
 
-    public bool CanAcceptOldContext { get; }
+    public bool CanAcceptOldContext { get { return true; } }
+
+    public List<string> GetAllExecutedUciMoves() => Moves;
 
     public void ComputeNextMove()
     {
-        stockfish.SetPosition(Moves.Select(x => x.ToUci()).ToArray());
+        if (StartGameMove != null)
+        {
+            var startGameMove = StartGameMove;
+            StartGameMove = null;
+            HandleMoveComputed(true, startGameMove);
+            return;
+        }
+
+        stockfish.SetPosition(Moves.ToArray());
 
         var uciString = stockfish.GetBestMoveTime(1500);
 
@@ -44,9 +56,9 @@ public class StockfishAgainstStockfishStrategy : IChessStrategy
             return;
         }
 
-        var chessMove = StockfishStrategyHelper.CreateMoveFromUci(uciString, ChessBoard);
+        Moves.Add(uciString);
 
-        Moves.Add(chessMove);
+        var chessMove = StockfishStrategyHelper.CreateMoveFromUci(uciString, ChessBoard);
 
         HandleMoveComputed(true, chessMove);
     }

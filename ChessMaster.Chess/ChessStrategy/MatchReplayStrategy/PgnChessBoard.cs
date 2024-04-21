@@ -17,14 +17,13 @@ public class PgnChessBoard : IChessBoard
     {
         var tiles = new ChessFigureGeneral[BoardDimLength, BoardDimLength];
 
-        for (int i = 0; i < Grid.Length; i++)
+        for (int i = 0; i < BoardDimLength; i++)
         {
             for (int j = 0; j < BoardDimLength; j++)
             {
                 if (Grid[i, j].Figure != null)
                 {
-                    tiles[i, j].FigureType = Grid[i, j]!.Figure!.FigureType;
-                    tiles[i, j].Color = Grid[i, j]!.Figure!.ChessColor;
+                    tiles[i, j] = new ChessFigureGeneral(Grid[i, j]!.Figure!.ChessColor, Grid[i, j]!.Figure!.FigureType);
                 }
             }
         }

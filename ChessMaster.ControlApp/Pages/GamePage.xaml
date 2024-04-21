@@ -8,11 +8,11 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Grid x:Name="GameGrid">
-        <StackPanel x:Name="GameLogPanel">
+    <Grid x:Name="GameGrid" VerticalAlignment="Center" HorizontalAlignment="Center">
+        <StackPanel x:Name="GameLogPanel" VerticalAlignment="Center" HorizontalAlignment="Center">
             <ListView x:Name="MessagesList" 
                     ItemsSource="{Binding Messages}"
-                    Width="350"
+                    Width="500"
                     Height="400"
                     HorizontalAlignment="Left"
                     BorderBrush="{ThemeResource SystemControlForegroundBaseMediumLowBrush}"

@@ -7,6 +7,8 @@ namespace ChessMaster.ChessDriver.ChessStrategy;
 
 public abstract class ChessStrategyFacade
 {
+    public bool ContinueWithOldContext = false;
+    public virtual string FilePickerText { get; } = "";
     public abstract string Name { get; }
     public abstract bool NeedsFileConfiguration { get; }
     public abstract bool NeedsKinectConfiguration { get; }
@@ -14,6 +16,7 @@ public abstract class ChessStrategyFacade
     public abstract void Configure(IKinectService kinectService);
     public virtual List<string> AcceptedFileTypes { get; } = new List<string>();
     public abstract IChessStrategy CreateStrategy();
+    public abstract bool CanAcceptOldContext { get; }
 }
 
 public class PgnStrategyFacade : ChessStrategyFacade
@@ -24,6 +27,8 @@ public class PgnStrategyFacade : ChessStrategyFacade
     public override List<string> AcceptedFileTypes => new List<string> { ".pgn" };
     public override bool NeedsFileConfiguration => true;
     public override bool NeedsKinectConfiguration => false;
+    public override bool CanAcceptOldContext => false;
+    public override string FilePickerText => "Please select a text file containing chess game record in PGN notation";
     public override void Configure(string configuration)
     {
         file = configuration;
@@ -41,6 +46,7 @@ public class MockPgnStrategyFacade : ChessStrategyFacade
     public override IChessStrategy CreateStrategy() => new MockMatchReplayChessStrategy(data);
     public override bool NeedsFileConfiguration => false;
     public override bool NeedsKinectConfiguration => false;
+    public override bool CanAcceptOldContext => false;
     public override List<string> AcceptedFileTypes => new List<string> { ".pgn" };
     public override void Configure(string configuration)
     {
@@ -59,7 +65,9 @@ public class StockFishStrategyFacade : ChessStrategyFacade
     public override IChessStrategy CreateStrategy() => new StockfishAgainstStockfishStrategy(File!);
     public override bool NeedsFileConfiguration => true;
     public override bool NeedsKinectConfiguration => false;
+    public override bool CanAcceptOldContext => true;
     public override List<string> AcceptedFileTypes => new List<string> { ".exe" };
+    public override string FilePickerText => "Please select a stockfish.exe file";
     public override void Configure(string configuration)
     {
         File = configuration;
@@ -79,7 +87,9 @@ public class StockFishKinectStrategyFacade : ChessStrategyFacade
     public override IChessStrategy CreateStrategy() => new StockfishKinectChessTrackingStrategy(KinectService!, File!);
     public override bool NeedsFileConfiguration => true;
     public override bool NeedsKinectConfiguration => true;
+    public override bool CanAcceptOldContext => true;
     public override List<string> AcceptedFileTypes => new List<string> { ".exe" };
+    public override string FilePickerText => "Please select a stockfish.exe file";
     public override void Configure(string configuration)
     {
         File = configuration;

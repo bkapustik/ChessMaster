@@ -11,6 +11,8 @@ public class MockMatchReplayChessStrategy : IChessStrategy
 {
     private readonly byte[] fileData;
     private readonly PgnChessBoard chessBoard = new PgnChessBoard();
+    private readonly List<ChessMove> executedChessMoves = new List<ChessMove>();
+    private ChessMove? StartGameMove = null;
     private bool IsPlayerMove = false;
 
     private ChessParsingResult ChessParsingResult { get; set; }
@@ -27,13 +29,13 @@ public class MockMatchReplayChessStrategy : IChessStrategy
     {
         get { return false; }
     }
-    public ChessMove InitializeFromOldGame(ChessBoardGeneral chessBoard)
+    public void InitializeFromOldGame(ChessBoardGeneral chessBoard, List<string> uciMoves)
     {
         throw new NotImplementedException();
     }
     public ChessBoardGeneral GetCurrentChessBoard() => chessBoard.ToGeneral();
 
-    public ChessMove Initialize()
+    public void Initialize()
     {
         ChessParsingResult = ChessFileParser.GetMoves(fileData);
 
@@ -41,21 +43,21 @@ public class MockMatchReplayChessStrategy : IChessStrategy
 
         if (ChessParsingResult.Moves.Count <= 0)
         {
-            return new ChessMove(true, "Invalid Game");
+            StartGameMove = new ChessMove(true, "Invalid Game");
         }
 
-        return new ChessMove(false);
-    }
-    public ChessMove InitializeFromOldGame(string fenNotation)
-    {
-        throw new NotImplementedException();
-    }
-    public string GetFENNotation()
-    {
-        throw new NotImplementedException();
+        StartGameMove = new StartGameMove("Game started");
     }
     public void ComputeNextMove()
     {
+        if (StartGameMove != null)
+        {
+            var startGameMove = StartGameMove;
+            StartGameMove = null;
+            Task.Run(() => { OnMoveComputed(new StrategyEventArgs(true, startGameMove)); });
+            return;
+        }
+
         if (IsPlayerMove)
         {
             //Thread.Sleep(500);
@@ -235,6 +237,7 @@ public class MockMatchReplayChessStrategy : IChessStrategy
 
         throw new InvalidOperationException("Wrong move");
     }
+    public List<string> GetAllExecutedUciMoves() => executedChessMoves.Select(x => x.ToUci()).ToList();
     private bool CanFigureMoveToTarget(int x, int y, PgnMove move)
     {
         if (chessBoard.Grid[x, y].Figure != null &&
@@ -286,6 +289,7 @@ public class MockMatchReplayChessStrategy : IChessStrategy
     }
     private void HandleMoveComputed(bool success, ChessMove move)
     {
+        executedChessMoves.Add(move);
         Task.Run(() => { OnMoveComputed(new StrategyEventArgs(success, move)); });
     }
 
