@@ -32,9 +32,9 @@ public static class StockfishStrategyHelper
             return new CaptureMove(source, target, false, uci);
         }
 
-        if (chessBoard.Grid[source.Row, source.Column]!.FigureType == FigureType.King
-            && Math.Abs(source.Row - target.Row) == 2
-            )
+        if (chessBoard.Grid[source.Row, source.Column]?.FigureType == FigureType.King
+            && Math.Abs(source.Column - target.Column) == 2
+            && source.Row == target.Row)
         {
             var castlingMove = GetCastlingMove(source, target, uci);
 
@@ -74,33 +74,41 @@ public static class StockfishStrategyHelper
     {
         if (source.Column != 4)
         {
-            throw new InvalidOperationException("Invalid castling move");
+            throw new InvalidOperationException("Invalid castling move: King does not start from the standard column.");
         }
 
-        if (source.Row == 0 || source.Row == 7)
+        if (source.Row != 0 && source.Row != 7)
         {
-            if (target.Column == source.Column + 2)
-            {
-                return new Castling
-                {
-                    KingSource = source,
-                    KingTarget = target,
-                    RookSource = new SpacePosition(source.Row, target.Column + 3),
-                    RookTarget = new SpacePosition(source.Row, target.Column + 1)
-                };
-            }
-            else
-            {
-                return new Castling
-                {
-                    KingSource = source,
-                    KingTarget = target,
-                    RookSource = new SpacePosition(source.Row, 0),
-                    RookTarget = new SpacePosition(source.Row, source.Column - 1)
-                };
-            }
+            throw new InvalidOperationException("Invalid castling move: King is not on a valid row.");
         }
 
-        throw new InvalidOperationException("Invalid castling move");
+        bool isKingside = target.Column == 6; 
+        bool isQueenside = target.Column == 2;
+
+        if (!isKingside && !isQueenside)
+        {
+            throw new InvalidOperationException("Invalid castling move: Target column does not match any valid castling move.");
+        }
+
+        if (isKingside)
+        {
+            return new Castling
+            {
+                KingSource = source,
+                KingTarget = target,
+                RookSource = new SpacePosition(source.Row, 7),
+                RookTarget = new SpacePosition(source.Row, 5) 
+            };
+        }
+        else
+        {
+            return new Castling
+            {
+                KingSource = source,
+                KingTarget = target,
+                RookSource = new SpacePosition(source.Row, 0),
+                RookTarget = new SpacePosition(source.Row, 3) 
+            };
+        }
     }
 }

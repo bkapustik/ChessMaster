@@ -60,7 +60,6 @@ class PlaneLocalization : IPlaneLocalization
 
         var colorImg = ReturnColorImageOfTable(LocalizedTableMask, planeData.KinectData.ColorFrameData, planeData.KinectData.PointsFromColorToDepth);
         planeData.PlaneData.MaskedColorImageOfTable = colorImg;
-        //planeData.MaskedColorImageOfTable._EqualizeHist(); // TODO zjisitit jestli to pomáhá při stabilizaci osvětlení
 
         if (planeData.UserParameters.VisualisationType == VisualisationType.MaskedColorImageOfTable)
             planeData.ResultData.VisualisationBitmap = colorImg.AsBitmap();

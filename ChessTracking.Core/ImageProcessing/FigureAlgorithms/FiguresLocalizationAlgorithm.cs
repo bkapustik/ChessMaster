@@ -121,7 +121,6 @@ namespace ChessTracking.Core.ImageProcessing.FigureAlgorithms
         private List<Point2DWithColor>[,] FillColorsOverFiledsArrayWithData(
             List<Point2DWithColor>[,] array, KinectDataClass kinectData, double fieldSize, byte[] canniedBytes, UserDefinedParameters userParameters)
         {
-            // TODO paralelize
             var csp = kinectData.CameraSpacePointsFromDepthData;
             var infraredData = kinectData.InfraredData;
             var colorFrameData = kinectData.ColorFrameData;

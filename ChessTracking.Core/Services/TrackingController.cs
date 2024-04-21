@@ -60,7 +60,6 @@ public class TrackingController : IDisposable
         KinectTrackingAppPath = $"{projectDirectory}\\ChessTracking.Kinect\\bin\\{buildConfigurationName}\\ChessTracking.Kinect.exe";
     }
 
-    //TODO return this back
     public void StartTrackerApp() 
     {
         if (TrackerAppProcess == null || TrackerAppProcess.HasExited)

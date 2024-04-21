@@ -141,29 +141,6 @@ public class RobotSpace
         return commands;
     }
 
-    // TODO Delete if not neccessary
-    [Obsolete]
-    private void MoveToCarryingPosition(SpacePosition targetPosition)
-    {
-        var commands = new Queue<RobotCommand>();
-
-        var moves = GetTrajectory(targetPosition);
-
-        if (moves.Count > 0)
-        {
-            expectedResultingPosition = moves.Last();
-
-            while (moves.Count > 0)
-            {
-                var move = moves.Dequeue();
-
-                commands.Enqueue(new MoveCommand(move));
-            }
-        }
-
-        Driver!.ScheduleCommands(commands);
-    }
-
     protected float GetCarryHeight(MoveableEntity? figure)
     {
         if (figure != null)
