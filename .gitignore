@@ -12,7 +12,6 @@
 bin/
 obj/
 *.dll
-*.exe
 *.pdb
 *.cache
 *.log
