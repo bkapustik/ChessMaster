@@ -10,6 +10,9 @@ public class ChessRobot : RobotSpace
 {
     private const float safePaddingBetweenFigures = 25;
 
+    private SpacePosition HighPosition = new SpacePosition(0, 6);
+    private Vector3 HighPoint;
+
     private ChessBoard chessBoard;
     public ChessRobot(IRobot robot)
     {
@@ -25,6 +28,8 @@ public class ChessRobot : RobotSpace
         chessBoard.AssignFigures();
         TileWidth = chessBoard.tileWidth;
         SafePaddingBetweenFigures = safePaddingBetweenFigures;
+
+        HighPoint = chessBoard.Space.SubSpaces[HighPosition.Row, HighPosition.Column]!.Center3!.Value + new Vector3(0, 0, 200);
     }
 
     public void ReconfigureChessBoard(Vector2 a1Center, Vector2 h8Center)
@@ -49,13 +54,19 @@ public class ChessRobot : RobotSpace
 
         MoveEntityFromSourceToTarget(chessBoard.GetRealSpacePosition(figurePosition),
             chessBoard.GetRealSpacePosition(targetPosition));
+        MoveToAHighPoint();
+    }
+
+    private void MoveToAHighPoint()
+    {
+        MoveToAHighPoint(HighPoint, HighPosition);
     }
 
     public void UpdateBoard(SpacePosition source, SpacePosition target)
     {
         var realSource = chessBoard.GetRealSpacePosition(source);
         var realTarget = chessBoard.GetRealSpacePosition(target);
-        
+
         var entity = space!.SubSpaces[realSource.Row, realSource.Column].Entity;
 
         space!.SubSpaces[realSource.Row, realSource.Column].Entity = null;
@@ -70,7 +81,7 @@ public class ChessRobot : RobotSpace
     /// <exception cref="ArgumentNullException"></exception>
     public void StartGame()
     {
-        Driver!.ScheduleCommands(new Queue<RobotCommand>());
+        MoveToAHighPoint();
     }
 
     public void CaptureFigure(SpacePosition sourcePosition, SpacePosition targetPosition, bool boardUpdateOnly = false)
@@ -85,11 +96,12 @@ public class ChessRobot : RobotSpace
         var freeSpace = chessBoard.GetNextFreeSpace();
         MoveEntityFromSourceToTarget(chessBoard.GetRealSpacePosition(targetPosition), freeSpace);
         MoveEntityFromSourceToTarget(chessBoard.GetRealSpacePosition(sourcePosition), chessBoard.GetRealSpacePosition(targetPosition));
+        MoveToAHighPoint();
     }
 
     public void PromotePawn(SpacePosition source, SpacePosition target, FigureType promotion, bool boardUpdateOnly = false)
     {
-        
+
     }
 
     public void ExecuteCastling(Castling castling, bool boardUpdateOnly = false)
@@ -104,6 +116,7 @@ public class ChessRobot : RobotSpace
 
         MoveEntityFromSourceToTarget(chessBoard.GetRealSpacePosition(castling.KingSource), chessBoard.GetRealSpacePosition(castling.KingTarget));
         MoveEntityFromSourceToTarget(chessBoard.GetRealSpacePosition(castling.RookSource), chessBoard.GetRealSpacePosition(castling.RookTarget));
+        MoveToAHighPoint();
     }
 
     /// <summary>

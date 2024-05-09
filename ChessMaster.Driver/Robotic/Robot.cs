@@ -152,7 +152,7 @@ public class Robot : RobotBase
 
         try
         {
-            if (commandQueue.Count > 0)
+            while (commandQueue.Count > 0)
             {
                 semaphore.Wait();
 
@@ -162,6 +162,21 @@ public class Robot : RobotBase
 
                 SendCommandAtLastCompletion(serialCommand);
 
+            }
+            bool isIdle = false;
+            while (!isIdle)
+            {
+                state = driver.GetRawState();
+                isIdle = state.MovementState == MovementState.Idle.ToString();
+
+                if (!isIdle)
+                {
+                    Task.Delay(10);
+                }
+                else
+                {
+                    HandleOkReponse();
+                }
             }
         }
         catch (Exception ex)

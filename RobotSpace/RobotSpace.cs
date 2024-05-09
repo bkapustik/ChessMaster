@@ -52,6 +52,13 @@ public class RobotSpace
         Driver!.ScheduleCommands(commands);
     }
 
+    protected void MoveToAHighPoint(Vector3 targetPoint, SpacePosition target)
+    {
+        expectedResultingPosition = GetState().Position;
+        var commands = GetMoveToAHighPointCommands(targetPoint, target);
+        Driver!.ScheduleCommands(commands);
+    }
+
     /// <summary>
     /// 
     /// </summary>
@@ -137,6 +144,31 @@ public class RobotSpace
         commands.Enqueue(new CloseCommand());
 
         expectedResultingPosition.Z = SafePaddingBetweenFigures + entityHeight;
+
+        return commands;
+    }
+
+    private Queue<RobotCommand> GetMoveToAHighPointCommands(Vector3 targetPoint, SpacePosition targetPosition)
+    {
+        var commands = new Queue<RobotCommand>();
+
+        var moves = GetTrajectoryToAHighPoint(targetPoint, targetPosition);
+
+        if (moves.Count > 0)
+        {
+            expectedResultingPosition = moves.Last();
+
+            while (moves.Count > 0)
+            {
+                var move = moves.Dequeue();
+
+                commands.Enqueue(new MoveCommand(move));
+            }
+        }
+
+        commands.Enqueue(new OpenCommand());
+        commands.Enqueue(new MoveCommand(new Vector3(expectedResultingPosition.X, expectedResultingPosition.Y, SafePaddingBetweenFigures)));
+        commands.Enqueue(new CloseCommand());
 
         return commands;
     }
@@ -277,6 +309,94 @@ public class RobotSpace
 
         return result;
     }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="targetPosition"></param>
+    /// <returns></returns>
+    private Queue<Vector3> GetTrajectoryToAHighPoint(Vector3 targetPoint, SpacePosition targetPosition)
+    {
+        var resultPoints = new List<Vector3>();
+
+        float heightPadding = GetCarryHeight(currentlyHeldEntity);
+
+        SpacePosition currentPosition = new SpacePosition((int)(expectedResultingPosition.Y / TileWidth), (int)(expectedResultingPosition.X / TileWidth));
+
+        List<SpacePosition> intersectedTiles = ComputeLineSupercoverSet(currentPosition, targetPosition);
+
+        float sourcePointY = expectedResultingPosition.Y;
+        float sourcePointX = expectedResultingPosition.X;
+
+        if (intersectedTiles.Count > 0)
+        {
+            float mLineGradient = 0;
+            float cHeight = 0;
+
+            if (targetPoint.X != sourcePointX)
+            {
+                mLineGradient = (targetPoint.Y - sourcePointY) / (targetPoint.X - sourcePointX);
+                cHeight = -(mLineGradient * sourcePointX) + sourcePointY;
+            }
+
+            int dy = Math.Abs(targetPosition.Row - currentPosition.Row);
+            int dx = Math.Abs(targetPosition.Column - currentPosition.Column);
+
+            IEnumerable<IGrouping<int, SpacePosition>> tilesGrouped;
+
+            if (dy > dx)
+            {
+                tilesGrouped = intersectedTiles.GroupBy(tile => tile.Row);
+            }
+            else
+            {
+                tilesGrouped = intersectedTiles.GroupBy(tile => tile.Column);
+            }
+
+            List<GroupCoordination> groupCoordinations = tilesGrouped.Select(group => group
+                .MaxBy(tile => space!.SubSpaces[tile.Row, tile.Column].Entity?.Height ?? 0))
+                .Select(tile => new GroupCoordination(tile,
+                    space!.SubSpaces[tile.Row, tile.Column].Entity?.Height ?? 0)
+                ).ToList();
+
+            foreach (var group in groupCoordinations)
+            {
+                group.ComputeTileIntersectionTowardsTarget(dy, dx, TileWidth, cHeight, mLineGradient);
+            }
+
+            int maximumHeightIndex = GroupCoordination.GetLastMaximumHeightIndex(groupCoordinations);
+            float maximumHeight = groupCoordinations[maximumHeightIndex].Height;
+
+            float previousHeight = 0;
+            for (int i = 0; i <= maximumHeightIndex; i++)
+            {
+                var group = groupCoordinations[i];
+                if (group.Height > previousHeight)
+                {
+                    previousHeight = group.Height;
+                    resultPoints.Add(new Vector3(group.RealX, group.RealY, group.Height));
+                }
+                else if (group.Height == maximumHeight && i < maximumHeightIndex)
+                {
+                    resultPoints.Add(new Vector3(groupCoordinations[maximumHeightIndex].RealX, groupCoordinations[maximumHeightIndex].RealY, maximumHeight));
+                }
+            }
+        }
+
+        var result = new Queue<Vector3>();
+
+        for (int i = 0; i < resultPoints.Count; i++)
+        {
+            var point = resultPoints[i];
+            point.Z += heightPadding;
+            result.Enqueue(point);
+        }
+
+        result.Enqueue(new Vector3(targetPoint.X, targetPoint.Y, targetPoint.Z));
+
+        return result;
+    }
+
 
     private class GroupCoordination
     {

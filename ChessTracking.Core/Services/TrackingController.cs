@@ -5,6 +5,7 @@ using ChessTracking.Core.Tracking.State;
 using MemoryMappedCollections;
 using System.Diagnostics;
 using System.Reflection;
+
 namespace ChessTracking.Core.Services;
 
 public class TrackingController : IDisposable

@@ -14,7 +14,6 @@ public class SerialDriver : ISerialDriver
     private readonly SerialCommandFactory commandFactory;
     private int lastAlarm = 0;
     public bool HomingRequired { get; private set; }
-    public CommandsCompletedEvent? CommandsExecuted { get; set; }
 
     public SerialDriver(string portName)
     {
@@ -122,10 +121,6 @@ public class SerialDriver : ISerialDriver
             MovementState = tokens[0],
             Coordinates = coords
         };
-    }
-    protected virtual void OnCommandsExecuted(RobotEventArgs e)
-    {
-        CommandsExecuted?.Invoke(this, e);
     }
     private string SendCommandGetResponse(SerialCommand command)
     {
