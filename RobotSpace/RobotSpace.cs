@@ -86,8 +86,6 @@ public class RobotSpace
         var commands = new Queue<RobotCommand>();
         var entity = space!.SubSpaces[position.Row, position.Column].Entity;
 
-        commands.Enqueue(new OpenCommand());
-
         var moves = GetTrajectory(position);
 
         if (moves.Count > 0)
@@ -102,9 +100,11 @@ public class RobotSpace
             }
         }
 
+        commands.Enqueue(new OpenCommand());
+        commands.Enqueue(new MoveCommand(new Vector3(expectedResultingPosition.X, expectedResultingPosition.Y, SafePaddingBetweenFigures + entityHeight)));
         commands.Enqueue(new CloseCommand());
 
-        var state =GetState();
+        var state = GetState();
 
         if (state.RobotResponse != RobotResponse.Ok && state.RobotResponse != RobotResponse.Initialized)
         {
