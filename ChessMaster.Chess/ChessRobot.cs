@@ -11,7 +11,7 @@ public class ChessRobot : RobotSpace
     private const float safePaddingBetweenFigures = 25;
 
     private SpacePosition HighPosition = new SpacePosition(0, 6);
-    private Vector3 HighPoint;
+    private const float HighHeight = 200;
 
     private ChessBoard chessBoard;
     public ChessRobot(IRobot robot)
@@ -28,8 +28,6 @@ public class ChessRobot : RobotSpace
         chessBoard.AssignFigures();
         TileWidth = chessBoard.tileWidth;
         SafePaddingBetweenFigures = safePaddingBetweenFigures;
-
-        HighPoint = chessBoard.Space.SubSpaces[HighPosition.Row, HighPosition.Column]!.Center3!.Value + new Vector3(0, 0, 200);
     }
 
     public void ReconfigureChessBoard(Vector2 a1Center, Vector2 h8Center)
@@ -59,7 +57,7 @@ public class ChessRobot : RobotSpace
 
     private void MoveToAHighPoint()
     {
-        MoveToAHighPoint(HighPoint, HighPosition);
+        MoveToAHighPoint(HighPosition, HighHeight);
     }
 
     public void UpdateBoard(SpacePosition source, SpacePosition target)

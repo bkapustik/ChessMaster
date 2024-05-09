@@ -52,10 +52,10 @@ public class RobotSpace
         Driver!.ScheduleCommands(commands);
     }
 
-    protected void MoveToAHighPoint(Vector3 targetPoint, SpacePosition target)
+    protected void MoveToAHighPoint(SpacePosition target, float targetHeight)
     {
         expectedResultingPosition = GetState().Position;
-        var commands = GetMoveToAHighPointCommands(targetPoint, target);
+        var commands = GetMoveToAHighPointCommands(target, targetHeight);
         Driver!.ScheduleCommands(commands);
     }
 
@@ -101,7 +101,7 @@ public class RobotSpace
         }
 
         commands.Enqueue(new OpenCommand());
-        commands.Enqueue(new MoveCommand(new Vector3(expectedResultingPosition.X, expectedResultingPosition.Y, SafePaddingBetweenFigures + entityHeight)));
+        commands.Enqueue(new MoveCommand(new Vector3(expectedResultingPosition.X, expectedResultingPosition.Y, SafePaddingBetweenFigures)));
         commands.Enqueue(new CloseCommand());
 
         var state = GetState();
@@ -148,11 +148,11 @@ public class RobotSpace
         return commands;
     }
 
-    private Queue<RobotCommand> GetMoveToAHighPointCommands(Vector3 targetPoint, SpacePosition targetPosition)
+    private Queue<RobotCommand> GetMoveToAHighPointCommands(SpacePosition targetPosition, float targetHeight)
     {
         var commands = new Queue<RobotCommand>();
 
-        var moves = GetTrajectoryToAHighPoint(targetPoint, targetPosition);
+        var moves = GetTrajectoryToAHighPoint(targetPosition, targetHeight);
 
         if (moves.Count > 0)
         {
@@ -165,11 +165,6 @@ public class RobotSpace
                 commands.Enqueue(new MoveCommand(move));
             }
         }
-
-        commands.Enqueue(new OpenCommand());
-        commands.Enqueue(new MoveCommand(new Vector3(expectedResultingPosition.X, expectedResultingPosition.Y, SafePaddingBetweenFigures)));
-        commands.Enqueue(new CloseCommand());
-
         return commands;
     }
 
@@ -315,7 +310,7 @@ public class RobotSpace
     /// </summary>
     /// <param name="targetPosition"></param>
     /// <returns></returns>
-    private Queue<Vector3> GetTrajectoryToAHighPoint(Vector3 targetPoint, SpacePosition targetPosition)
+    private Queue<Vector3> GetTrajectoryToAHighPoint(SpacePosition targetPosition, float targetHeight)
     {
         var resultPoints = new List<Vector3>();
 
@@ -327,15 +322,17 @@ public class RobotSpace
 
         float sourcePointY = expectedResultingPosition.Y;
         float sourcePointX = expectedResultingPosition.X;
+        float targetPointY = (targetPosition.Row * TileWidth) + (TileWidth / 2);
+        float targetPointX = (targetPosition.Column * TileWidth) + (TileWidth / 2);
 
         if (intersectedTiles.Count > 0)
         {
             float mLineGradient = 0;
             float cHeight = 0;
 
-            if (targetPoint.X != sourcePointX)
+            if (targetPointX != sourcePointX)
             {
-                mLineGradient = (targetPoint.Y - sourcePointY) / (targetPoint.X - sourcePointX);
+                mLineGradient = (targetPointY - sourcePointY) / (targetPointX - sourcePointX);
                 cHeight = -(mLineGradient * sourcePointX) + sourcePointY;
             }
 
@@ -392,7 +389,9 @@ public class RobotSpace
             result.Enqueue(point);
         }
 
-        result.Enqueue(new Vector3(targetPoint.X, targetPoint.Y, targetPoint.Z));
+        float targetZ = targetHeight;
+
+        result.Enqueue(new Vector3(targetPointX, targetPointY, targetZ));
 
         return result;
     }
